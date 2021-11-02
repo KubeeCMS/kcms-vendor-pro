@@ -85,7 +85,9 @@
                     self.form_is_working();
                     self.save_form_data();
                 } catch( error ) {
-                    alert( error.message );
+                    dokan_sweetalert( error.message, { 
+                        icon: 'error',
+                    } );
                 }
             } );
 
@@ -111,8 +113,13 @@
                 self.enable_disable_form_button();
             } );
 
-            $( '#dokan-seller-vacation-list-table' ).on( 'click', '.dokan-seller-vacation-remove-schedule', function () {
-                if ( ! confirm( dokanSellerVacation.i18n.confirm_delete ) ) {
+            $( '#dokan-seller-vacation-list-table' ).on( 'click', '.dokan-seller-vacation-remove-schedule', async function () {
+                const answer = await dokan_sweetalert( dokanSellerVacation.i18n.confirm_delete, { 
+                    action : 'confirm', 
+                    icon   : 'warning',
+                } );
+
+                if ( 'undefined' !== answer && ! answer.isConfirmed ) {
                     return;
                 }
 
@@ -132,7 +139,9 @@
                     }
                 } ).fail( function ( jqXHR ) {
                     if ( jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.length ) {
-                        alert( jqXHR.responseJSON.data.pop().message );
+                        dokan_sweetalert( jqXHR.responseJSON.data.pop().message, { 
+                            icon: 'error',
+                        } );
                     }
                 } ).always( function () {
                     self.fieldset.removeClass( 'working' );
@@ -268,7 +277,9 @@
 
             } ).fail( function ( jqXHR ) {
                 if ( jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.length ) {
-                    alert( jqXHR.responseJSON.data.pop().message );
+                    dokan_sweetalert( jqXHR.responseJSON.data.pop().message, { 
+                        icon: 'error',
+                    } );
                 }
             } ).always( function () {
                 self.form_finished_working();

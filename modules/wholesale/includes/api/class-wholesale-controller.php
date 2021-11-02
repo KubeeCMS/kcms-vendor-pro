@@ -3,8 +3,8 @@
 use WeDevs\Dokan\Abstracts\DokanRESTController;
 
 /**
-* Wholesale related API's
-*/
+ * Wholesale related API's
+ */
 class Dokan_REST_Wholesale_Controller extends DokanRESTController {
 
     /**
@@ -27,55 +27,66 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
      * @return void
      */
     public function register_routes() {
-        register_rest_route( $this->namespace, '/' . $this->base . '/register', array(
+        register_rest_route(
+            $this->namespace, '/' . $this->base . '/register',
             array(
-                'methods'  => WP_REST_Server::CREATABLE,
-                'callback' => [ $this, 'create_wholesale_customer' ],
-                'args'     => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), [
+                array(
+                    'methods'  => WP_REST_Server::CREATABLE,
+                    'callback' => [ $this, 'create_wholesale_customer' ],
+                    'args'     => array_merge(
+                        $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), [
+                            'id' => [
+                                'description' => __( 'User ID.', 'dokan' ),
+                                'required'    => true,
+                                'type'        => 'string',
+                            ],
+                        ]
+                    ),
+                    'permission_callback' => '__return_true',
+                ),
+            )
+        );
+
+        register_rest_route(
+            $this->namespace, '/' . $this->base . '/customers', array(
+                array(
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'get_wholesale_customers' ],
+                    'args'                => $this->get_collection_params(),
+                    'permission_callback' => [ $this, 'permission_for_get_all' ],
+                ),
+            )
+        );
+
+        register_rest_route(
+            $this->namespace, '/' . $this->base . '/customer/(?P<id>[\d]+)', array(
+                'args' => [
                     'id' => [
-                        'description' => __( 'User ID.', 'dokan' ),
-                        'required'    => true,
+                        'description' => __( 'Unique identifier for the object.', 'dokan' ),
+                        'type'        => 'integer',
+                    ],
+                    'status' => [
+                        'description' => __( 'Status for wholesale customer', 'dokan' ),
                         'type'        => 'string',
                     ],
-                ] ),
-                'permission_callback' => '__return_true',
-            ),
-        ) );
-
-        register_rest_route( $this->namespace, '/' . $this->base . '/customers', array(
-            array(
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_wholesale_customers' ],
-                'args'                => $this->get_collection_params(),
-                'permission_callback' => [ $this, 'permission_for_get_all' ]
-            ),
-        ) );
-
-        register_rest_route( $this->namespace, '/' . $this->base . '/customer/(?P<id>[\d]+)', array(
-            'args' => [
-                'id' => [
-                    'description' => __( 'Unique identifier for the object.', 'dokan' ),
-                    'type'        => 'integer',
                 ],
-                'status' => [
-                    'description' => __( 'Status for wholesale customer', 'dokan' ),
-                    'type'        => 'string',
-                ]
-            ],
-            array(
-                'methods'             => WP_REST_Server::EDITABLE,
-                'callback'            => [ $this, 'update_wholesale_customer_status' ],
-                'permission_callback' => [ $this, 'permission_for_change_status' ]
-            ),
-        ) );
+                array(
+                    'methods'             => WP_REST_Server::EDITABLE,
+                    'callback'            => [ $this, 'update_wholesale_customer_status' ],
+                    'permission_callback' => [ $this, 'permission_for_change_status' ],
+                ),
+            )
+        );
 
-        register_rest_route( $this->namespace, '/' . $this->base . '/customers/batch', array(
-            array(
-                'methods'  => WP_REST_Server::EDITABLE,
-                'callback' => array( $this, 'batch_update' ),
-                'permission_callback' => array( $this, 'permission_check_for_manageable_part' ),
-            ),
-        ) );
+        register_rest_route(
+            $this->namespace, '/' . $this->base . '/customers/batch', array(
+                array(
+                    'methods'  => WP_REST_Server::EDITABLE,
+                    'callback' => array( $this, 'batch_update' ),
+                    'permission_callback' => array( $this, 'permission_check_for_manageable_part' ),
+                ),
+            )
+        );
     }
 
     /**
@@ -122,22 +133,22 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
         $params    = $request->get_params();
         $customers = array();
         $defaults  = array(
-            'role__in'   => array( 'seller', 'customer' ),
+            'role__in'   => array( 'seller', 'customer', 'administrator', 'vendor_staff' ),
             'number'     => 10,
             'offset'     => 0,
             'orderby'    => 'registered',
             'order'      => 'ASC',
-            'meta_query' => [
+            'meta_query' => [   // phpcs:ignore
                 [
                     'key'     => '_is_dokan_wholesale_customer',
-                    'compare' => 'EXISTS'
-                ]
+                    'compare' => 'EXISTS',
+                ],
             ],
         );
 
         $args = array(
             'number' => (int) $params['per_page'],
-            'offset' => (int) ( $params['page'] - 1 ) * $params['per_page']
+            'offset' => (int) ( $params['page'] - 1 ) * $params['per_page'],
         );
 
         if ( ! empty( $params['search'] ) ) {
@@ -160,11 +171,11 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
         $args   = dokan_parse_args( $args, $defaults );
         $status = ! empty( $args['status'] ) ? $args['status'] : '';
 
-        if ( in_array( $status, array( 'active', 'deactive' ) ) ) {
+        if ( in_array( $status, array( 'active', 'deactive' ), true ) ) {
             $args['meta_query'][] = [
                 'key'     => '_dokan_wholesale_customer_status',
                 'value'   => $status,
-                'compare' => '='
+                'compare' => '=',
             ];
         }
 
@@ -203,13 +214,17 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
             return new WP_Error( 'no-user', __( 'No user found', 'dokan' ), [ 'status' => 401 ] );
         }
 
-        if ( ! ( in_array( 'seller', $user->roles ) || in_array( 'customer', $user->roles ) ) ) {
+        if ( ! ( $user->has_cap( 'dokandar' ) || in_array( 'customer', $user->roles, true ) ) ) {
             return new WP_Error( 'no-valid-role', __( 'Not a valid user for wholesale', 'dokan' ), [ 'status' => 401 ] );
         }
 
         $need_approval = dokan_get_option( 'need_approval_for_wholesale_customer', 'dokan_wholesale', 'yes' );
 
-        if ( 'yes' == $need_approval ) {
+        if ( in_array( 'administrator', $user->roles, true ) ) {
+            $need_approval = 'no';
+        }
+
+        if ( 'yes' === $need_approval ) {
             update_user_meta( $user->ID, '_is_dokan_wholesale_customer', 'yes' );
             update_user_meta( $user->ID, '_dokan_wholesale_customer_status', 'deactive' );
             $user->remove_cap( 'dokan_wholesale_customer' );
@@ -219,7 +234,7 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
             $user->add_cap( 'dokan_wholesale_customer' );
         }
 
-        do_action('dokan_wholesale_customer_register', $user, $request);
+        do_action( 'dokan_wholesale_customer_register', $user, $request );
 
         return $this->prepare_item_for_response( $user, $request );
     }
@@ -240,7 +255,7 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
             return new WP_Error( 'no-status', __( 'No status found for update', 'dokan' ), [ 'status' => 401 ] );
         }
 
-        if ( ! in_array( $request['status'], [ 'activate', 'deactivate', 'delete' ] ) ) {
+        if ( ! in_array( $request['status'], [ 'activate', 'deactivate', 'delete' ], true ) ) {
             return new WP_Error( 'invalid-status', __( 'Status are not valid', 'dokan' ), [ 'status' => 401 ] );
         }
 
@@ -250,19 +265,19 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
             return new WP_Error( 'no-user', __( 'No user found', 'dokan' ), [ 'status' => 401 ] );
         }
 
-        if ( 'activate' == $request['status'] ) {
+        if ( 'activate' === $request['status'] ) {
             update_user_meta( $user->ID, '_is_dokan_wholesale_customer', 'yes' );
             update_user_meta( $user->ID, '_dokan_wholesale_customer_status', 'active' );
             $user->add_cap( 'dokan_wholesale_customer' );
         }
 
-        if ( 'deactivate' == $request['status'] ) {
+        if ( 'deactivate' === $request['status'] ) {
             update_user_meta( $user->ID, '_is_dokan_wholesale_customer', 'no' );
             update_user_meta( $user->ID, '_dokan_wholesale_customer_status', 'deactive' );
             $user->remove_cap( 'dokan_wholesale_customer' );
         }
 
-        if ( 'delete' == $request['status'] ) {
+        if ( 'delete' === $request['status'] ) {
             delete_user_meta( $user->ID, '_is_dokan_wholesale_customer' );
             delete_user_meta( $user->ID, '_dokan_wholesale_customer_status' );
             $user->remove_cap( 'dokan_wholesale_customer' );
@@ -289,7 +304,7 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
         $response       = array();
 
         foreach ( $params as $status => $value ) {
-            if ( in_array( $status, $allowed_status ) ) {
+            if ( in_array( $status, $allowed_status, true ) ) {
                 switch ( $status ) {
                     case 'activate':
                         foreach ( $value as $customer_id ) {
@@ -303,7 +318,6 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
                         break;
 
                     case 'deactivate':
-
                         foreach ( $value as $customer_id ) {
                             $user = get_user_by( 'id', $customer_id );
                             update_user_meta( $user->ID, '_is_dokan_wholesale_customer', 'no' );
@@ -314,7 +328,6 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
                         break;
 
                     case 'delete':
-
                         foreach ( $value as $customer_id ) {
                             $user = get_user_by( 'id', $customer_id );
                             delete_user_meta( $user->ID, '_is_dokan_wholesale_customer' );
@@ -338,19 +351,21 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
      * @return void
      */
     public function format_user_collections( $request ) {
-        return apply_filters( 'dokan_wholesale_customer_data', [
-            'id'               => $request->ID,
-            'first_name'       => $request->first_name,
-            'last_name'        => $request->last_name,
-            'username'         => $request->user_login,
-            'name'             => $request->display_name,
-            'email'            => $request->user_email,
-            'avatar'           => get_avatar_url( $request->user_email ),
-            'url'              => $request->user_url,
-            'role'             => implode( ', ', $request->roles ),
-            'registerd_date'   => mysql_to_rfc3339( $request->user_registered ),
-            'wholesale_status' => $request->has_cap( 'dokan_wholesale_customer' ) ? 'active' : 'deactive'
-        ] );
+        return apply_filters(
+            'dokan_wholesale_customer_data', [
+                'id'               => $request->ID,
+                'first_name'       => $request->first_name,
+                'last_name'        => $request->last_name,
+                'username'         => $request->user_login,
+                'name'             => $request->display_name,
+                'email'            => $request->user_email,
+                'avatar'           => get_avatar_url( $request->user_email ),
+                'url'              => $request->user_url,
+                'role'             => implode( ', ', $request->roles ),
+                'registerd_date'   => mysql_to_rfc3339( $request->user_registered ),
+                'wholesale_status' => $request->has_cap( 'dokan_wholesale_customer' ) ? 'active' : 'deactive',
+            ]
+        );
     }
 
     /**
@@ -428,8 +443,8 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
             $prev_link = add_query_arg( 'page', $prev_page, $base );
             $response->link_header( 'prev', $prev_link );
         }
-        if ( $max_pages > $page ) {
 
+        if ( $max_pages > $page ) {
             $next_page = $page + 1;
             $next_link = add_query_arg( 'page', $next_page, $base );
             $response->link_header( 'next', $next_link );
@@ -437,6 +452,4 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
 
         return $response;
     }
-
-
 }

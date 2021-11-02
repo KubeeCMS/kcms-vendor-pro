@@ -387,12 +387,15 @@ jQuery( function( $ ) {
 
 					return false;
 				} )
-				.on( 'click', '.wc-pao-remove-addon', function() {
+				.on( 'click', '.wc-pao-remove-addon', async function() {
 					$( '.wc-pao-error-message' ).remove();
 
-					var answer = confirm( wc_pao_params.i18n.confirm_remove_addon );
+					const answer = await dokan_sweetalert( wc_pao_params.i18n.confirm_remove_addon, { 
+						action  : 'confirm',
+						icon    : 'warning'
+					} );
 
-					if ( answer ) {
+					if ( 'undefined' !== answer && answer.isConfirmed ) {
 						var addon = $( this ).closest( '.wc-pao-addon' );
 						$( addon ).find( 'input' ).val( '' );
 						$( addon ).remove();
@@ -413,10 +416,13 @@ jQuery( function( $ ) {
 
 					return false;
 				} )
-				.on( 'click', '.wc-pao-remove-option', function() {
-					var answer = confirm( wc_pao_params.i18n.confirm_remove_option );
+				.on( 'click', '.wc-pao-remove-option', async function() {
+					const answer = await dokan_sweetalert( wc_pao_params.i18n.confirm_remove_option, { 
+						action  : 'confirm',
+						icon    : 'warning'
+					} );
 
-					if ( answer ) {
+					if ( 'undefined' !== answer && answer.isConfirmed ) {
 						var typeSelect = $( this ).parents( '.wc-pao-addon-content' ).find( 'select.wc-pao-addon-type-select' );
 
 						$( this ).parents( '.wc-pao-addon-option-row' ).remove();

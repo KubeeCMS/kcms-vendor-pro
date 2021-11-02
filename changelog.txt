@@ -1,3 +1,25 @@
+v3.4.0 Oct 31, 2021
+----------------------------------
+- **feat:** Added Admin coupon support
+- **feat:** Table Rate Shipping (new module)
+- **feat:** Rank Math SEO Integration (new module)
+- **feat:** Product Bulk Edit feature for vendors/seller
+- **feat:** [Vendor Verification] Company Verification Support for vendors (you need to enable Germanized module also to get this feature)
+- **update:** Added integration of sweetalert2 for alert, prompt, confirm, toast notification
+- **update:** [RMA] WC decimal separator support added in RMA module
+- **update:** Vendor dashborad shipping class suggestion added. dokan-lite issue id no: #1259
+- **update:** [Store Support] added dynamic date time format support for Store Support module
+- **update:** [SMS Verification] Updated Twillio SDK
+- **update:** [WholeSale] Previously vendor and vendor staff does not have the ability to become a wholesale customer, this feature has been added now
+- **update:** [Geolocation]  Remove previously added autodetect feature for geolocation module
+- **update:** Prevent vendor to create category. Previously vendors were capable of creating categories while importing product from CSV file.
+- **fix:** [Vendor Staff] Fixed No email is triggered when an user is added form the wp-admin panel Users menu
+- **fix:** Send button collapsed (broken layout) on the RTL version of Dokan —> Announcement —> Add Announcement page
+- **fix:** Fixed tooltips doesn't work on the Vendor Dashboard > Orders Edit Page
+- **fix:** New tag wasn’t creating from vendor dashboard product quick edit section
+
+
+
 v3.3.9 Oct 13, 2021
 ----------------------------------
 

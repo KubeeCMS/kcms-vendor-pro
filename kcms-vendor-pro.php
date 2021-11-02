@@ -3,7 +3,7 @@
  * Plugin Name: KCMS Vendor Pro
  * Plugin URI: https://github.com/KubeeCMS/kcms-vendor/
  * Description: E-commerce marketplace pro.
- * Version: 3.3.9
+ * Version: 3.4.0
  * Author: Kubee
  * Author URI: https://github.com/KubeeCMS/
  * WC requires at least: 5.0
@@ -20,7 +20,7 @@
  *
  * @since 2.4
  *
- * @author weDevs <info@wedevs.com>
+ * @author weDevs <info@kubee.com>
  */
 class Dokan_Pro {
 
@@ -36,7 +36,7 @@ class Dokan_Pro {
      *
      * @var string
      */
-    public $version = '3.3.9';
+    public $version = '3.4.0';
 
     /**
      * Database version key
@@ -389,6 +389,7 @@ class Dokan_Pro {
     public function init_classes() {
         new WeDevs\DokanPro\Refund\Hooks();
         new WeDevs\DokanPro\Coupons\Hooks();
+        new WeDevs\DokanPro\Coupons\AdminCoupons();
         new \WeDevs\DokanPro\Shipping\Hooks();
         new \WeDevs\DokanPro\Upgrade\Hooks();
 
@@ -416,6 +417,7 @@ class Dokan_Pro {
         //load classes
         $this->container['store_seo']                = new \WeDevs\DokanPro\StoreSeo();
         $this->container['product_seo']              = new \WeDevs\DokanPro\ProductSeo();
+        $this->container['product_bulk_edit']        = new \WeDevs\DokanPro\ProductBulkEdit();
         $this->container['store_share']              = new \WeDevs\DokanPro\StoreShare();
         $this->container['products']                 = new \WeDevs\DokanPro\Products();
         $this->container['review']                   = new \WeDevs\DokanPro\Review();
@@ -505,9 +507,7 @@ class Dokan_Pro {
     public function dokan_account_migration_button() {
         $user = wp_get_current_user();
 
-        if ( ! dokan_is_user_seller( $user->ID ) ) {
-            dokan_get_template_part( 'global/account-migration-btn', '', [ 'pro' => true ] );
-        }
+        dokan_get_template_part( 'global/account-migration-btn', '', [ 'pro' => true ] );
     }
 
     /**
@@ -567,6 +567,7 @@ class Dokan_Pro {
 
         wp_enqueue_script( 'jquery-blockui', WC()->plugin_url() . '/assets/js/jquery-blockui/jquery.blockUI.min.js', [ 'jquery' ], DOKAN_PRO_PLUGIN_VERSION, true );
         wp_enqueue_script( 'dokan_pro_admin', DOKAN_PRO_PLUGIN_ASSEST . '/js/dokan-pro-admin' . $suffix . '.js', [ 'jquery', 'jquery-blockui' ], DOKAN_PRO_PLUGIN_VERSION, true );
+        wp_register_script( 'dokan_admin_coupon', DOKAN_PRO_PLUGIN_ASSEST . '/js/dokan-admin-coupon' . $suffix . '.js', [ 'jquery' ], DOKAN_PRO_PLUGIN_VERSION, true );
 
         if ( 'shop_order' === $post_type ) {
             wp_enqueue_style( 'dokan_pro_admin_style', DOKAN_PRO_PLUGIN_ASSEST . '/css/dokan-pro-admin-style' . $suffix . '.css', [], DOKAN_PRO_PLUGIN_VERSION, 'all' );

@@ -114,10 +114,13 @@
             $.post( DokanRMA.ajaxurl, data, function(resp){
                 if ( resp.success ) {
                     jQuery( '.dokan-status-update-panel' ).unblock();
+                    alert( resp.data.message )
                     window.location.reload();
                 } else {
                     jQuery( '.dokan-status-update-panel' ).unblock();
-                    alert( resp.data );
+                    dokan_sweetalert( resp.data, { 
+                        icon: 'warning',
+                    } );
                 }
             });
         },
@@ -226,7 +229,15 @@
                     window.location.reload();
                 } else {
                     $( '#dokan-send-refund-popup' ).unblock()
-                    alert( resp.data );
+                    if ( resp.data.error ) {
+                        dokan_sweetalert( resp.data.error, { 
+                            icon: 'warning',
+                        } );
+                    } else {
+                        dokan_sweetalert( resp.data, { 
+                            icon: 'warning',
+                        } );
+                    }
                 }
             } )
         },
@@ -244,11 +255,14 @@
 
             $.post( DokanRMA.ajaxurl, data, function(resp) {
                 if ( resp.success ) {
+                    alert( resp.data );
                     $( '#dokan-send-coupon-popup' ).unblock()
                     window.location.reload();
                 } else {
                     $( '#dokan-send-coupon-popup' ).unblock()
-                    alert( resp.data );
+                    dokan_sweetalert( resp.data, { 
+                        icon: 'warning',
+                    } );
                 }
             } )
 

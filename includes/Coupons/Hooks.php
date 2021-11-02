@@ -33,8 +33,44 @@ class Hooks {
         add_action( 'template_redirect', array( $this, 'handle_coupons' ) );
 
         add_filter( 'dokan_get_dashboard_nav', array( $this, 'add_coupon_menu' ) );
+        add_filter( 'dokan_ensure_admin_have_create_coupon', array( $this, 'ensure_admin_have_create_coupon' ), 15, 4 );
+        add_filter( 'dokan_is_order_have_admin_coupon', array( $this, 'is_order_have_admin_coupon' ), 15, 4 );
         add_filter( 'woocommerce_coupon_validate_minimum_amount', array( $this, 'validate_coupon_minimum_amount' ), 10, 2 );
         add_action( 'dokan_new_product_added', array( $this, 'associate_new_product_with_vendor_coupon' ), 10, 2 );
+    }
+
+    /**
+     * Check order have admin coupon
+     *
+     * @param bool       $valid
+     * @param \WC_Coupon $coupon
+     * @param array      $seller_ids
+     * @param array      $product_ids
+     *
+     * @return boolean
+     */
+    public function is_order_have_admin_coupon( $valid, $coupon, $seller_ids, $product_ids ) {
+        return dokan_pro()->coupon->is_admin_coupon_valid( $coupon, $seller_ids, $product_ids );
+    }
+
+    /**
+     * Ensure vendor have coupon created by admin
+     *
+     * @param bool       $valid
+     * @param \WC_Coupon $coupon
+     * @param array      $available_vendors
+     * @param array      $available_products
+     *
+     * @return boolean
+     */
+    public function ensure_admin_have_create_coupon( $valid, $coupon, $available_vendors, $available_products ) {
+        $commissions_type = $coupon->get_meta( 'coupon_commissions_type' );
+
+        if ( empty( $commissions_type ) ) {
+            return false;
+        }
+
+        return dokan_pro()->coupon->is_admin_coupon_valid( $coupon, $available_vendors, $available_products );
     }
 
     /**
@@ -134,15 +170,20 @@ class Hooks {
 
         foreach ( WC()->cart->get_cart() as $item ) {
             $product_id = $item['data']->get_id();
+            $seller_id  = intval( get_post_field( 'post_author', $product_id ) );
 
-            if ( in_array( $product_id, $coupon_applicable_product_ids, true ) || in_array( $item['product_id'], $coupon_applicable_product_ids, true ) ) {
+            if (
+                in_array( $product_id, $coupon_applicable_product_ids, true ) ||
+                in_array( $item['product_id'], $coupon_applicable_product_ids, true ) ||
+                dokan_pro()->coupon->is_admin_coupon_valid( $coupon, [ $seller_id ], [ $product_id ] )
+            ) {
                 $line_sub_total  = ! empty( $item['line_subtotal'] ) ? $item['line_subtotal'] : 0;
                 $line_item_total += $line_sub_total;
             }
         }
 
         if ( $coupon->get_minimum_amount() > $line_item_total ) {
-            // return validation message when coupon amount greater than total amount
+            // Return validation message when coupon amount greater than total amount
             // translators: %s : showing minimun amount for coupon
             throw new Exception( sprintf( __( 'The minimun spend for this coupon is %s', 'dokan' ), wc_price( $coupon->get_minimum_amount() ) ), 108 );
         }
@@ -233,27 +274,24 @@ class Hooks {
             return;
         }
 
-        $pagenum = isset( $_GET['pagenum'] ) ? absint( $_GET['pagenum'] ) : 1; // phpcs:ignore
-        $all_coupons  = dokan_pro()->coupon->all( [ 'paged' => $pagenum ] );
+        $pagenum             = isset( $_GET['pagenum'] ) ? absint( $_GET['pagenum'] ) : 1; // phpcs:ignore
+        $coupons_type        = isset( $_GET['coupons_type'] ) ? sanitize_text_field( $_GET['coupons_type'] ) : ''; // phpcs:ignore
+        $marketplace_tab     = 'marketplace_coupons' === $coupons_type;
+        $link                = dokan_get_navigation_url( 'coupons' );
+        $vendor_coupons      = dokan_pro()->coupon->all( [ 'paged' => $pagenum ] );
+        $marketplace_coupons = dokan_get_marketplace_seller_coupon( dokan_get_current_user_id(), false );
 
-        if ( ! empty( $all_coupons->coupons ) ) {
-            $this->get_messages();
-            dokan_get_template_part(
-                'coupon/listing', '',
-                [
-                    'pro' => true,
-                    'coupons' => $all_coupons,
-                ]
-            );
-        } else {
-            dokan_get_template_part(
-                'coupon/no-coupon', '',
-                [
-                    'pro' => true,
-                    'message' => __( 'No coupons found!', 'dokan' ),
-                ]
-            );
-        }
+        $this->get_messages();
+        dokan_get_template_part(
+            'coupon/listing', '',
+            [
+                'pro'                 => true,
+                'vendor_coupons'      => $vendor_coupons,
+                'marketplace_coupons' => $marketplace_coupons,
+                'link'                => $link,
+                'marketplace_tab'     => $marketplace_tab,
+            ]
+        );
     }
 
     /**
@@ -370,7 +408,7 @@ class Hooks {
         }
 
         $minimum_amount = isset( $minimum_amount ) ? $minimum_amount : '';
-        $customer_email = isset( $customer_email ) ? implode( ',', $customer_email ) : '';
+        $customer_email = ! empty( $customer_email ) ? implode( ',', $customer_email ) : '';
 
         if ( is_wp_error( self::$validated ) ) {
             $post_id       = $post_data['post_id'];
@@ -518,7 +556,7 @@ class Hooks {
      * @return object WP_Error|error
      */
     public function validate() {
-        if ( ! isset( $_POST['coupon_nonce_field'] ) || ! wp_verify_nonce( wp_unslash( $_POST['coupon_nonce_field'] ), 'coupon_nonce' ) ) {
+        if ( ! isset( $_POST['coupon_nonce_field'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['coupon_nonce_field'] ) ), 'coupon_nonce' ) ) {
             wp_die( __( 'Are you cheating?', 'dokan' ) );
         }
 
@@ -710,6 +748,7 @@ class Hooks {
             'post_type' => 'shop_coupon',
             'name'      => $title,
         );
+
         $query = get_posts( $args );
 
         if ( $title ) {
@@ -720,5 +759,4 @@ class Hooks {
             }
         }
     }
-
 }

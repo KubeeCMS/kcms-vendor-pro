@@ -24,6 +24,7 @@ class Assets {
         } else {
             add_action( 'wp_enqueue_scripts', [ $this, 'register' ], 5 );
             add_action( 'dokan_enqueue_scripts', [ $this, 'enqueue_frontend_scripts' ], 5 );
+            add_filter( 'dokan_localized_args', [ $this, 'add_i18_localized_data' ], 5 );
         }
     }
 
@@ -99,6 +100,7 @@ class Assets {
                 'shipping_class'    => WC()->shipping->get_shipping_classes(),
                 'i18n'              => array( 'dokan' => dokan_get_jed_locale_data( 'dokan' ) ),
                 'processing_time'   => dokan_get_shipping_processing_times(),
+                'dashboardUrl'      => dokan_get_navigation_url(),
             );
 
             wp_localize_script( 'dokan-pro-vue-frontend-shipping', 'dokanShipping', $localize_array );
@@ -202,5 +204,30 @@ class Assets {
         ];
 
         return $styles;
+    }
+    
+    /**
+     * Register i18n Scripts
+     *
+     * @since DOKAN_PRO
+     *
+     * @param array $default_script
+     *
+     * @return void
+     */
+    public function add_i18_localized_data( $default_script ) {
+        $localize_script = [
+            'i18n_location_name'             => __( 'Please provide a location name!', 'dokan' ),
+            'i18n_location_state'            => __( 'Please provide a state!', 'dokan' ),
+            'i18n_country_name'              => __( 'Please provide a country!', 'dokan' ),
+            'i18n_invalid'                   => __( 'Failed! Somthing went wrong', 'dokan' ),
+            'i18n_chat_message'              => __( 'Facebook SDK is not found, or blocked by the browser. Can not initialize the chat.', 'dokan' ),
+            'i18n_sms_code'                  => __( 'Insert SMS code', 'dokan' ),
+            'i18n_gravater'                  => __( 'Upload a Photo', 'dokan'),
+            'i18n_phone_number'              => __( 'Insert Phone No.', 'dokan' ),
+        ];
+
+        $default_script = array_merge( $default_script , $localize_script );
+        return $default_script;
     }
 }

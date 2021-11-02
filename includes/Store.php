@@ -19,7 +19,7 @@ class Store {
      * @uses action hook
      * @uses filter hook
      */
-    function __construct() {
+    public function __construct() {
         add_action( 'dokan_rewrite_rules_loaded', array( $this, 'load_rewrite_rules' ) );
         add_action( 'dokan_store_profile_frame_after', array( $this, 'show_store_coupons' ), 10, 2 );
 
@@ -62,8 +62,8 @@ class Store {
      * @return void
      */
     public function load_rewrite_rules( $custom_store_url ) {
-        add_rewrite_rule( $custom_store_url.'/([^/]+)/reviews?$', 'index.php?'.$custom_store_url.'=$matches[1]&store_review=true', 'top' );
-        add_rewrite_rule( $custom_store_url.'/([^/]+)/reviews/page/?([0-9]{1,})/?$', 'index.php?'.$custom_store_url.'=$matches[1]&paged=$matches[2]&store_review=true', 'top' );
+        add_rewrite_rule( $custom_store_url . '/([^/]+)/reviews?$', 'index.php?' . $custom_store_url . '=$matches[1]&store_review=true', 'top' );
+        add_rewrite_rule( $custom_store_url . '/([^/]+)/reviews/page/?([0-9]{1,})/?$', 'index.php?' . $custom_store_url . '=$matches[1]&paged=$matches[2]&store_review=true', 'top' );
     }
 
     /**
@@ -79,7 +79,7 @@ class Store {
     public function add_review_tab_in_store( $tabs, $store_id ) {
         $tabs['reviews'] = array(
             'title' => __( 'Reviews', 'dokan' ),
-            'url'   => dokan_get_review_url( $store_id )
+            'url'   => dokan_get_review_url( $store_id ),
         );
 
         return $tabs;
@@ -95,22 +95,36 @@ class Store {
      * @return string
      */
     public function store_review_template( $template ) {
-
         if ( ! function_exists( 'WC' ) ) {
             return $template;
         }
 
         if ( get_query_var( 'store_review' ) ) {
-            return dokan_locate_template( 'store-reviews.php', '', DOKAN_PRO_DIR. '/templates/', true );
+            return dokan_locate_template( 'store-reviews.php', '', DOKAN_PRO_DIR . '/templates/', true );
         }
 
         return $template;
     }
 
-    public function get_store_coupons( $store_user, $store_info ) {
+    /**
+     * Get store coupons
+     *
+     * @since 3.4.0
+     *
+     * @param WP_User $store_user
+     * @param array   $store_info
+     * @param bool    $marketplace
+     *
+     * @return string
+     */
+    public function get_store_coupons( $store_user, $store_info, $marketplace = false ) {
         $coupons = array();
 
-        $seller_coupons = dokan_get_seller_coupon( $store_user->ID, true );
+        if ( $marketplace ) {
+            $seller_coupons = dokan_get_marketplace_seller_coupon( $store_user->ID, true );
+        } else {
+            $seller_coupons = dokan_get_seller_coupon( $store_user->ID, true );
+        }
 
         if ( ! $seller_coupons ) {
             return $coupons;
@@ -134,13 +148,13 @@ class Store {
                 $expiry_date = $expiry_date->getTimestamp();
             }
 
-            if ( $expiry_date && ( $current_time > $expiry_date ) )  {
+            if ( $expiry_date && ( $current_time > $expiry_date ) ) {
                 continue;
             }
 
             $coupon_type = version_compare( WC_VERSION, '2.7', '>' ) ? 'percent' : 'percent_product';
 
-            if ( $coupon_type == dokan_get_prop( $wc_coupon, 'type', 'get_discount_type' ) ) {
+            if ( $coupon_type === dokan_get_prop( $wc_coupon, 'type', 'get_discount_type' ) ) {
                 $coupon_amount_formatted = dokan_get_prop( $wc_coupon, 'amount' ) . '%';
             } else {
                 $coupon_amount_formatted = wc_price( dokan_get_prop( $wc_coupon, 'amount' ) );
@@ -167,27 +181,33 @@ class Store {
     /**
      * Show seller coupons in the store page
      *
-     * @param  WP_User  $store_user
-     * @param  array    $store_info
+     * @param WP_User $store_user
+     * @param array   $store_info
      *
      * @since 2.4.12
      *
      * @return void
      */
     public function show_store_coupons( $store_user, $store_info ) {
-        $coupons = $this->get_store_coupons( $store_user, $store_info );
+        $vendor_coupons      = $this->get_store_coupons( $store_user, $store_info );
+        $marketplace_coupons = $this->get_store_coupons( $store_user, $store_info, true );
+        $vendor_coupons      = array_merge( $vendor_coupons, $marketplace_coupons );
 
-        if ( empty( $coupons ) ) {
+        if ( empty( $vendor_coupons ) ) {
             return;
         }
 
         echo '<div class="store-coupon-wrap">';
 
-        foreach ( $coupons as $coupon ) {
-            dokan_get_template_part( 'coupon/store', '', array_merge( array(
-                'pro' => true,
-            ), $coupon ) );
-        }
+            foreach ( $vendor_coupons as $coupon ) {
+                dokan_get_template_part(
+                    'coupon/store', '', array_merge(
+                        array(
+                            'pro' => true,
+                        ), $coupon
+                    )
+                );
+            }
 
         echo '</div>';
     }
@@ -211,7 +231,7 @@ class Store {
 
         $tabs['vendor_biography'] = [
             'title' => apply_filters( 'dokan_vendor_biography_title', __( 'Vendor Biography', 'dokan' ) ),
-            'url'   => dokan_get_store_url( $store_id ) . 'biography'
+            'url'   => dokan_get_store_url( $store_id ) . 'biography',
         ];
 
         return $tabs;
@@ -227,7 +247,7 @@ class Store {
      * @return void
      */
     public function load_biography_rewrite_rules( $store_url ) {
-        add_rewrite_rule( $store_url.'/([^/]+)/biography?$', 'index.php?' . $store_url . '=$matches[1]&biography=true', 'top' );
+        add_rewrite_rule( $store_url . '/([^/]+)/biography?$', 'index.php?' . $store_url . '=$matches[1]&biography=true', 'top' );
     }
 
     /**

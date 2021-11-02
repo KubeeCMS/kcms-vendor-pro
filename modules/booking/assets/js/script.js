@@ -1,8 +1,12 @@
 // Remove a person type
-jQuery( '#bookings_persons' ).on( 'click', 'button.remove_booking_person', function ( e ) {
+jQuery( '#bookings_persons' ).on( 'click', 'button.remove_booking_person', async function ( e ) {
     e.preventDefault();
-    var answer = confirm( wc_bookings_writepanel_js_params.i18n_remove_person );
-    if ( answer ) {
+    const answer = await dokan_sweetalert( wc_bookings_writepanel_js_params.i18n_remove_person, { 
+        action : 'confirm', 
+        icon   : 'warning',
+    } );
+    
+    if ( 'undefined' !== answer && answer.isConfirmed ) {
 
         var el = jQuery( this ).parent().parent();
 
@@ -66,7 +70,9 @@ jQuery(function($) {
                 prev_li.find('label').replaceWith(response.data);
                 prev_li.find('a.dokan-edit-status').removeClass('dokan-hide');
             } else {
-                alert( response.data );
+                dokan_sweetalert( response.data, { 
+                    icon: 'error',
+                } );
             }
         });
     });

@@ -91,6 +91,8 @@ class Module {
 
         // Module activation hook
         add_action( 'dokan_activated_module_export_import', [ $this, 'activate' ] );
+        // prevent vendor create category
+        add_filter( 'pre_insert_term', [ $this, 'protect_vendor_create_category' ], 10, 2 );
         //False to is_feature column
         add_filter( 'woocommerce_product_import_process_item_data', [ $this, 'feature_column_to_false' ] );
         //Handle wholesale column when export
@@ -1537,5 +1539,23 @@ class Module {
         }
 
         return $meta_value;
+    }
+
+    /**
+     * Prevent vendor create new category from product import.
+     *
+     * @since 3.4.0
+     *
+     * @param string|WP_Error $term     The term name to add, or a WP_Error object if there's an error.
+     * @param string          $taxonomy Taxonomy slug.
+     *
+     * @return array|WP_Error
+     */
+    public function protect_vendor_create_category( $term, $taxonomy ) {
+        if ( ! current_user_can( 'manage_options' ) && $taxonomy === 'product_cat' ) {
+            return new \WP_Error( 'invalid_vendor_cat', __( 'You do not have permission to create product category.', 'dokan' ) );
+        }
+
+        return $term;
     }
 }

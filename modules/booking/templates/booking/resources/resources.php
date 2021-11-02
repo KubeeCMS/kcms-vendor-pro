@@ -179,12 +179,15 @@ global $post;
             ( function ( $ ) {
 
                 $( document ).ready( function () {
-                    $('.dokan-dashboard-header').on('click', '.dokan-btn', function(){
-                      add_resource_name = prompt( wc_bookings_writepanel_js_params.i18n_new_resource_name );
+                    $('.dokan-dashboard-header').on('click', '.dokan-btn', async function(){
+                      add_resource_name = await dokan_sweetalert( wc_bookings_writepanel_js_params.i18n_new_resource_name, { 
+                            action      : 'prompt', 
+                            input       : 'text',  
+                        } );
 
                       var data = {
                          action:            'add_new_resource',
-                         add_resource_name: add_resource_name,
+                         add_resource_name: add_resource_name.value,
                      };
 
                      $.post( dokan.ajaxurl, data, function( response ) {

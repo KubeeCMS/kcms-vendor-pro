@@ -23,16 +23,16 @@ class ShippingZone {
         $seller_id  = dokan_get_current_user_id();
 
         foreach ( $raw_zones as $raw_zone ) {
-            $zone             = new \WC_Shipping_Zone( $raw_zone );
-            $enabled_methods  = $zone->get_shipping_methods( true );
-            $methods_id = wp_list_pluck( $enabled_methods, 'id' );
+            $zone              = new \WC_Shipping_Zone( $raw_zone );
+            $enabled_methods   = $zone->get_shipping_methods( true );
+            $methods_id        = wp_list_pluck( $enabled_methods, 'id' );
 
             if ( ! $zone ) {
                 continue;
             }
 
-            // Prepare locations.
-            $locations = array();
+            $available_methods = self::available_shipping_methods( $zone );
+            $locations         = array();
 
             foreach ( $zone->get_zone_locations() as $location ) {
                 if ( 'postcode' !== $location->type ) {
@@ -40,24 +40,35 @@ class ShippingZone {
                 }
             }
 
-            if ( in_array( 'dokan_vendor_shipping', $methods_id ) && ! empty( $locations ) ) {
+            if (
+                ( in_array( 'dokan_vendor_shipping', $methods_id, true ) ||
+                    ( in_array( 'dokan_table_rate_shipping', $methods_id, true ) && dokan_pro()->module->is_active( 'table_rate_shipping' ) )
+                ) &&
+                ! empty( $locations )
+            ) {
                 $zones[ $zone->get_id() ]                            = $zone->get_data();
                 $zones[ $zone->get_id() ]['zone_id']                 = $zone->get_id();
                 $zones[ $zone->get_id() ]['formatted_zone_location'] = $zone->get_formatted_location();
                 $zones[ $zone->get_id() ]['shipping_methods']        = self::get_shipping_methods( $zone->get_id(), $seller_id );
+                $zones[ $zone->get_id() ]['available_methods']       = $available_methods;
             }
         }
 
         // Everywhere zone if has method called vendor shipping
-        $overall_zone    = new \WC_Shipping_Zone( 0 );
-        $enabled_methods = $overall_zone->get_shipping_methods( true );
-        $methods_id      = wp_list_pluck( $enabled_methods, 'id' );
+        $overall_zone      = new \WC_Shipping_Zone( 0 );
+        $enabled_methods   = $overall_zone->get_shipping_methods( true );
+        $methods_id        = wp_list_pluck( $enabled_methods, 'id' );
+        $available_methods = self::available_shipping_methods( $overall_zone );
 
-        if ( in_array( 'dokan_vendor_shipping', $methods_id ) ) {
+        if (
+            in_array( 'dokan_vendor_shipping', $methods_id, true ) ||
+            ( in_array( 'dokan_table_rate_shipping', $methods_id, true ) && dokan_pro()->module->is_active( 'table_rate_shipping' ) )
+        ) {
             $zones[ $overall_zone->get_id() ]                            = $overall_zone->get_data();
             $zones[ $overall_zone->get_id() ]['zone_id']                 = $overall_zone->get_id();
             $zones[ $overall_zone->get_id() ]['formatted_zone_location'] = $overall_zone->get_formatted_location();
             $zones[ $overall_zone->get_id() ]['shipping_methods']        = self::get_shipping_methods( $overall_zone->get_id(), $seller_id );
+            $zones[ $overall_zone->get_id() ]['available_methods']       = $available_methods;
         }
 
         return $zones;
@@ -79,6 +90,7 @@ class ShippingZone {
         $zone['formatted_zone_location'] = $zone_obj->get_formatted_location();
         $zone['shipping_methods']        = self::get_shipping_methods( $zone_id, $seller_id );
         $zone['locations']               = self::get_locations( $zone_id );
+        $zone['available_methods']       = self::available_shipping_methods( $zone_obj );
 
         return $zone;
     }
@@ -142,6 +154,16 @@ class ShippingZone {
             return new \WP_Error( 'method-not-deleted', __( 'Shipping method not deleted', 'dokan' ) );
         }
 
+        /**
+         * Add a action for shipping method delete by vendor
+         *
+         * @since 3.4.0
+         *
+         * @param int Zone id
+         * @param int Instance id
+         */
+        do_action( 'dokan_delete_shipping_zone_methods', $data['zone_id'], $data['instance_id'] );
+
         return $result;
     }
 
@@ -155,15 +177,16 @@ class ShippingZone {
     public static function get_shipping_methods( $zone_id, $seller_id ) {
         global $wpdb;
 
-        $sql = "SELECT * FROM {$wpdb->prefix}dokan_shipping_zone_methods WHERE `zone_id`={$zone_id} AND `seller_id`={$seller_id}";
-        $results = $wpdb->get_results( $sql );
-
-        $zone_obj         = \WC_Shipping_Zones::get_zone_by( 'zone_id', $zone_id );
-        $shipping_methods = $zone_obj->get_shipping_methods(true);
-        $is_tax_status    = '';
+        $sql               = "SELECT * FROM {$wpdb->prefix}dokan_shipping_zone_methods WHERE `zone_id`={$zone_id} AND `seller_id`={$seller_id}";
+        $results           = $wpdb->get_results( $sql );
+        $method            = array();
+        $zone_obj          = \WC_Shipping_Zones::get_zone_by( 'zone_id', $zone_id );
+        $shipping_methods  = $zone_obj->get_shipping_methods( true );
+        $available_methods = self::available_shipping_methods( $zone_obj );
+        $is_tax_status     = '';
 
         if ( $shipping_methods ) {
-            foreach( $shipping_methods as $shipping_method ) {
+            foreach ( $shipping_methods as $shipping_method ) {
                 if ( 'dokan_vendor_shipping' === $shipping_method->id ) {
                     $is_tax_status = $shipping_method->tax_status;
                     break;
@@ -171,9 +194,11 @@ class ShippingZone {
             }
         }
 
-        $method = array();
-
         foreach ( $results as $key => $result ) {
+            if ( ! array_key_exists( $result->method_id, $available_methods ) ) {
+                continue;
+            }
+
             $default_settings = array(
                 'title'       => self::get_method_label( $result->method_id ),
                 'description' => __( 'Lets you charge a rate for shipping', 'dokan' ),
@@ -329,19 +354,21 @@ class ShippingZone {
     }
 
     /**
-     * get Shipping method label
+     * Get Shipping method label
      *
      * @since 2.8.0
      *
      * @return void
      */
     public static function get_method_label( $method_id ) {
-        if ( 'flat_rate' == $method_id ) {
+        if ( 'flat_rate' === $method_id ) {
             return __( 'Flat Rate', 'dokan' );
-        } elseif ( 'local_pickup' == $method_id ) {
+        } elseif ( 'local_pickup' === $method_id ) {
             return __( 'Local Pickup', 'dokan' );
-        } elseif ( 'free_shipping' == $method_id ) {
+        } elseif ( 'free_shipping' === $method_id ) {
             return __( 'Free Shipping', 'dokan' );
+        } elseif ( 'dokan_table_rate_shipping' === $method_id ) {
+            return apply_filters( 'dokan_table_rate_shipping_label', __( 'Table Rate', 'dokan' ) );
         } else {
             return __( 'Custom Shipping', 'dokan' );
         }
@@ -490,19 +517,19 @@ class ShippingZone {
                 foreach ( $shipping_zones as $shipping_zone ) {
                     foreach ( $use_cases as $use_case ) {
                         if ( $use_case[0] ) {
-                            $check_continent = in_array( $continent, $shipping_zone['continent'] );
+                            $check_continent = in_array( $continent, $shipping_zone['continent'], true );
                         } else {
                             $check_continent = empty( $shipping_zone['continent'] );
                         }
 
                         if ( $use_case[1] ) {
-                            $check_country = in_array( $country, $shipping_zone['country'] );
+                            $check_country = in_array( $country, $shipping_zone['country'], true );
                         } else {
                             $check_country = empty( $shipping_zone['country'] );
                         }
 
                         if ( $use_case[2] ) {
-                            $check_state = in_array( $customer_country_state, $shipping_zone['state'] );
+                            $check_state = in_array( $customer_country_state, $shipping_zone['state'], true );
                         } else {
                             $check_state = empty( $shipping_zone['state'] );
                         }
@@ -630,8 +657,25 @@ class ShippingZone {
             }, $wc_zone_ids
         );
 
-        $zone_id = in_array( $vendor_zone_id, $wc_zone_ids ) ? $vendor_zone_id : '';
+        $zone_id = in_array( $vendor_zone_id, $wc_zone_ids, true ) ? $vendor_zone_id : '';
 
         return apply_filters( 'dokan_get_zone_id_by_postcode', $zone_id, $postcode );
+    }
+
+    /**
+     * Get all avilable shipping methods
+     *
+     * @param object $zone
+     *
+     * @return array
+     */
+    public static function available_shipping_methods( $zone ) {
+        $available_methods = [
+            'flat_rate'     => __( 'Flat Rate', 'dokan' ),
+            'local_pickup'  => __( 'Local Pickup', 'dokan' ),
+            'free_shipping' => __( 'Free Shipping', 'dokan' ),
+        ];
+
+        return apply_filters( 'dokan_available_shipping_methods', $available_methods, $zone );
     }
 }

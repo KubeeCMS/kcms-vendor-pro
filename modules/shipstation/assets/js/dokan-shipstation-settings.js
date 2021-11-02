@@ -7,7 +7,9 @@
 
         $.post( dokan.ajaxurl, form_data, function( response ) {
             if ( ! response.success ) {
-                alert( response.data );
+                dokan_sweetalert( response.data, { 
+                    icon: 'error',
+                } );
                 return;
             }
         } );

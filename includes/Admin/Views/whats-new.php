@@ -1,12 +1,103 @@
 <?php
 $changelog = array(
     array(
+        'version'  => 'Version 3.4.0',
+        'released' => '2021-10-31',
+        'changes'  => array(
+            array(
+                'title'       => 'Added Admin coupon support',
+                'type'        => 'New Feature',
+                'description' => 'Now admin can create coupons for vendors. We have introduced four types of coupon amount deduction methods. 1. Default (existing vendor coupons), 2. Deduct form admin earning only 3. Deduct from vendor earning only and  4. Admin and vendor can share the coupon amount.',
+            ),
+            array(
+                'title'       => 'Table Rate Shipping',
+                'type'        => 'New Module',
+                'description' => 'Table rate shipping, multivendor support to give vendors flexibility on how they set the shipping rates on their products. Set up different rates according to the location, price, weight, shipping class or item count of the shipment.',
+            ),
+            array(
+                'title'       => 'Rank Math SEO Integration',
+                'type'        => 'New Module',
+                'description' => 'Rank Math is a <a href="https://wordpress.org/plugins/seo-by-rank-math/" target="_blank">Search Engine Optimization plugin for WordPress</a> that makes it easy for anyone to optimize their content with built-in suggestions based on widely-accepted best practices. Easily customize important SEO settings, control which pages are indexable, and how you want your website to appear in search with Structured data. With this integration, vendors will be able to grab features of Rank Math from their dashboard.',
+            ),
+            array(
+                'title'       => 'Product Bulk Edit feature for vendors/seller',
+                'type'        => 'New Feature',
+                'description' => 'Now vendors will be able to bulk edit their products from product dashboard just like admin can do from admin dashboard.',
+            ),
+            array(
+                'title'       => '[Vendor Verification] Company Verification Support for vendors',
+                'type'        => 'New Feature',
+                'description' => 'In order to use this feature, you need to enable Germanized module.',
+            ),
+            array(
+                'title'       => 'Added integration of sweetalert2 for alert, prompt, confirm, toast notification',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[RMA] WC decimal separator support added in RMA module',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Vendor dashborad shipping class suggestion added. dokan-lite issue id no: #1259',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Store Support] added dynamic date time format support for Store Support module',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[SMS Verification] Updated Twillio SDK',
+                'type'        => 'Improvement',
+                'description' => 'Now sms verification code can be alphanumeric.',
+            ),
+            array(
+                'title'       => '[WholeSale] Previously vendor and vendor staff does not have the ability to become a wholesale customer, this feature has been added now',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Geolocation]  Remove previously added autodetect feature for geolocation module',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Prevent vendor to create category. Previously vendors were capable of creating categories while importing product from CSV file.',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Vendor Staff] Fixed No email is triggered when an user is added form the wp-admin panel Users menu',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Send button collapsed (broken layout) on the RTL version of Dokan —> Announcement —> Add Announcement page',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Fixed tooltips doesn\'t work on the Vendor Dashboard > Orders Edit Page',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'New tag wasn’t creating from vendor dashboard product quick edit section',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+        )
+    ),
+    array(
         'version'  => 'Version 3.3.9',
         'released' => '2021-10-13',
         'changes'  => array(
             array(
                 'title'       => '[Auction] Added auction activity feature for vendors',
-                'type'        => 'Feat',
+                'type'        => 'New Feature',
                 'description' => 'An exciting feature added to the module is an auction activity feature for vendors, which lets them see all the bid items and price. This was an option previously only available to admins',
             ),
             array(

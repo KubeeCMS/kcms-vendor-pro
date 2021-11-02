@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\DokanPro\Refund\Refund;
+
 /**
  * Vendor dashboard for RMA
  *

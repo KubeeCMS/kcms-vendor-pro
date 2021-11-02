@@ -1,5 +1,5 @@
 <?php
-
+use Twilio\Rest\Client;
 /**
  * SMS Gateway handler class
  *
@@ -103,7 +103,13 @@ class WeDevs_Dokan_SMS_Gateways {
             return $response;
         }
 
-        $code     = wp_rand( 1000, 9999 );
+        $twilio_code_type = dokan_get_option( 'twilio_code_type', 'dokan_verification_sms_gateways' );
+        $code = wp_rand( 1000, 9999 );
+        if ( 'numeric' === $twilio_code_type ) {
+            $code = wp_rand( 1000, 9999 );
+        } elseif ( 'alphanumeric' === $twilio_code_type ) {
+            $code = bin2hex( random_bytes( 3 ) );
+        }
         $sms_text = dokan_get_option( 'sms_text', 'dokan_verification_sms_gateways' );
         $sms_text = str_replace( '%CODE%', $code, $sms_text );
         $sms_data = [
@@ -151,15 +157,15 @@ class WeDevs_Dokan_SMS_Gateways {
         $token = dokan_get_option( 'twilio_pass', 'dokan_verification_sms_gateways' );
         $from  = dokan_get_option( 'twilio_number', 'dokan_verification_sms_gateways' );
 
-        require_once __DIR__ . '/lib/twilio/Twilio.php';
-
-        $client = new Services_Twilio( $sid, $token );
+        $client = new Client( $sid, $token );
 
         try {
-            $message = $client->account->messages->sendMessage(
-                $from,
+            $message = $client->messages->create(
                 '+' . $sms_data['to'],
-                $sms_data['text']
+                [
+                    'from' => $from,
+                    'body' => $sms_data['text'],
+                ]
             );
 
             if ( 'failed' !== (string) $message->status ) {

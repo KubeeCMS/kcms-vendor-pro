@@ -103,7 +103,7 @@
                                             <?php endif; ?>
 
                                             <?php if ( current_user_can( 'dokandar' ) ): ?>
-                                                <span class="delete"><a  href="<?php echo $delete_url; ?>"  onclick="return confirm('<?php esc_attr_e( 'Are you sure want to delete', 'dokan' ); ?>');"><?php _e( 'Delete', 'dokan' ); ?></a> | </span>
+                                                <span class="delete"><a  href="<?php echo $delete_url; ?>"  onclick="dokan_show_delete_prompt( event, dokan.delete_confirm );"><?php _e( 'Delete', 'dokan' ); ?></a> | </span>
                                             <?php endif ?>
 
                                             <?php if ( current_user_can( 'dokandar' ) ): ?>

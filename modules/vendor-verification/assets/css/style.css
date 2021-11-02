@@ -124,3 +124,13 @@ i.verification-icon {
 .dokan-panel-body .document-box{
     margin-left: 20px;
 }
+
+.dokan-vendor-company-file-item{
+    display: flex;
+    justify-content:space-between;
+    margin: 7px;
+}
+
+input[type="submit"].dokan-btn-theme, a.dokan-btn-theme, .dokan-btn-theme {
+    min-height: 37px;
+}

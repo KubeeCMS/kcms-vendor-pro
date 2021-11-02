@@ -11,7 +11,9 @@ trait Dokan_RMA_Common {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param array $request
+     *
+     * @return array
      */
     public function transform_request_conversation( $request ) {
         return apply_filters(
@@ -25,31 +27,41 @@ trait Dokan_RMA_Common {
             ]
         );
     }
+
     /**
      * Transform warranty request items
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param array $request
+     *
+     * @return array|WP_Error
      */
     public function transform_warranty_requests( $request ) {
         $product_ids = explode( ',', $request['products'] );
         $quantites = explode( ',', $request['quantity'] );
         $item_id = explode( ',', $request['item_id'] );
         $items = [];
+        $order = wc_get_order( absint( $request['order_id'] ) );
+
+        if ( ! $order ) {
+            return new WP_Error( 'no-order', __( 'No order found for this request.', 'dokan' ) );
+        }
 
         foreach ( $product_ids as $key => $product_id ) {
-            $product = wc_get_product( $product_id );
+            $product   = wc_get_product( $product_id );
+            $line_item = $order->get_item( absint( $item_id[ $key ] ) );
 
             if ( $product ) {
                 $items[] = [
-                    'id'        => $product->get_id(),
-                    'title'     => $product->get_title(),
+                    'id'        => $line_item->get_variation_id() ? $line_item->get_variation_id() : $line_item->get_product_id(),
+                    'title'     => $line_item->get_name(),
                     'thumbnail' => wp_get_attachment_url( $product->get_image_id() ),
                     'quantity'  => $quantites[ $key ],
                     'url'       => $product->get_permalink(),
-                    'price'     => $product->get_price(),
+                    'price'     => wc_format_decimal( $line_item->get_subtotal() ) / $line_item->get_quantity(),
                     'item_id'   => $item_id[ $key ],
+                    'tax'       => wc_format_decimal( $line_item->get_subtotal_tax() ) / $line_item->get_quantity(),
                 ];
             }
         }
@@ -60,24 +72,24 @@ trait Dokan_RMA_Common {
         return apply_filters(
             'dokan_get_warranty_single_request_data',
             [
-                'id'         => $request['id'],
-                'order_id'   => $request['order_id'],
-                'vendor'     => [
+                'id'          => $request['id'],
+                'order_id'    => $request['order_id'],
+                'vendor'   => [
                     'store_id'   => $vendor->get_id(),
                     'store_name' => $vendor->get_shop_name(),
                     'store_url'  => $vendor->get_shop_url(),
                 ],
-                'customer'   => [
+                'customer' => [
                     'id'   => $customer->ID,
                     'name' => $customer->display_name,
                 ],
-                'type'       => $request['type'],
-                'status'     => $request['status'],
-                'reasons'    => $request['reasons'],
-                'details'    => $request['details'],
-                'note'       => $request['note'],
-                'created_at' => $request['created_at'],
-                'items'      => $items,
+                'type'        => $request['type'],
+                'status'      => $request['status'],
+                'reasons'     => $request['reasons'],
+                'details'     => $request['details'],
+                'note'        => $request['note'],
+                'created_at'  => $request['created_at'],
+                'items'       => $items,
             ]
         );
     }
@@ -87,7 +99,9 @@ trait Dokan_RMA_Common {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param array $request
+     *
+     * @return array
      */
     public function transform_rma_settings( $request = [] ) {
         $data = [];
@@ -141,7 +155,9 @@ trait Dokan_RMA_Common {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param int $product_id
+     *
+     * @return array
      */
     public function get_settings( $product_id = 0 ) {
         $rma_settings   = [];
@@ -159,15 +175,11 @@ trait Dokan_RMA_Common {
         ];
 
         if ( $product_id ) {
+
             /**
-             * Return product specific RMA setting when available
-             * Return store RMA setting when there is no product specific setting
-             * Return Global RMA setting when there is no product and store specific setting
+             * Has product ID and get product rma settings if have. If not set in product then
+             * return those product store owner default settings
              */
-            $product = wc_get_product( $product_id );
-            if ( 'variation' === $product->get_type() ) {
-                $product_id = $product->get_parent_id();
-            }
             $override_default = get_post_meta( $product_id, '_dokan_rma_override_product', true );
 
             if ( 'yes' === $override_default ) {
@@ -199,6 +211,7 @@ trait Dokan_RMA_Common {
      * Check required add-ons.
      *
      * @param int $product_id Product ID.
+     *
      * @return bool
      */
     public function check_required_warranty( $product_id ) {

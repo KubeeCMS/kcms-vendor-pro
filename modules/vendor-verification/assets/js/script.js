@@ -105,7 +105,9 @@
             e.preventDefault();
 
             if ( $( "input[name='dokan_gravatar']" ).val() == 0 ) {
-                alert( __( 'Upload a Photo', 'dokan' ) );
+                dokan_sweetalert( dokan.i18n_gravater, { 
+                    icon: 'warning',
+                } );
                 return;
             }
 
@@ -165,7 +167,9 @@
             e.preventDefault();
 
             if ( $( "input[name = 'phone']" ).val() == '' ) {
-                alert( 'Insert Phone No.' );
+                dokan_sweetalert( dokan.i18n_phone_number, { 
+                    icon: 'warning',
+                } );
                 return;
             }
 
@@ -222,7 +226,9 @@
             e.preventDefault();
 
             if ( $( "input[name = 'sms_code']" ).val() == '' ) {
-                alert( 'Insert SMS code' );
+                dokan_sweetalert( dokan.i18n_sms_code, { 
+                    icon: 'warning',
+                } );
                 return;
             }
 
@@ -335,6 +341,134 @@
                 }
             } )
         } );//
+
+    //Company verification
+        // show company verification panel on start click
+        $( 'button#dokan_v_company_click' ).on( 'click', function () {
+            $( 'button#dokan_v_company_click' ).slideUp('fast',function(){
+                $( '.dokan_v_company_box' ).slideDown('fast');
+            });
+        } );
+
+        // close company verification panel on cancel click
+        $( 'input#dokan_v_company_cancel' ).on( 'click', function () {
+            $( '.dokan_v_company_box' ).slideUp('fast',function(){
+                $( 'button#dokan_v_company_click' ).slideDown('fast');
+                var company_feedback = $('div#d_v_company_feedback');
+                company_feedback.addClass('dokan-hide');
+                company_feedback.html('');
+            });
+        } );
+
+        // submit company verification request
+        $( '.dokan-verification-content' ).on( 'submit', 'form#dokan-verify-company-form', function ( e ) {
+            e.preventDefault();
+
+            var self = $( this );
+
+            var company_feedback = $('div#d_v_company_feedback');
+            feedback.fadeOut();
+            company_feedback.addClass( 'dokan-hide' );
+
+            $.post( dokan.ajaxurl, self.serialize(), function ( resp ) {
+
+                if ( resp.success == true ) {
+
+                    feedback.addClass( 'dokan-alert dokan-alert-success' );
+                    $( 'html,body' ).animate( { scrollTop: 100 } );
+                    feedback.html( resp.data );
+                    feedback.fadeIn();
+                    $( 'div.dokan_v_company_box' ).slideUp( 'fast' );
+                    $( 'button#dokan_v_company_cancel' ).removeClass( 'dokan-hide' );
+                    $( '#dokan_v_company_cancel' ).show();
+
+                } else {
+                    company_feedback.addClass( 'dokan-alert dokan-alert-danger' );
+                    company_feedback.html( resp.data );
+                    company_feedback.removeClass( 'dokan-hide' );
+                    company_feedback.fadeIn();
+                }
+            } );
+        } );
+
+        //cancel Address verification request
+        $( 'button#dokan_v_company_cancel' ).on( 'click', function () {
+            var data = {
+                action: 'dokan_company_verification_cancel',
+                data: 'cancel',
+            };
+
+            feedback.fadeOut();
+            $.post( dokan.ajaxurl, data, function ( resp ) {
+                if ( resp.success == true ) {
+                    $( '#dokan_v_company_feedback' ).addClass( 'dokan-hide' );
+                    feedback.addClass( 'dokan-alert dokan-alert-success' );
+                    feedback.html( resp.data );
+                    feedback.fadeIn();
+                    $( 'button#dokan_v_company_cancel' ).addClass('dokan-hide');
+                    $( 'button#dokan_v_company_click' ).removeClass('dokan-hide');
+                    $( 'button#dokan_v_company_click' ).show();
+                    $('div#d_v_company_feedback').addClass('dokan-hide');
+
+                } else {
+                    feedback.addClass( 'dokan-alert dokan-alert-danger' );
+                    feedback.html( 'failed' );
+                    feedback.fadeIn();
+                }
+            } )
+        } );//
+
+        $( '.dokan-files-drag' ).on( 'click', function( e ) {
+            e.preventDefault();
+            var file_frame,
+                self = $(this);
+
+            // If the media frame already exists, reopen it.
+            if (file_frame) {
+                file_frame.open();
+                return;
+            }
+
+            // Create the media frame.
+            file_frame = wp.media.frames.file_frame = wp.media({
+                title: jQuery(this).data('uploader_title'),
+                button: {
+                    text: jQuery(this).data('uploader_button_text')
+                },
+                multiple: false,
+            });
+
+            // When an image is selected, run a callback.
+            file_frame.on('select', function() {
+                var attachment = file_frame
+                    .state()
+                    .get('selection')
+                    .first()
+                    .toJSON();
+
+                const filesContainer = $('.dokan-vendor-company-files');
+
+                const customId = 'dokan-vendor-company-file-' + attachment.id;
+
+                const html = `
+                    <div class="dokan-vendor-company-file-item" id="${customId}">
+                        <a href="${attachment.url}" target="_blank" >${attachment.title}.${attachment.subtype}</a>
+                        <a href="#" onclick="companyVerificationRemoveList(event)" data-attachment_id="${customId}" class="dokan-btn dokan-btn-danger"><i class="fa fa-close" data-attachment_id="${customId}"></i></a>
+                        <input type="hidden" name="vendor_verification_files_ids[]" value="${attachment.id}" />
+                    </div>
+                `;
+                filesContainer.append(html);
+            });
+
+            // Finally, open the modal
+            file_frame.open();
+        });
+        //End
     } );
 
 } )( jQuery );
+
+function companyVerificationRemoveList(e) {
+    e.preventDefault();
+    jQuery(`#${e.target.dataset.attachment_id}`).remove();
+}

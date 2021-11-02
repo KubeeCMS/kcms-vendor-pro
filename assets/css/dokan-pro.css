@@ -152,7 +152,7 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 */
-/* 
+/*
     Created on : Feb 6, 2017, 10:57:42 AM
     Author     : rafsun
 */
@@ -286,6 +286,32 @@ and open the template in the editor.
 .product-edit-new-container .dokan-product-seo .wpseo-shortcode-wrap select.wpseo_shortcode:hover {
   height: 30px;
   background-color: #f1f1f1;
+}
+.cat-checklist {
+  height: 12em;
+  border: solid 1px #dcdcde;
+  overflow-y: scroll;
+  margin: 0;
+}
+.dokan-w4 .cat-checklist {
+  padding: 10px 15px;
+  background: #fdfdfd;
+}
+.dokan-mt10 {
+  margin-top: 10px;
+}
+.dokan-cross {
+  transform: scale(0.8);
+}
+.dokan-cross:hover {
+  color: #d63638;
+  cursor: pointer;
+}
+.uncheck-product input:checked {
+  display: none;
+}
+.select2-search__field {
+  min-width: 220px !important;
 }
 @-webkit-keyframes ring {
   0% {

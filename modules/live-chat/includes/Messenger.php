@@ -65,7 +65,9 @@ class Messenger {
                 e.preventDefault();
 
                 if (typeof FB === 'undefined') {
-                    alert('Facebook SDK is not found, or blocked by the browser. Can not initialize the chat.');
+                    dokan_sweetalert( dokan.i18n_chat_message, { 
+                        icon: 'error',
+                    } );
                     return;
                 }
 

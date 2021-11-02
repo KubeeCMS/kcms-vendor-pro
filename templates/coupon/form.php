@@ -128,8 +128,8 @@
         <label class="dokan-w3 dokan-control-label" for="checkboxes"><?php esc_html_e( 'Apply for New Products', 'dokan' ); ?></label>
         <div class="dokan-w7 dokan-text-left">
             <div class="checkbox">
-                <label for="checkboxes-3">
-                    <input name="apply_new_products" <?php echo $apply_new_products; ?> id="checkboxes-3" value="yes" type="checkbox">
+                <label for="apply_new_products">
+                    <input name="apply_new_products" <?php echo $apply_new_products; ?> id="apply_new_products" value="yes" type="checkbox">
                     <?php esc_html_e( 'Check this box if you want to automatically apply this coupon for new products.', 'dokan' ); ?>
                 </label>
             </div>

@@ -1114,6 +1114,19 @@ function set_discount_on_sub_orders( $order_id, $vendor_id ) {
 
     if ( ! empty( $discount_amount_for_min_order ) ) {
         $order->update_meta_data( 'dokan_order_discount', $discount_amount_for_min_order );
+
+        $seller_id = dokan_get_seller_id_by_order( $order->get_id() );
+
+        if ( $seller_id ) {
+            $seller_info           = dokan_get_store_info( $seller_id );
+            $is_min_order_discount = isset( $seller_info['show_min_order_discount'] ) ? $seller_info['show_min_order_discount'] : 'no';
+            $min_order_discount    = isset( $seller_info['setting_minimum_order_amount'] ) ? (float) $seller_info['setting_minimum_order_amount'] : 0;
+            $discount_percentage   = isset( $seller_info['setting_order_percentage'] ) ? (float) $seller_info['setting_order_percentage'] : 0;
+
+            $order->update_meta_data( 'dokan_setting_minimum_order_amount', $min_order_discount );
+            $order->update_meta_data( 'dokan_setting_order_percentage', $discount_percentage );
+            $order->update_meta_data( 'dokan_is_min_order_discount', $is_min_order_discount );
+        }
     }
 
     $order->set_total( $order_total );
@@ -1151,6 +1164,19 @@ function set_discount_on_parent_order( $order ) {
 
     if ( ! empty( $discount_amount_for_min_order ) ) {
         $order->update_meta_data( 'dokan_order_discount', $discount_amount_for_min_order );
+
+        $seller_id = dokan_get_seller_id_by_order( $order->get_id() );
+
+        if ( $seller_id ) {
+            $seller_info           = dokan_get_store_info( $seller_id );
+            $is_min_order_discount = isset( $seller_info['show_min_order_discount'] ) ? $seller_info['show_min_order_discount'] : 'no';
+            $min_order_discount    = isset( $seller_info['setting_minimum_order_amount'] ) ? (float) $seller_info['setting_minimum_order_amount'] : 0;
+            $discount_percentage   = isset( $seller_info['setting_order_percentage'] ) ? (float) $seller_info['setting_order_percentage'] : 0;
+
+            $order->update_meta_data( 'dokan_setting_minimum_order_amount', $min_order_discount );
+            $order->update_meta_data( 'dokan_setting_order_percentage', $discount_percentage );
+            $order->update_meta_data( 'dokan_is_min_order_discount', $is_min_order_discount );
+        }
     }
 }
 

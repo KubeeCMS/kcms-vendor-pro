@@ -11,7 +11,7 @@
  * the readme will list any important changes.
  *
  * @author  Dokan
- * 
+ *
  * @version 3.3.4
  */
 
@@ -33,7 +33,7 @@ $site_url = dokan_get_navigation_url( 'support' ) . $topic_id;
 <div style="margin-bottom: 40px;">
     <?php esc_html_e( 'Hi,', 'dokan' ); ?>
 
-	<p><?php esc_html_e( 'A support request has been made by customer on your store ', 'dokan' ); ?> <?php echo $store['store_name']; ?></p>
+	<p><?php esc_html_e( 'A support request has been made by customer on your store ', 'dokan' ); ?> <?php echo $store_info['store_name']; ?></p>
 
 	<p><?php esc_html_e( 'You can see it by going here :', 'dokan' ); ?> <a href="<?php echo esc_url( $site_url ); ?>"><?php echo esc_url( $site_url ); ?></a></p>
 

@@ -28,7 +28,9 @@
                         self.find('textarea').val('');
 
                     } else {
-                        alert(resp.data);
+                        dokan_sweetalert( resp.data, { 
+                            icon: 'error',
+                        } );
                     }
                 }
 

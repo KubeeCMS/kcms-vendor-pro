@@ -71,7 +71,6 @@ class Module {
      * @return boolean
      */
     public function validate_cart( $valid, $product_id, $quantity ) {
-
         $products = WC()->cart->get_cart();
 
         // emulate add-to-cart by pushing the new content to the array

@@ -34,7 +34,9 @@
                         });
                         login_btn.html(custom_login_btn);
                     } else {
-                        alert('failed');
+                        dokan_sweetalert( dokan.i18n_invalid, { 
+                            icon: 'error',
+                        } );
                         login_btn.html(custom_login_btn);
                     }
                 } )
@@ -57,7 +59,9 @@
                         location.reload()
                     }
                     else {
-                        alert('failed');
+                        dokan_sweetalert( dokan.i18n_invalid, { 
+                            icon: 'error',
+                        } );
                         login_btn.html(custom_login_btn);
                     }
                 } )

@@ -16,7 +16,9 @@ class Dokan_RMA_Warranty_Request {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param array $data
+     *
+     * @return array
      */
     public function all( $data = [] ) {
         $results  = [];
@@ -36,7 +38,9 @@ class Dokan_RMA_Warranty_Request {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param int $id
+     *
+     * @return array|WP_Error
      */
     public function get( $id = 0 ) {
         if ( ! $id ) {
@@ -44,7 +48,7 @@ class Dokan_RMA_Warranty_Request {
         }
 
         $results  = [];
-        $request = dokan_get_warranty_request( ['id' => $id ] );
+        $request = dokan_get_warranty_request( [ 'id' => $id ] );
 
         if ( $request ) {
             $results = $this->transform_warranty_requests( $request );
@@ -58,6 +62,8 @@ class Dokan_RMA_Warranty_Request {
      *
      * @since 1.0.0
      *
+     * @param array $data
+     *
      * @return void
      */
     public function create( $data = [] ) {
@@ -69,7 +75,9 @@ class Dokan_RMA_Warranty_Request {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param array $data
+     *
+     * @return int|WP_Error
      */
     public function update( $data = [] ) {
         return dokan_update_warranty_request( $data );

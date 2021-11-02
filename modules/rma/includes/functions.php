@@ -421,7 +421,7 @@ function dokan_save_warranty_request( $data = [] ) {
  *
  * @param array $data
  *
- * @return WP_Error | true
+ * @return WP_Error | int
  */
 function dokan_update_warranty_request( $data = [] ) {
     global $wpdb;
@@ -454,7 +454,7 @@ function dokan_update_warranty_request( $data = [] ) {
  *
  * @since 1.0.0
  *
- * @return void
+ * @return array
  */
 function dokan_get_warranty_request( $data = [] ) {
     global $wpdb;
@@ -519,28 +519,29 @@ function dokan_get_warranty_request( $data = [] ) {
 }
 
 /**
- * undocumented function
+ * Update warranty request status.
  *
  * @since 1.0.0
  *
- * @return void
+ * @param int $id Request ID.
+ * @param string $status Status.
+ *
+ * @return bool|int|WP_Error
  */
 function dokan_update_warranty_request_status( $id, $status ) {
     global $wpdb;
 
-    $request_table = $wpdb->prefix . 'dokan_rma_request';
-    $statuses      = dokan_warranty_request_status();
-
-    if ( in_array( $status, array_keys( $statuses ) ) ) {
+    if ( ! in_array( $status, array_keys( dokan_warranty_request_status() ), true ) ) {
         return new WP_Error( 'no-valid-status', __( 'Your status is not valid', 'dokan' ) );
     }
 
-    $result = $wpdb->update( $request_table,
-        [
-            'status' => $status
-        ],
+    $result = $wpdb->update(
+        $wpdb->prefix . 'dokan_rma_request',
+        [ 'status' => $status ],
         [ 'id' => $id ],
-        [ '%s' ], [ '%d' ] );
+        [ '%s' ],
+        [ '%d' ]
+    );
 
     if ( ! $result ) {
         return new WP_Error( 'status-not-updated', __( 'Status not updated, Please try again', 'dokan' ) );
@@ -667,7 +668,7 @@ function dokan_get_item_warranty_expiry( $duration_value = '', $duration_type = 
     $order          = wc_get_order( $this->get_order_id() );
 
     if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
-        $completed_date = get_post_meta( $order->id, '_completed_date', true);
+        $completed_date = get_post_meta( $this->get_order_id(), '_completed_date', true );
     } else {
         $completed_date = $order->get_date_completed() ? $order->get_date_completed()->date( 'Y-m-d H:i:s' ) : false;
     }

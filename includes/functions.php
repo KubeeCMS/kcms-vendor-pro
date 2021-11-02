@@ -17,7 +17,7 @@
  */
 if ( ! function_exists( 'dokan_get_profile_progressbar' ) ) {
 
-	function dokan_get_profile_progressbar() {
+    function dokan_get_profile_progressbar() {
         $profile_info  = dokan_get_store_info( dokan_get_current_user_id() );
         $progress      = isset( $profile_info['profile_completion']['progress'] ) ? $profile_info['profile_completion']['progress'] : 0;
         $next_todo     = isset( $profile_info['profile_completion']['next_todo'] ) ? $profile_info['profile_completion']['next_todo'] : '';
@@ -27,20 +27,26 @@ if ( ! function_exists( 'dokan_get_profile_progressbar' ) ) {
         if ( strpos( $next_todo, '-' ) !== false ) {
             $next_todo     = substr( $next_todo, strpos( $next_todo, '-' ) + 1 );
             $progress_vals = isset( $profile_info['profile_completion']['progress_vals'] ) ? $profile_info['profile_completion']['progress_vals'] : 0;
-            $progress_vals = isset( $progress_vals['social_val'][$next_todo] ) ? $progress_vals['social_val'][$next_todo] : 0;
+            $progress_vals = isset( $progress_vals['social_val'][ $next_todo ] ) ? $progress_vals['social_val'][ $next_todo ] : 0;
         } else {
-            $progress_vals = isset( $progress_vals[$next_todo] ) ? $progress_vals[$next_todo] : 15;
+            $progress_vals = isset( $progress_vals[ $next_todo ] ) ? $progress_vals[ $next_todo ] : 15;
         }
 
-	    ob_start();
+        ob_start();
 
-	    dokan_get_template_part( 'global/profile-progressbar', '', array( 'pro'=>true, 'progress' => $progress, 'next_todo' => $next_todo, 'value' => $progress_vals ) );
+        dokan_get_template_part(
+            'global/profile-progressbar', '', array(
+                'pro' => true,
+                'progress' => $progress,
+                'next_todo' => $next_todo,
+                'value' => $progress_vals,
+            )
+        );
 
-	    $output = ob_get_clean();
+        $output = ob_get_clean();
 
-	    return $output;
-	}
-
+        return $output;
+    }
 }
 
 /**
@@ -53,7 +59,6 @@ if ( ! function_exists( 'dokan_get_profile_progressbar' ) ) {
  * @return string
  */
 function dokan_progressbar_translated_string( $string = '', $value = 15, $progress = 0 ) {
-
     if ( 100 === absint( $progress ) ) {
         return __( 'Congratulation, your profile is fully completed', 'dokan' );
     }
@@ -148,6 +153,56 @@ function dokan_get_seller_coupon( $seller_id, $show_on_store = false ) {
 }
 
 /**
+ * Get marketplace seller coupons
+ *
+ * @since 3.4.0
+ *
+ * @param int  $seller_id
+ * @param bool $show_on_store
+ *
+ * @return array
+ */
+function dokan_get_marketplace_seller_coupon( $seller_id, $show_on_store = false ) {
+    $args = array(
+        'post_type'   => 'shop_coupon',
+        'post_status' => 'publish',
+    );
+
+    if ( $show_on_store ) {
+        $args['meta_query'][] = array(
+            'key'   => 'admin_coupons_show_on_stores',
+            'value' => 'yes',
+        );
+    }
+
+    $coupons     = get_posts( $args );
+    $get_coupons = array();
+
+    if ( empty( $coupons ) ) {
+        return $get_coupons;
+    }
+
+    foreach ( $coupons as $coupon ) {
+        $vendors_ids     = get_post_meta( $coupon->ID, 'coupons_vendors_ids', true );
+        $vendors_ids     = ! empty( $vendors_ids ) ? array_map( 'intval', explode( ',', $vendors_ids ) ) : [];
+        $exclude_vendors = get_post_meta( $coupon->ID, 'coupons_exclude_vendors_ids', true );
+        $exclude_vendors = ! empty( $exclude_vendors ) ? array_map( 'intval', explode( ',', $exclude_vendors ) ) : [];
+
+        $coupon_meta = [
+            'admin_coupons_enabled_for_vendor' => get_post_meta( $coupon->ID, 'admin_coupons_enabled_for_vendor', true ),
+            'coupons_vendors_ids'              => $vendors_ids,
+            'coupons_exclude_vendors_ids'      => $exclude_vendors,
+        ];
+
+        if ( dokan_is_admin_created_vendor_coupon_by_meta( $coupon_meta, $seller_id ) ) {
+            $get_coupons[] = $coupon;
+        }
+    }
+
+    return $get_coupons;
+}
+
+/**
 * Get refund localize data
 *
 * @since 2.6
@@ -197,11 +252,13 @@ function dokan_render_order_table_items( $order_id ) {
     $data  = get_post_meta( $order_id );
     $order = new WC_Order( $order_id );
 
-    dokan_get_template_part( 'orders/views/html-order-items', '', array(
-        'pro'   => true,
-        'data'  => $data,
-        'order' => $order
-    ) );
+    dokan_get_template_part(
+        'orders/views/html-order-items', '', array(
+            'pro'   => true,
+            'data'  => $data,
+            'order' => $order,
+        )
+    );
 }
 
 /**
@@ -217,16 +274,15 @@ function dokan_get_best_sellers( $limit = 5 ) {
     $seller = wp_cache_get( $cache_key, 'widget' );
 
     if ( false === $seller ) {
-
         $qry = "SELECT seller_id, display_name, SUM( net_amount ) AS total_sell
             FROM {$wpdb->prefix}dokan_orders AS o,{$wpdb->users} AS u
             LEFT JOIN {$wpdb->usermeta} AS umeta on umeta.user_id=u.ID
             WHERE o.seller_id = u.ID AND umeta.meta_key = 'dokan_enable_selling' AND umeta.meta_value = 'yes'
             GROUP BY o.seller_id
-            ORDER BY total_sell DESC LIMIT ".$limit;
+            ORDER BY total_sell DESC LIMIT " . $limit;
 
         $seller = $wpdb->get_results( $qry );
-        wp_cache_set( $cache_key, $seller, 'widget', 3600*6 );
+        wp_cache_set( $cache_key, $seller, 'widget', 3600 * 6 );
     }
 
     return $seller;
@@ -270,10 +326,9 @@ function dokan_get_feature_sellers( $count = 5 ) {
  *
  * @return void Render template for account update
  */
-if ( !function_exists( 'dokan_render_customer_migration_template' ) ) {
+if ( ! function_exists( 'dokan_render_customer_migration_template' ) ) {
 
     function dokan_render_customer_migration_template( $atts ) {
-
         ob_start();
         dokan_get_template_part( 'global/update-account', '', array( 'pro' => true ) );
         ?>
@@ -391,7 +446,6 @@ if ( !function_exists( 'dokan_render_customer_migration_template' ) ) {
 
         return ob_get_clean();
     }
-
 }
 
 add_shortcode( 'dokan-customer-migration', 'dokan_render_customer_migration_template' );

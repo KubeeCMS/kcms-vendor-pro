@@ -139,7 +139,7 @@ do_action( 'dokan_before_listing_product' );
                                             'dokan-delete-product'
                                         ); ?>
                                         <span class="delete">
-                                            <a onclick="return confirm('<?php esc_attr_e( 'Are you sure want to delete?', 'dokan' ); ?>');" href="<?php echo $delete_url; ?>"><?php _e( 'Delete Permanently', 'dokan' ); ?></a> |
+                                            <a onclick="dokan_show_delete_prompt( event, dokan.delete_confirm );" href="<?php echo $delete_url; ?>"><?php _e( 'Delete Permanently', 'dokan' ); ?></a> |
                                         </span>
                                         <?php
                                     }

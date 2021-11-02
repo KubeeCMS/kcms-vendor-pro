@@ -243,7 +243,7 @@ class VendorShipping extends WC_Shipping_Method {
             $has_costs = false;
             $cost      = 0;
 
-            if ( 'yes' !== $method['enabled'] ) {
+            if ( 'yes' !== $method['enabled'] || 'dokan_table_rate_shipping' === $method['id'] ) {
                 continue;
             }
 

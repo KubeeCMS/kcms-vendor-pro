@@ -1,4 +1,5 @@
 <?php
+
 namespace WeDevs\DokanPro\Modules\Germanized\CustomFields;
 
 use WeDevs\DokanPro\Modules\Germanized\Helper;
@@ -40,12 +41,15 @@ class Dashboard {
         $bank_name               = get_user_meta( $user_id, 'dokan_bank_name', true );
         $bank_iban               = get_user_meta( $user_id, 'dokan_bank_iban', true );
         $enabled_fields          = Helper::is_fields_enabled_for_seller();
+
+        $company_v_status = isset( $store_settings['dokan_verification']['info']['company_v_status'] ) ? $store_settings['dokan_verification']['info']['company_v_status'] : '';
+        $verified = 'approved' === $company_v_status ? 'disabled' : '';
         ?>
         <?php if ( $enabled_fields['dokan_company_name'] ) : ?>
             <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label" for="settings_dokan_company_name"><?php echo Helper::get_company_name_label(); ?></label>
                 <div class="dokan-w5 dokan-text-left">
-                    <input id="settings_dokan_company_name" value="<?php echo esc_attr( $dokan_company_name ); ?>" name="settings_dokan_company_name" placeholder="<?php echo Helper::get_company_name_label(); ?>" class="dokan-form-control input-md" type="text">
+                    <input <?php echo ( $verified ); ?> id="settings_dokan_company_name" value="<?php echo esc_attr( $dokan_company_name ); ?>" name="settings_dokan_company_name" placeholder="<?php echo Helper::get_company_name_label(); ?>" class="dokan-form-control input-md" type="text">
                 </div>
             </div>
         <?php endif; ?>
@@ -54,7 +58,7 @@ class Dashboard {
             <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label" for="settings_dokan_company_id_number"><?php echo Helper::get_company_id_label(); ?></label>
                 <div class="dokan-w5 dokan-text-left">
-                    <input id="settings_dokan_company_id_number" value="<?php echo esc_attr( $dokan_company_id_number ); ?>" name="settings_dokan_company_id_number" placeholder="<?php echo Helper::get_company_id_label(); ?>" class="dokan-form-control input-md" type="text">
+                    <input <?php echo ( $verified ); ?> id="settings_dokan_company_id_number" value="<?php echo esc_attr( $dokan_company_id_number ); ?>" name="settings_dokan_company_id_number" placeholder="<?php echo Helper::get_company_id_label(); ?>" class="dokan-form-control input-md" type="text">
                 </div>
             </div>
         <?php endif; ?>
@@ -63,7 +67,7 @@ class Dashboard {
             <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label" for="setting_vat_number"><?php echo Helper::get_vat_number_label(); ?></label>
                 <div class="dokan-w5 dokan-text-left">
-                    <input id="setting_vat_number" value="<?php echo esc_attr( $dokan_vat_number ); ?>" name="settings_dokan_vat_number" placeholder="<?php echo Helper::get_vat_number_label(); ?>" class="dokan-form-control input-md" type="text">
+                    <input <?php echo ( $verified ); ?> id="setting_vat_number" value="<?php echo esc_attr( $dokan_vat_number ); ?>" name="settings_dokan_vat_number" placeholder="<?php echo Helper::get_vat_number_label(); ?>" class="dokan-form-control input-md" type="text">
                 </div>
             </div>
         <?php endif; ?>
@@ -72,7 +76,7 @@ class Dashboard {
             <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label" for="setting_bank_name"><?php echo Helper::get_bank_name_label(); ?></label>
                 <div class="dokan-w5 dokan-text-left">
-                    <input name="setting_bank_name" id="setting_bank_name" value="<?php echo esc_attr( $bank_name ); ?>" class="dokan-form-control" placeholder="<?php echo Helper::get_bank_name_label(); ?>" type="text">
+                    <input <?php echo ( $verified ); ?> name="setting_bank_name" id="setting_bank_name" value="<?php echo esc_attr( $bank_name ); ?>" class="dokan-form-control" placeholder="<?php echo Helper::get_bank_name_label(); ?>" type="text">
                 </div>
             </div>
         <?php endif; ?>
@@ -81,7 +85,7 @@ class Dashboard {
             <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label" for="setting_bank_iban"><?php echo Helper::get_bank_iban_label(); ?></label>
                 <div class="dokan-w5 dokan-text-left">
-                    <input name="setting_bank_iban" id="setting_bank_iban" value="<?php echo esc_attr( $bank_iban ); ?>" class="dokan-form-control" placeholder="<?php echo Helper::get_bank_iban_label(); ?>" type="text">
+                    <input <?php echo ( $verified ); ?> name="setting_bank_iban" id="setting_bank_iban" value="<?php echo esc_attr( $bank_iban ); ?>" class="dokan-form-control" placeholder="<?php echo Helper::get_bank_iban_label(); ?>" type="text">
                 </div>
             </div>
         <?php endif; ?>
@@ -107,6 +111,11 @@ class Dashboard {
         }
 
         $enabled_fields = Helper::is_fields_enabled_for_seller();
+
+        $company_v_status = isset( $dokan_settings['dokan_verification']['info']['company_v_status'] ) ? $dokan_settings['dokan_verification']['info']['company_v_status'] : '';
+        if ( 'approved' === $company_v_status ) {
+            return;
+        }
 
         // store company name
         if ( $enabled_fields['dokan_company_name'] ) {

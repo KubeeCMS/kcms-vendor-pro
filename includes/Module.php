@@ -361,8 +361,8 @@ class Module {
                         'doc_id'       => 93366,
                         'doc_link'     => 'https://wedevs.com/docs/dokan/modules/woocommerce-auctions-frontend-multivendor-marketplace/',
                         'mod_link'     => 'https://wedevs.com/dokan/modules/dokan-simple-auctions/',
-					],
-					'spmv' => [
+					          ],
+					          'spmv' => [
                         'id'           => 'spmv',
                         'name'         => __( 'Single Product Multiple Vendor', 'dokan' ),
                         'description'  => __( 'A module that offers multiple vendor to sell a single product.', 'dokan' ),
@@ -480,6 +480,29 @@ class Module {
                         'doc_id'       => 157825,
                         'doc_link'     => 'https://wedevs.com/docs/dokan/modules/dokan-wholesale/',
                         'mod_link'     => 'https://wedevs.com/dokan/modules/wholesale/',
+                    ],
+                    'rank_math' => [
+                        'id'           => 'rank_math',
+                        'name'         => __( 'Rank Math SEO', 'dokan' ),
+                        'description'  => __( 'Manage SEO for products with Rank Math', 'dokan' ),
+                        'thumbnail'    => $thumbnail_dir . '/rank-math.png',
+                        'module_file'  => DOKAN_PRO_MODULE_DIR . '/rank-math/module.php',
+                        'module_class' => 'WeDevs\DokanPro\Modules\RankMath\Module',
+                        'plan'         => [ 'professional', 'business', 'enterprise' ],
+                        'doc_link'     => 'https://wedevs.com/docs/dokan/modules/rank-math-seo/',
+                        'mod_link'     => 'https://wedevs.com/dokan/modules/rank-math-seo/',
+                    ],
+                    'table_rate_shipping' => [
+                        'id'           => 'table_rate_shipping',
+                        'name'         => __( 'Table Rate Shipping', 'dokan' ),
+                        'description'  => __( 'Deliver Products at the Right Time, With the Right Pay.', 'dokan' ),
+                        'thumbnail'    => $thumbnail_dir . '/table-rate-shipping.png',
+                        'module_file'  => DOKAN_PRO_MODULE_DIR . '/table-rate-shipping/module.php',
+                        'module_class' => 'WeDevs\DokanPro\Modules\TableRateShipping\Module',
+                        'plan'         => [ 'starter', 'professional', 'business', 'enterprise' ],
+                        'doc_id'       => 1527799,
+                        'doc_link'     => 'https://wedevs.com/docs/dokan/modules/dokan-table-rate-shipping/',
+                        'mod_link'     => 'https://wedevs.com/dokan/modules/dokan-table-rate-shipping/',
                     ],
                 ]
             );

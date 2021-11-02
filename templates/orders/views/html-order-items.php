@@ -171,15 +171,24 @@ if ( wc_tax_enabled() ) {
             <?php
             echo '<li><strong>' . __( 'Coupon(s) Used', 'dokan' ) . '</strong></li>';
             foreach ( $coupons as $item_id => $item ) {
-                $post_item_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = 'shop_coupon' AND post_status = 'publish' LIMIT 1;", $item->get_name() ) );
+                $coupon    = new WC_Coupon( $item->get_name() );
+                $item_link = '#';
 
-                $item_link = $post_item_id ? add_query_arg(
+                $vendor_coupon = $coupon->get_id() ? add_query_arg(
                     array(
-                        'post' => $post_item_id,
+                        'post' => $coupon->get_id(),
                         'view' => 'add_coupons',
                         'action' => 'edit',
                     ), dokan_get_navigation_url( 'coupons' )
                 ) : dokan_get_navigation_url( 'coupons' );
+
+                $marketplace_coupon = $coupon->get_id() ? add_query_arg(
+                    array(
+                        'coupons_type' => 'marketplace_coupons',
+                    ), dokan_get_navigation_url( 'coupons' )
+                ) : dokan_get_navigation_url( 'coupons' );
+
+                $item_link = dokan_is_coupon_created_by_admin_for_vendor( $coupon ) ? $marketplace_coupon : $vendor_coupon;
 
                 echo '<li class="code"><a href="' . esc_url( $item_link ) . '" class="tips" data-tip="' . esc_attr( wc_price( $item->get_discount(), array( 'currency' => dokan_replace_func( 'get_order_currency', 'get_currency', $order ) ) ) ) . '"><span>' . esc_html( $item->get_name() ) . '</span></a></li>';
             }
@@ -191,7 +200,7 @@ if ( wc_tax_enabled() ) {
     ?>
     <table class="wc-order-totals">
         <tr>
-            <td><?php esc_html_e( 'Discount', 'dokan' ); ?> <span class="tips" data-tip="<?php esc_attr_e( 'This is the total discount. Discounts are defined per line item.', 'dokan' ); ?>">[?]</span>:</td>
+            <td><?php esc_html_e( 'Discount', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the total discount. Discounts are defined per line item.', 'dokan' ); ?>"><span class="dashicons dashicons-editor-help dokan-vendor-order-page-tips"></span></span>:</td>
             <td class="total">
                 <?php echo wc_price( $order->get_total_discount(), array( 'currency' => dokan_replace_func( 'get_order_currency', 'get_currency', $order ) ) ); ?>
             </td>
@@ -201,7 +210,7 @@ if ( wc_tax_enabled() ) {
         <?php do_action( 'woocommerce_admin_order_totals_after_discount', dokan_get_prop( $order, 'id' ) ); ?>
 
         <tr>
-            <td><?php esc_html_e( 'Shipping', 'dokan' ); ?> <span class="tips" data-tip="<?php esc_attr_e( 'This is the shipping and handling total costs for the order.', 'dokan' ); ?>">[?]</span>:</td>
+            <td><?php esc_html_e( 'Shipping', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the shipping and handling total costs for the order.', 'dokan' ); ?>"><span class="dashicons dashicons-editor-help dokan-vendor-order-page-tips"></span></span>:</td>
             <td class="total"><?php echo wc_price( $order->get_total_shipping(), array( 'currency' => dokan_replace_func( 'get_order_currency', 'get_currency', $order ) ) ); ?></td>
             <td width="1%"></td>
         </tr>

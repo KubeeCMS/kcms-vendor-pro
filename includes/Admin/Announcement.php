@@ -348,6 +348,11 @@ class Announcement {
             $users   = new \WP_User_Query( $args );
             if ( $users->get_total() ) {
                 $assigned_sellers = $users->get_results();
+
+                // Remove excluded sellers ids
+                if ( ! empty( $request['exclude_sellers_ids'] ) && is_array( $request['exclude_sellers_ids'] ) ) {
+                    $assigned_sellers = array_diff( $assigned_sellers, $request['exclude_sellers_ids'] );
+                }
             }
 
             $this->process_seller_announcement_data( $assigned_sellers, $post_id );

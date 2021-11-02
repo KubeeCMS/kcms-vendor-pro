@@ -805,7 +805,6 @@
 .dokan-announcement-wrapper .help-block {
   position: absolute;
   top: 10px;
-  right: 10px;
 }
 .dokan-announcement-wrapper .help-block span.help-text {
   display: inline-block;
@@ -878,6 +877,12 @@
     padding-right: 15px;
 }
 }
+.help-block-rtl {
+  left: 10px;
+}
+.help-block-ltr {
+  right: 10px;
+}
 
 /*!*****************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/less-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/admin/components/NewAnnouncement.vue?vue&type=style&index=0&lang=less& ***!
@@ -888,7 +893,6 @@
 .dokan-announcement-form-wrapper .help-block {
   position: absolute;
   top: 10px;
-  right: 10px;
 }
 .dokan-announcement-form-wrapper .help-block span.help-text {
   display: inline-block;
@@ -900,6 +904,12 @@
 }
 .dokan-announcement-form-wrapper .help-block span.dashicons {
   font-size: 25px;
+}
+.dokan-announcement-form-wrapper .help-block-rtl {
+  left: 10px;
+}
+.dokan-announcement-form-wrapper .help-block-ltr {
+  right: 10px;
 }
 .dokan-announcement-form-wrapper #post-body .post-body-content {
   position: relative;
@@ -949,6 +959,9 @@
   box-shadow: none !important;
   outline: 0 !important;
   border: none !important;
+}
+.lang_rtl {
+  float: right !important;
 }
 
 /*!********************************************************************************************************************************************************************************************************************************************************************************!*\

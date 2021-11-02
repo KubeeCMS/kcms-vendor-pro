@@ -30,12 +30,12 @@ class Module {
     }
 
     /**
-    * Get plugin path
-    *
-    * @since 2.9.5
-    *
-    * @return void
-    **/
+     * Get plugin path
+     *
+     * @since 2.9.5
+     *
+     * @return void
+     **/
     public function plugin_path() {
         return untrailingslashit( plugin_dir_path( __FILE__ ) );
     }
@@ -102,7 +102,7 @@ class Module {
      * @since 2.9.5
      *
      * @return void
-    */
+     */
     public function load_scripts() {
         global $wp, $post;
 
@@ -129,12 +129,12 @@ class Module {
                     'dokan-wholesale-script',
                     'DokanWholesale',
                     [
-                        'currency_symbol'   => get_woocommerce_currency_symbol(),
-                        'check_permission'  => dokan_wholesale_can_see_price(),
+                        'currency_symbol'            => get_woocommerce_currency_symbol(),
+                        'check_permission'           => dokan_wholesale_can_see_price(),
                         'variation_wholesale_string' => apply_filters(
                             'dokan_variable_product_wholesale_string',
                             [
-                                'wholesale_price' => __( 'Wholesale Price', 'dokan' ),
+                                'wholesale_price'  => __( 'Wholesale Price', 'dokan' ),
                                 'minimum_quantity' => __( 'Minimum Quantity', 'dokan' ),
                             ]
                         ),
@@ -181,7 +181,7 @@ class Module {
      */
     public function add_localize_data( $data ) {
         $data['wholesale'] = [
-            'activeStatusMessage' => __( 'You are succefully converted as a wholesale customer', 'dokan' ),
+            'activeStatusMessage'   => __( 'You are succefully converted as a wholesale customer', 'dokan' ),
             'deactiveStatusMessage' => __( 'Your wholesale customer request send to the admin. Please wait for approval', 'dokan' ),
         ];
 

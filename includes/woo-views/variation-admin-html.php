@@ -49,7 +49,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 				<td class="sku" colspan="2">
 					<?php if ( wc_product_sku_enabled() ) : ?>
 						<input type="text" size="5" name="variable_sku[<?php echo $loop; ?>]" value="<?php if ( isset( $_sku ) ) echo esc_attr( $_sku ); ?>" placeholder="<?php echo esc_attr( $parent_data['sku'] ); ?>" />
-						<label><?php _e( 'SKU', 'dokan' ); ?>: <a class="tips" title="<?php _e( 'Enter a SKU for this variation or leave blank to use the parent product SKU.', 'dokan' ); ?>" href="#">[?]</a></label>
+						<label><?php esc_html_e( 'SKU', 'dokan' ); ?>: <a class="tips" title="<?php esc_attr_e( 'Enter a SKU for this variation or leave blank to use the parent product SKU.', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 					<?php else : ?>
 						<input type="hidden" name="variable_sku[<?php echo $loop; ?>]" value="<?php if ( isset( $_sku ) ) echo esc_attr( $_sku ); ?>" />
 					<?php endif; ?>
@@ -59,7 +59,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 						<?php if ( get_option( 'woocommerce_manage_stock' ) == 'yes' ) : ?>
 							<tr class="show_if_variation_manage_stock">
 								<td>
-									<label><?php _e( 'Stock Qty:', 'dokan' ); ?> <a class="tips" title="<?php _e( 'Enter a quantity to enable stock management at variation level, or leave blank to use the parent product\'s options.', 'dokan' ); ?>" href="#">[?]</a></label>
+									<label><?php esc_html_e( 'Stock Qty:', 'dokan' ); ?> <a class="tips" title="<?php esc_attr_e( 'Enter a quantity to enable stock management at variation level, or leave blank to use the parent product\'s options.', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 									<input type="number" size="5" name="variable_stock[<?php echo $loop; ?>]" value="<?php if ( isset( $_stock ) ) echo wc_stock_amount( $_stock ); ?>" step="any" />
 								</td>
 								<td>
@@ -73,7 +73,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 							</tr>
 							<tr>
 								<td colspan="2">
-									<label><?php _e( 'Stock status', 'dokan' ); ?> <a href="#" class="tips" title="<?php _e( 'Controls whether or not the product is listed as "in stock" or "out of stock" on the frontend.', 'dokan' ) ?>">[?]</a></label>
+									<label><?php esc_html_e( 'Stock status', 'dokan' ); ?> <a href="#" class="tips" title="<?php esc_attr_e( 'Controls whether or not the product is listed as "in stock" or "out of stock" on the frontend.', 'dokan' ) ?>"><span class="dashicons dashicons-editor-help"></span></a></label>
 									<select name="variable_stock_status[<?php echo $loop; ?>]">
 										<option value="instock" <?php selected( $_stock_status, 'instock' ) ?>><?php _e( 'In stock', 'dokan' ); ?></option>
 										<option value="outofstock" <?php selected( $_stock_status, 'outofstock' ) ?>><?php _e( 'Out of stock', 'dokan' ); ?></option>
@@ -108,7 +108,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 							<tr>
 								<?php if ( wc_product_weight_enabled() ) : ?>
 									<td class="hide_if_variation_virtual">
-										<label><?php echo __( 'Weight', 'dokan' ) . ' (' . esc_html( get_option( 'woocommerce_weight_unit' ) ) . '):'; ?> <a class="tips" title="<?php _e( 'Enter a weight for this variation or leave blank to use the parent product weight.', 'dokan' ); ?>" href="#">[?]</a></label>
+										<label><?php echo esc_html( 'Weight', 'dokan' ) . ' (' . esc_html( get_option( 'woocommerce_weight_unit' ) ) . '):'; ?> <a class="tips" title="<?php esc_attr_e( 'Enter a weight for this variation or leave blank to use the parent product weight.', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 										<input type="text" size="5" name="variable_weight[<?php echo $loop; ?>]" value="<?php if ( isset( $_weight ) ) echo esc_attr( $_weight ); ?>" placeholder="<?php echo esc_attr( $parent_data['weight'] ); ?>" class="wc_input_decimal" />
 									</td>
 								<?php else : ?>
@@ -159,8 +159,8 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 									<table class="widefat">
 										<thead>
 											<tr>
-												<td><?php _e( 'Name', 'dokan' ); ?> <span class="tips" title="<?php _e( 'This is the name of the download shown to the customer.', 'dokan' ); ?>">[?]</span></td>
-												<td colspan="2"><?php _e( 'File URL', 'dokan' ); ?> <span class="tips" title="<?php _e( 'This is the URL or absolute path to the file which customers will get access to.', 'dokan' ); ?>">[?]</span></td>
+												<td><?php esc_html_e( 'Name', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the name of the download shown to the customer.', 'dokan' ); ?>"><span class="dashicons dashicons-editor-help"></span></span></td>
+												<td colspan="2"><?php esc_html_e( 'File URL', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the URL or absolute path to the file which customers will get access to.', 'dokan' ); ?>"><span class="dashicons dashicons-editor-help"></span></span></td>
 												<td>&nbsp;</td>
 											</tr>
 										</thead>
@@ -201,13 +201,13 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 						<tr class="show_if_variation_downloadable">
 							<td>
 								<div>
-									<label><?php _e( 'Download Limit:', 'dokan' ); ?> <a class="tips" title="<?php _e( 'Leave blank for unlimited re-downloads.', 'dokan' ); ?>" href="#">[?]</a></label>
+									<label><?php esc_html_e( 'Download Limit:', 'dokan' ); ?> <a class="tips" title="<?php esc_attr_e( 'Leave blank for unlimited re-downloads.', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 									<input type="text" size="5" name="variable_download_limit[<?php echo $loop; ?>]" value="<?php if ( isset( $_download_limit ) ) echo esc_attr( $_download_limit ); ?>" placeholder="<?php _e( 'Unlimited', 'dokan' ); ?>" />
 								</div>
 							</td>
 							<td>
 								<div>
-									<label><?php _e( 'Download Expiry:', 'dokan' ); ?> <a class="tips" title="<?php _e( 'Enter the number of days before a download link expires, or leave blank.', 'dokan' ); ?>" href="#">[?]</a></label>
+									<label><?php esc_html_e( 'Download Expiry:', 'dokan' ); ?> <a class="tips" title="<?php esc_attr_e( 'Enter the number of days before a download link expires, or leave blank.', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 									<input type="text" size="5" name="variable_download_expiry[<?php echo $loop; ?>]" value="<?php if ( isset( $_download_expiry ) ) echo esc_attr( $_download_expiry ); ?>" placeholder="<?php _e( 'Unlimited', 'dokan' ); ?>" />
 								</div>
 							</td>
@@ -233,11 +233,11 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 				<td class="options">
 					<label class="checkbox"><input type="checkbox" class="checkbox" name="variable_enabled[<?php echo $loop; ?>]" <?php checked( $variation_post_status, 'publish' ); ?> /> <?php _e( 'Enabled', 'dokan' ); ?></label>
 
-					<label class="checkbox"><input type="checkbox" class="checkbox variable_is_downloadable" name="variable_is_downloadable[<?php echo $loop; ?>]" <?php checked( isset( $_downloadable ) ? $_downloadable : '', 'yes' ); ?> /> <?php _e( 'Downloadable', 'dokan' ); ?> <a class="tips" title="<?php _e( 'Enable this option if access will be given to a downloadable file upon the purchase of a product', 'dokan' ); ?>" href="#">[?]</a></label>
+					<label class="checkbox"><input type="checkbox" class="checkbox variable_is_downloadable" name="variable_is_downloadable[<?php echo $loop; ?>]" <?php checked( isset( $_downloadable ) ? $_downloadable : '', 'yes' ); ?> /> <?php esc_html_e( 'Downloadable', 'dokan' ); ?> <a class="tips" title="<?php esc_attr_e( 'Enable this option if access will be given to a downloadable file upon the purchase of a product', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 
-					<label class="checkbox"><input type="checkbox" class="checkbox variable_is_virtual" name="variable_is_virtual[<?php echo $loop; ?>]" <?php checked( isset( $_virtual ) ? $_virtual : '', 'yes' ); ?> /> <?php _e( 'Virtual', 'dokan' ); ?> <a class="tips" title="<?php _e( 'Enable this option if a product is not shipped or there is no shipping cost', 'dokan' ); ?>" href="#">[?]</a></label>
+					<label class="checkbox"><input type="checkbox" class="checkbox variable_is_virtual" name="variable_is_virtual[<?php echo $loop; ?>]" <?php checked( isset( $_virtual ) ? $_virtual : '', 'yes' ); ?> /> <?php esc_html_e( 'Virtual', 'dokan' ); ?> <a class="tips" title="<?php esc_attr_e( 'Enable this option if a product is not shipped or there is no shipping cost', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 
-					<label class="checkbox"><input type="checkbox" class="checkbox variable_manage_stock" name="variable_manage_stock[<?php echo $loop; ?>]" <?php checked( isset( $_manage_stock ) ? $_manage_stock : '', 'yes' ); ?> /> <?php _e( 'Manage Stock?', 'dokan' ); ?> <a class="tips" title="<?php _e( 'Enable this option to enable stock management at variation level', 'dokan' ); ?>" href="#">[?]</a></label>
+					<label class="checkbox"><input type="checkbox" class="checkbox variable_manage_stock" name="variable_manage_stock[<?php echo $loop; ?>]" <?php checked( isset( $_manage_stock ) ? $_manage_stock : '', 'yes' ); ?> /> <?php esc_html_e( 'Manage Stock?', 'dokan' ); ?> <a class="tips" title="<?php esc_attr_e( 'Enable this option to enable stock management at variation level', 'dokan' ); ?>" href="#"><span class="dashicons dashicons-editor-help"></span></a></label>
 
 					<?php do_action( 'woocommerce_variation_options', $loop, $variation_data, $variation ); ?>
 				</td>

@@ -5,6 +5,7 @@ namespace WeDevs\DokanPro\Modules\VendorVerification;
 use Hybridauth\Exception\Exception;
 use Hybridauth\Hybridauth;
 use WeDevs\DokanPro\Storage\Session;
+use WeDevs\DokanPro\Modules\Germanized\Helper;
 
 /**
  * Dokan_Seller_Verification class
@@ -97,6 +98,8 @@ class Module {
         add_action( 'wp_ajax_dokan_update_verify_info_insert_address', array( $this, 'dokan_update_verify_info_insert_address' ) );
         add_action( 'wp_ajax_dokan_v_send_sms', array( $this, 'dokan_v_send_sms' ) );
         add_action( 'wp_ajax_dokan_v_verify_sms_code', array( $this, 'dokan_v_verify_sms_code' ) );
+        add_action( 'wp_ajax_dokan_update_verify_info_insert_company', array( $this, 'dokan_update_verify_info_insert_company' ) );
+        add_action( 'wp_ajax_dokan_company_verification_cancel', array( $this, 'dokan_company_verification_cancel' ) );
 
         if ( $installed_version >= 2.4 ) {
             add_filter( 'dokan_dashboard_settings_heading_title', array( $this, 'load_verification_template_header' ), 15, 2 );
@@ -600,14 +603,14 @@ class Module {
 
         switch ( $postdata['status'] ) {
             case 'approved':
-                if ( $postdata['type'] === 'id' ) {
+                if ( 'id' === $postdata['type'] ) {
                     $seller_profile['dokan_verification']['verified_info']['photo'] = array(
                         'photo_id'        => $postdata['dokan_gravatar'],
                         'dokan_v_id_type' => $postdata['dokan_v_id_type'],
                     );
 
                     $seller_profile['dokan_verification']['info']['dokan_v_id_status'] = 'approved';
-                } elseif ( $postdata['type'] === 'address' ) {
+                } elseif ( 'address' === $postdata['type'] ) {
                     $seller_profile['dokan_verification']['verified_info']['store_address'] = array(
                         'street_1' => $postdata['street_1'],
                         'street_2' => $postdata['street_2'],
@@ -626,6 +629,8 @@ class Module {
                     );
 
                     $seller_profile['dokan_verification']['info']['store_address']['v_status'] = 'approved';
+                } elseif ( 'company_verification_files' === $postdata['type'] ) {
+                    $seller_profile['dokan_verification']['info']['company_v_status'] = 'approved';
                 }
 
                 update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
@@ -633,10 +638,12 @@ class Module {
                 break;
 
             case 'pending':
-                if ( $postdata['type'] === 'id' ) {
+                if ( 'id' === $postdata['type'] ) {
                     $seller_profile['dokan_verification']['info']['dokan_v_id_status'] = 'pending';
-                } elseif ( $postdata['type'] === 'address' ) {
+                } elseif ( 'address' === $postdata['type'] ) {
                     $seller_profile['dokan_verification']['info']['store_address']['v_status'] = 'pending';
+                } elseif ( 'company_verification_files' === $postdata['type'] ) {
+                    $seller_profile['dokan_verification']['info']['company_v_status'] = 'pending';
                 }
 
                 update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
@@ -644,10 +651,12 @@ class Module {
                 break;
 
             case 'rejected':
-                if ( $postdata['type'] === 'id' ) {
+                if ( 'id' === $postdata['type'] ) {
                     $seller_profile['dokan_verification']['info']['dokan_v_id_status'] = 'rejected';
-                } elseif ( $postdata['type'] === 'address' ) {
+                } elseif ( 'address' === $postdata['type'] ) {
                     $seller_profile['dokan_verification']['info']['store_address']['v_status'] = 'rejected';
+                } elseif ( 'company_verification_files' === $postdata['type'] ) {
+                    $seller_profile['dokan_verification']['info']['company_v_status'] = 'rejected';
                 }
 
                 update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
@@ -655,13 +664,15 @@ class Module {
                 break;
 
             case 'disapproved':
-                if ( $postdata['type'] === 'id' ) {
+                if ( 'id' === $postdata['type'] ) {
                     unset( $seller_profile['dokan_verification']['verified_info']['photo'] );
                     $seller_profile['dokan_verification']['info']['dokan_v_id_status'] = 'pending';
-                } elseif ( $postdata['type'] === 'address' ) {
+                } elseif ( 'address' === $postdata['type'] ) {
                     unset( $seller_profile['dokan_verification']['verified_info']['store_address'] );
 
                     $seller_profile['dokan_verification']['info']['store_address']['v_status'] = 'pending';
+                } elseif ( 'company_verification_files' === $postdata['type'] ) {
+                    $seller_profile['dokan_verification']['info']['company_v_status'] = 'pending';
                 }
 
                 update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
@@ -742,18 +753,45 @@ class Module {
             return;
         }
 
-        $id_status      = isset( $seller_profile['dokan_verification']['info']['dokan_v_id_status'] ) ? $seller_profile['dokan_verification']['info']['dokan_v_id_status'] : '';
-        $address_status = isset( $seller_profile['dokan_verification']['info']['store_address']['v_status'] ) ? $seller_profile['dokan_verification']['info']['store_address']['v_status'] : '';
+        $id_status        = isset( $seller_profile['dokan_verification']['info']['dokan_v_id_status'] ) ? $seller_profile['dokan_verification']['info']['dokan_v_id_status'] : '';
+        $address_status   = isset( $seller_profile['dokan_verification']['info']['store_address']['v_status'] ) ? $seller_profile['dokan_verification']['info']['store_address']['v_status'] : '';
+        $company_v_status = isset( $seller_profile['dokan_verification']['info']['company_v_status'] ) ? $seller_profile['dokan_verification']['info']['company_v_status'] : '';
 
-        if ( $id_status === $address_status ) {
+        if ( $id_status === $address_status && $address_status === $company_v_status ) {
             update_user_meta( $current_user, 'dokan_verification_status', $id_status );
-        } elseif ( ( $id_status === 'pending' || $id_status === 'approved' || $id_status === 'rejected' ) && ( $address_status === 'approved' || $address_status === 'pending' || $address_status === 'rejected' ) ) {
-            $st = $id_status . ',' . $address_status;
+        } elseif ( ( 'pending' === $id_status || 'approved' === $id_status || 'rejected' === $id_status ) && ( 'approved' === $address_status || 'pending' === $address_status || 'rejected' === $address_status ) && ( 'approved' === $company_v_status || 'pending' === $company_v_status || 'rejected' === $company_v_status ) ) {
+            $st = $id_status . ',' . $address_status . ',' . $company_v_status;
             update_user_meta( $current_user, 'dokan_verification_status', $st );
-        } elseif ( ( $id_status === 'pending' || $id_status === 'approved' || $id_status === 'rejected' ) && $address_status === '' ) {
+        } elseif ( ( ( 'pending' === $id_status || 'approved' === $id_status || 'rejected' === $id_status ) || ( 'approved' === $address_status || 'pending' === $address_status || 'rejected' === $address_status ) ) && '' === $company_v_status ) {
+            if ( $id_status === $address_status ) {
+                $st = $id_status;
+                update_user_meta( $current_user, 'dokan_verification_status', $st );
+            } else {
+                $st = $id_status . ',' . $address_status;
+                update_user_meta( $current_user, 'dokan_verification_status', $st );
+            }
+        } elseif ( ( ( 'approved' === $address_status || 'pending' === $address_status || 'rejected' === $address_status ) && ( 'approved' === $company_v_status || 'pending' === $company_v_status || 'rejected' === $company_v_status ) ) && '' === $id_status ) {
+            if ( $company_v_status === $address_status ) {
+                $st = $company_v_status;
+                update_user_meta( $current_user, 'dokan_verification_status', $st );
+            } else {
+                $st = $company_v_status . ',' . $address_status;
+                update_user_meta( $current_user, 'dokan_verification_status', $st );
+            }
+        } elseif ( ( ( 'approved' === $id_status || 'pending' === $id_status || 'rejected' === $id_status ) && ( 'approved' === $company_v_status || 'pending' === $company_v_status || 'rejected' === $company_v_status ) ) && '' === $address_status ) {
+            if ( $company_v_status === $id_status ) {
+                $st = $company_v_status;
+                update_user_meta( $current_user, 'dokan_verification_status', $st );
+            } else {
+                $st = $company_v_status . ',' . $id_status;
+                update_user_meta( $current_user, 'dokan_verification_status', $st );
+            }
+        } elseif ( ( 'pending' === $id_status || 'approved' === $id_status || 'rejected' === $id_status ) && ( '' === $address_status && '' === $company_v_status ) ) {
             update_user_meta( $current_user, 'dokan_verification_status', $id_status );
-        } elseif ( $id_status === '' && ( $address_status === 'approved' || $address_status === 'pending' || $address_status === 'rejected' ) ) {
+        } elseif ( ( 'pending' === $address_status || 'approved' === $address_status || 'rejected' === $address_status ) && ( '' === $id_status && '' === $company_v_status ) ) {
             update_user_meta( $current_user, 'dokan_verification_status', $address_status );
+        } elseif ( ( 'pending' === $company_v_status || 'approved' === $company_v_status || 'rejected' === $company_v_status ) && ( '' === $id_status && '' === $address_status ) ) {
+            update_user_meta( $current_user, 'dokan_verification_status', $company_v_status );
         }
 
         //clear info meta if empty
@@ -892,7 +930,7 @@ class Module {
         $rule = <<<EOD
 Options -Indexes
 deny from all
-<FilesMatch '\.(jpg|jpeg|png|gif|mp3|ogg)$'>
+<FilesMatch '\.(jpg|jpeg|png|gif|pdf|doc|docx|odt)$'>
     Order Allow,Deny
     Allow from all
 </FilesMatch>
@@ -908,12 +946,13 @@ EOD;
         global $wp_filesystem;
 
         // protect if the the global filesystem isn't setup yet
-        if( is_null( $wp_filesystem ) ) {
-            require_once ( ABSPATH . '/wp-admin/includes/file.php' );
+        if ( is_null( $wp_filesystem ) ) { // phpcs:ignore
+            require_once ( ABSPATH . '/wp-admin/includes/file.php' );// phpcs:ignore
             WP_Filesystem();
         }
 
-        if ( ( file_exists( $file_htaccess ) && $wp_filesystem->get_contents( $file_htaccess ) === 'deny from all' ) || ! file_exists( $file_htaccess ) )  {
+        // phpcs:ignore
+        if ( ( file_exists( $file_htaccess ) && $wp_filesystem->get_contents( $file_htaccess ) !== $rule ) || ! file_exists( $file_htaccess ) )  {
 
             $ret = $wp_filesystem->put_contents(
                 $file_htaccess,
@@ -956,5 +995,63 @@ EOD;
         }
 
         return $random_string;
+    }
+
+    /*
+     * Insert Verification page Company fields into Verify info via AJAX
+     *
+     * @since 1.0.0
+     *
+     * @return Ajax Success/fail
+     */
+    public function dokan_update_verify_info_insert_company() {
+        if ( ! isset( $_POST['dokan_verify_action_company_form_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['dokan_verify_action_company_form_nonce'] ), 'dokan_verify_action_company_form' ) ) {
+            wp_send_json_error( __( 'Are you cheating?', 'dokan' ) );
+        }
+
+        $current_user   = get_current_user_id();
+
+        if ( ! dokan_is_user_seller( $current_user ) ) {
+            wp_send_json_error( __( 'Are you cheating?', 'dokan' ) );
+        }
+
+        $seller_profile = dokan_get_store_info( $current_user );
+
+        $msg = __( 'Please upload minimum one document.', 'dokan' );
+
+        if ( ! isset( $_POST['vendor_verification_files_ids'] ) || ! is_array( $_POST['vendor_verification_files_ids'] ) || count( $_POST['vendor_verification_files_ids'] ) < 1 ) {
+            wp_send_json_error( $msg );
+        }
+
+        $seller_profile['company_verification_files'] = wp_unslash( $_POST['vendor_verification_files_ids'] );
+
+        $seller_profile['dokan_verification']['info']['company_v_status'] = 'pending';
+
+        update_user_meta( $current_user, 'dokan_profile_settings', $seller_profile );
+
+        $msg = __( 'Your company verification request is sent and pending approval', 'dokan' );
+
+        dokan_verification_request_submit_email();
+        wp_send_json_success( $msg );
+    }
+
+    /*
+     * Clears Verify Info value for Company verification via AJAX
+     *
+     * @since 1.0.0
+     *
+     * @return String Ajax string message.
+     */
+    public function dokan_company_verification_cancel() {
+        $user_id        = get_current_user_id();
+        $seller_profile = dokan_get_store_info( $user_id );
+
+        unset( $seller_profile['dokan_verification']['info']['company_v_status'] );
+        //update user meta pending here
+        update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
+
+        $msg = __( 'Your company verification request is cancelled', 'dokan' );
+
+        wp_send_json_success( $msg );
     }
 }

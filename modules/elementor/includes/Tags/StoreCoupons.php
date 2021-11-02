@@ -60,6 +60,8 @@ class StoreCoupons extends TagBase {
             $store_user    = $store->data;
             $store_info    = $store_user->get_shop_info();
             $store_coupons = $dokan_store->get_store_coupons( $store_user, $store_info );
+            $marketplace   = $dokan_store->get_store_coupons( $store_user, $store_info, true );
+            $store_coupons = array_merge( $store_coupons, $marketplace );
 
             if ( ! empty( $store_coupons ) ) {
                 foreach ( $store_coupons as $i => $store_coupon ) {

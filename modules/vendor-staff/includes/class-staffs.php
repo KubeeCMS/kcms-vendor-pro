@@ -504,7 +504,7 @@ class Dokan_Staffs {
      */
     public function link_add_staff_notification_email( $notify_email, $user ) {
         if ( ! in_array( 'vendor_staff', $user->roles, true ) ) {
-            return;
+            return $notify_email;
         }
 
         $key = get_password_reset_key( $user );

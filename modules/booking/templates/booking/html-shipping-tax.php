@@ -59,7 +59,12 @@ $tab_desc               = $is_shipping_disabled ? __( 'Manage tax for this produ
                     <div class="dokan-text-left">
                         <?php
                         // Shipping Class
-                        $classes = get_the_terms( $post_id, 'product_shipping_class' );
+                        $classes                = get_the_terms( $post_id, 'product_shipping_class' );
+                        $shipping_settings_link = sprintf( "<a href='%s'>", dokan_get_navigation_url( 'settings/shipping' ) );
+
+                        /* translators: %1$s is replaced with "HTML open entities", %2$s is replaced with "HTML close entities"*/
+                        $product_shipping_help_block = sprintf( esc_html__( 'Shipping classes are used by certain shipping methods to group similar products. Before adding a product, please configure the %1$s shipping settings %2$s', 'dokan' ), $shipping_settings_link, '</a>' );
+
                         if ( $classes && ! is_wp_error( $classes ) ) {
                             $current_shipping_class = current($classes)->term_id;
                         } else {
@@ -67,18 +72,18 @@ $tab_desc               = $is_shipping_disabled ? __( 'Manage tax for this produ
                         }
 
                         $args = array(
-                            'taxonomy'          => 'product_shipping_class',
-                            'hide_empty'        => 0,
-                            'show_option_none'  => __( 'No shipping class', 'dokan' ),
-                            'name'              => 'product_shipping_class',
-                            'id'                => 'product_shipping_class',
-                            'selected'          => $current_shipping_class,
-                            'class'             => 'dokan-form-control'
+                            'taxonomy'         => 'product_shipping_class',
+                            'hide_empty'       => 0,
+                            'show_option_none' => sprintf( __( 'No shipping class (%s0)', 'dokan' ), get_woocommerce_currency_symbol() ),
+                            'name'             => 'product_shipping_class',
+                            'id'               => 'product_shipping_class',
+                            'selected'         => $current_shipping_class,
+                            'class'            => 'dokan-form-control'
                         );
                         ?>
 
-                        <?php wp_dropdown_categories( $args ); ?>
-                        <p class="help-block"><?php _e( 'Shipping classes are used by certain shipping methods to group similar products.', 'dokan' ); ?></p>
+	                    <?php wp_dropdown_categories( $args ); ?>
+                        <p class="help-block"><?php echo $product_shipping_help_block; ?></p>
                     </div>
                 </div>
                 <?php if ( $dokan_shipping_enabled && $store_shipping_enabled ) : ?>

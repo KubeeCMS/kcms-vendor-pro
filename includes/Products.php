@@ -58,6 +58,32 @@ class Products {
 
         //Prevent Duplicate SKU for multiple save from various vendor
         add_action( 'woocommerce_product_duplicate_before_save', [ $this, 'prevent_duplicate_sku' ], 10, 2 );
+        add_filter( 'dokan_earning_by_order_item_price', [ $this, 'update_item_price_for_discount' ], 15, 3 );
+    }
+
+    /**
+     * Update item total total price if have product based discount
+     *
+     * @param float $get_total
+     * @param Obj   $item
+     *
+     * @since 3.4.0
+     *
+     * @return float $get_total
+     */
+    public function update_item_price_for_discount( $get_total, $item, $order ) {
+        if ( empty( $item ) ) {
+            return $get_total;
+        }
+
+        $item_product  = $item->get_product();
+        $item_total    = $item->get_total();
+        $item_quantity = $item->get_quantity();
+
+        $product_discount = dokan_pro()->coupon->get_product_discount( $item_product, $item_total, $item_quantity );
+        $order_discount   = dokan_pro()->coupon->get_order_discount( $order, $item_total );
+
+        return $get_total - $product_discount - $order_discount;
     }
 
     /**
@@ -1082,9 +1108,21 @@ class Products {
             if ( $maximum_tags_select_length !== -1 && count( $cleaned_data['product_tag'] ) !== 0 && count( $cleaned_data['product_tag'] ) > $maximum_tags_select_length ) {
                 /* translators: %s: maximum tag length */
                 wp_send_json_error( sprintf( __( 'You can only select %s tags', 'dokan' ), number_format_i18n( $maximum_tags_select_length ) ), 422 );
+            } else {
+                $tags = [];
+                foreach( (array) $cleaned_data['product_tag'] as $tag ) {
+                    if ( is_numeric( $tag ) ) {
+                        $tags[] = $tag;
+                        continue;
+                    }
+                    //insert new tag
+                    $new_tag = wp_insert_term( $tag, 'product_tag' );
+                    if ( ! is_wp_error( $new_tag ) ) {
+                        $tags[] = $new_tag['term_id'];
+                    }
+                }
+                $data['tags'] = $tags;
             }
-
-            $data['tags'] = (array) $cleaned_data['product_tag'];
         }
 
         $data    = apply_filters( 'dokan_update_product_quick_edit_data', $data );
