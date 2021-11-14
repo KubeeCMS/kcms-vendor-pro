@@ -7,7 +7,7 @@
  * Author: Kubee
  * Author URI: https://github.com/KubeeCMS/
  * WC requires at least: 5.0
- * WC tested up to: 5.8.1
+ * WC tested up to: 5.9
  * License: GPL2
  * TextDomain: dokan
  */
