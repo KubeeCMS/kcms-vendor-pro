@@ -113,16 +113,16 @@ class Dokan_Template_Auction {
 
         global $woocommerce_auctions;
 
-        if ( isset( $_POST['add_auction_product'] ) && wp_verify_nonce( $_POST['dokan_add_new_auction_product_nonce'], 'dokan_add_new_auction_product' ) ) {
+        if ( isset( $_POST['add_auction_product'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['dokan_add_new_auction_product_nonce'] ) ), 'dokan_add_new_auction_product' ) ) {
             if ( ! current_user_can( 'dokan_add_auction_product' ) ) {
                 return;
             }
 
-            $post_title     = isset( $_POST['post_title'] ) ? trim( $_POST['post_title'] ) : '';
-            $post_content   = isset( $_POST['post_content'] ) ? trim( $_POST['post_content'] ) : '';
-            $post_excerpt   = isset( $_POST['post_excerpt'] ) ? trim( $_POST['post_excerpt'] ) : '';
-            $product_cat    = isset( $_POST['product_cat'] ) ? absint( $_POST['product_cat'] ) : '';
-            $featured_image = isset( $_POST['feat_image_id'] ) ? absint( $_POST['feat_image_id'] ) : '';
+            $post_title     = isset( $_POST['post_title'] ) ? trim( wc_clean( wp_unslash( $_POST['post_title'] ) ) ) : '';
+            $post_content   = isset( $_POST['post_content'] ) ? wp_kses_post( $_POST['post_content'] ) : '';
+            $post_excerpt   = isset( $_POST['post_excerpt'] ) ? wp_kses_post( $_POST['post_excerpt'] ) : '';
+            $product_cat    = isset( $_POST['product_cat'] ) ? absint( wp_unslash( $_POST['product_cat'] ) ) : '';
+            $featured_image = isset( $_POST['feat_image_id'] ) ? absint( wp_unslash( $_POST['feat_image_id'] ) ) : '';
 
             if ( empty( $post_title ) ) {
                 $errors[] = __( 'Please enter product title', 'dokan' );
@@ -162,7 +162,7 @@ class Dokan_Template_Auction {
 
                      /** set product category * */
                     if( dokan_get_option( 'product_category_style', 'dokan_selling', 'single' ) == 'single' ) {
-                        wp_set_object_terms( $product_id, (int) $_POST['product_cat'], 'product_cat' );
+                        wp_set_object_terms( $product_id, absint( wp_unslash( $_POST['product_cat'] ) ), 'product_cat' );
                     } else {
                         if( isset( $_POST['product_cat'] ) && !empty( $_POST['product_cat'] ) ) {
                             $cat_ids = array_map( 'intval', (array)$_POST['product_cat'] );
@@ -211,17 +211,17 @@ class Dokan_Template_Auction {
             }
         }
 
-        if ( isset( $_POST['update_auction_product'] ) && wp_verify_nonce( $_POST['dokan_edit_auction_product_nonce'], 'dokan_edit_auction_product' ) ) {
+        if ( isset( $_POST['update_auction_product'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['dokan_edit_auction_product_nonce'] ) ), 'dokan_edit_auction_product' ) ) {
             if ( ! current_user_can( 'dokan_edit_auction_product' ) ) {
                 return;
             }
 
             $product_info = array(
-                'ID'             => $post_id,
-                'post_title'     => sanitize_text_field( $_POST['post_title'] ),
-                'post_content'   => $_POST['post_content'],
-                'post_excerpt'   => $_POST['post_excerpt'],
-                'post_status'    => isset( $_POST['post_status'] ) ? $_POST['post_status'] : 'pending',
+                'ID'             => absint( $post_id ),
+                'post_title'     => wc_clean( wp_unslash( $_POST['post_title'] ) ),
+                'post_content'   => wp_kses_post( $_POST['post_content'] ),
+                'post_excerpt'   => wp_kses_post( $_POST['post_excerpt'] ),
+                'post_status'    => isset( $_POST['post_status'] ) ? wc_clean( wp_unslash( $_POST['post_status'] ) ) : 'pending',
                 'comment_status' => isset( $_POST['_enable_reviews'] ) ? 'open' : 'closed'
             );
 
@@ -229,7 +229,7 @@ class Dokan_Template_Auction {
 
             /** set product category * */
             if( dokan_get_option( 'product_category_style', 'dokan_selling', 'single' ) == 'single' ) {
-                wp_set_object_terms( $post_id, (int) $_POST['product_cat'], 'product_cat' );
+                wp_set_object_terms( $post_id, absint( $_POST['product_cat'] ), 'product_cat' );
             } else {
                 if( isset( $_POST['product_cat'] ) && !empty( $_POST['product_cat'] ) ) {
                     $cat_ids = array_map( 'intval', (array)$_POST['product_cat'] );
@@ -249,7 +249,7 @@ class Dokan_Template_Auction {
 
             // Handle visibility ( with WC 3.0.0+ compatibility )
             $terms = array();
-            $_visibility = isset( $_POST['_visibility'] ) ? $_POST['_visibility'] : '';
+            $_visibility = isset( $_POST['_visibility'] ) ? wc_clean( wp_unslash( $_POST['_visibility'] ) ) : '';
             switch ( $_visibility ) {
                 case 'hidden' :
                     $terms[] = 'exclude-from-search';
@@ -267,7 +267,7 @@ class Dokan_Template_Auction {
             update_post_meta( $post_id, '_visibility', $_visibility );
 
             /** set images **/
-            $featured_image = absint( $_POST['feat_image_id'] );
+            $featured_image = absint( wp_unslash( $_POST['feat_image_id'] ) );
             if ( $featured_image ) {
                 set_post_thumbnail( $post_id, $featured_image );
             } else {
@@ -285,19 +285,19 @@ class Dokan_Template_Auction {
 
             if ( isset( $_POST['attribute_names'] ) && isset( $_POST['attribute_values'] ) ) {
 
-                $attribute_names  = $_POST['attribute_names'];
-                $attribute_values = $_POST['attribute_values'];
+                $attribute_names  = wc_clean( wp_unslash( $_POST['attribute_names'] ) );
+                $attribute_values = wc_clean( wp_unslash( $_POST['attribute_values'] ) );
 
                 if ( isset( $_POST['attribute_visibility'] ) ) {
-                    $attribute_visibility = $_POST['attribute_visibility'];
+                    $attribute_visibility = wc_clean( wp_unslash( $_POST['attribute_visibility'] ) );
                 }
 
                 if ( isset( $_POST['attribute_variation'] ) ) {
-                    $attribute_variation = $_POST['attribute_variation'];
+                    $attribute_variation = wc_clean( wp_unslash( $_POST['attribute_variation'] ) );
                 }
 
-                $attribute_is_taxonomy   = $_POST['attribute_is_taxonomy'];
-                $attribute_position      = $_POST['attribute_position'];
+                $attribute_is_taxonomy   = wc_clean( wp_unslash( $_POST['attribute_is_taxonomy'] ) );
+                $attribute_position      = wc_clean( wp_unslash( $_POST['attribute_position'] ) );
                 $attribute_names_max_key = max( array_keys( $attribute_names ) );
 
                 for ( $i = 0; $i <= $attribute_names_max_key; $i++ ) {
@@ -399,23 +399,23 @@ class Dokan_Template_Auction {
 
            // Dimensions
             if ( isset( $_POST['_weight'] ) ) {
-                update_post_meta( $post_id, '_weight', ( '' === $_POST['_weight'] ) ? '' : wc_format_decimal( $_POST['_weight'] )  );
+                update_post_meta( $post_id, '_weight', ( '' === $_POST['_weight'] ) ? '' : wc_format_decimal( wc_clean( wp_unslash( $_POST['_weight'] ) ) )  );
             }
 
             if ( isset( $_POST['_length'] ) ) {
-                update_post_meta( $post_id, '_length', ( '' === $_POST['_length'] ) ? '' : wc_format_decimal( $_POST['_length'] )  );
+                update_post_meta( $post_id, '_length', ( '' === $_POST['_length'] ) ? '' : wc_format_decimal( wc_clean( wp_unslash( $_POST['_length'] ) ) )  );
             }
 
             if ( isset( $_POST['_width'] ) ) {
-                update_post_meta( $post_id, '_width', ( '' === $_POST['_width'] ) ? '' : wc_format_decimal( $_POST['_width'] )  );
+                update_post_meta( $post_id, '_width', ( '' === $_POST['_width'] ) ? '' : wc_format_decimal( wc_clean( wp_unslash( $_POST['_width'] ) ) )  );
             }
 
             if ( isset( $_POST['_height'] ) ) {
-                update_post_meta( $post_id, '_height', ( '' === $_POST['_height'] ) ? '' : wc_format_decimal( $_POST['_height'] )  );
+                update_post_meta( $post_id, '_height', ( '' === $_POST['_height'] ) ? '' : wc_format_decimal( wc_clean( wp_unslash( $_POST['_height'] ) ) )  );
             }
 
             //Save shipping meta data
-            update_post_meta( $post_id, '_disable_shipping', stripslashes( isset( $_POST['_disable_shipping'] ) ? $_POST['_disable_shipping'] : 'no' ) );
+            update_post_meta( $post_id, '_disable_shipping', stripslashes( isset( $_POST['_disable_shipping'] ) ? wc_clean( wp_unslash( $_POST['_disable_shipping'] ) ) : 'no' ) );
 
             if ( isset( $_POST['_overwrite_shipping'] ) && $_POST['_overwrite_shipping'] == 'yes' ) {
                 update_post_meta( $post_id, '_overwrite_shipping', stripslashes( $_POST['_overwrite_shipping'] ) );
@@ -423,9 +423,9 @@ class Dokan_Template_Auction {
                 update_post_meta( $post_id, '_overwrite_shipping', 'no' );
             }
 
-            update_post_meta( $post_id, '_additional_price', stripslashes( isset( $_POST['_additional_price'] ) ? $_POST['_additional_price'] : ''  ) );
-            update_post_meta( $post_id, '_additional_qty', stripslashes( isset( $_POST['_additional_qty'] ) ? $_POST['_additional_qty'] : ''  ) );
-            update_post_meta( $post_id, '_dps_processing_time', stripslashes( isset( $_POST['_dps_processing_time'] ) ? $_POST['_dps_processing_time'] : ''  ) );
+            update_post_meta( $post_id, '_additional_price', stripslashes( isset( $_POST['_additional_price'] ) ? wc_clean( wp_unslash( $_POST['_additional_price'] ) ) : ''  ) );
+            update_post_meta( $post_id, '_additional_qty', stripslashes( isset( $_POST['_additional_qty'] ) ? wc_clean( wp_unslash( $_POST['_additional_qty'] ) ) : ''  ) );
+            update_post_meta( $post_id, '_dps_processing_time', stripslashes( isset( $_POST['_dps_processing_time'] ) ? wc_clean( wp_unslash( $_POST['_dps_processing_time'] ) ) : ''  ) );
 
             // Update auction date
             $auction_dates_to   = isset( $_POST['_auction_dates_to'] ) ? sanitize_text_field( wp_unslash( $_POST['_auction_dates_to'] ) ) : '';
@@ -439,7 +439,7 @@ class Dokan_Template_Auction {
             }
 
             // Save shipping class
-            $product_shipping_class = ( isset( $_POST['product_shipping_class'] ) && $_POST['product_shipping_class'] > 0 && 'external' !== $product_type ) ? absint( $_POST['product_shipping_class'] ) : '';
+            $product_shipping_class = ( isset( $_POST['product_shipping_class'] ) && $_POST['product_shipping_class'] > 0 && 'external' !== $product_type ) ? absint( wp_unslash( $_POST['product_shipping_class'] ) ) : '';
             wp_set_object_terms( $post_id, $product_shipping_class, 'product_shipping_class' );
 
             // Update SKU
@@ -457,12 +457,12 @@ class Dokan_Template_Auction {
             }
 
             // Save virtual
-            $_virtual   = isset( $_POST['_virtual'] ) ? wc_clean( $_POST['_virtual'] ) : '';
+            $_virtual   = isset( $_POST['_virtual'] ) ? wc_clean( wp_unslash( $_POST['_virtual'] ) ) : '';
             $is_virtual = 'on' === $_virtual ? 'yes' : 'no';
             $product->set_virtual( $is_virtual );
 
             // Save downloadable
-            $is_downloadable   = isset( $_POST['_downloadable'] ) ? wc_clean( $_POST['_downloadable'] ) : '';
+            $is_downloadable   = isset( $_POST['_downloadable'] ) ? wc_clean( wp_unslash( $_POST['_downloadable'] ) ) : '';
             $is_downloadable = 'on' === $is_downloadable ? 'yes' : 'no';
             $product->set_downloadable( $is_downloadable );
 

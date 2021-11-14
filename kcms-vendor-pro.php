@@ -3,7 +3,7 @@
  * Plugin Name: KCMS Vendor Pro
  * Plugin URI: https://github.com/KubeeCMS/kcms-vendor/
  * Description: E-commerce marketplace pro.
- * Version: 3.4.0
+ * Version: 3.4.1
  * Author: Kubee
  * Author URI: https://github.com/KubeeCMS/
  * WC requires at least: 5.0
@@ -36,7 +36,7 @@ class Dokan_Pro {
      *
      * @var string
      */
-    public $version = '3.4.0';
+    public $version = '3.4.1';
 
     /**
      * Database version key
@@ -425,6 +425,7 @@ class Dokan_Pro {
         $this->container['refund']                   = new \WeDevs\DokanPro\Refund\Manager();
         $this->container['brands']                   = new \WeDevs\DokanPro\Brands\Manager();
         $this->container['coupon']                   = new \WeDevs\DokanPro\Coupons\Manager();
+        $this->container['reports']                  = new \WeDevs\DokanPro\Reports\Manager();
         $this->container['digital_product']          = new \WeDevs\DokanPro\DigitalProduct();
         $this->container['shipment']                 = new \WeDevs\DokanPro\Shipping\ShippingStatus();
         $this->container['bg_sync_vendor_zone_data'] = new \WeDevs\DokanPro\BackgroundProcess\SyncVendorZoneData();
@@ -569,7 +570,7 @@ class Dokan_Pro {
         wp_enqueue_script( 'dokan_pro_admin', DOKAN_PRO_PLUGIN_ASSEST . '/js/dokan-pro-admin' . $suffix . '.js', [ 'jquery', 'jquery-blockui' ], DOKAN_PRO_PLUGIN_VERSION, true );
         wp_register_script( 'dokan_admin_coupon', DOKAN_PRO_PLUGIN_ASSEST . '/js/dokan-admin-coupon' . $suffix . '.js', [ 'jquery' ], DOKAN_PRO_PLUGIN_VERSION, true );
 
-        if ( 'shop_order' === $post_type ) {
+        if ( 'shop_order' === $post_type || 'toplevel_page_dokan' === get_current_screen()->id ) {
             wp_enqueue_style( 'dokan_pro_admin_style', DOKAN_PRO_PLUGIN_ASSEST . '/css/dokan-pro-admin-style' . $suffix . '.css', [], DOKAN_PRO_PLUGIN_VERSION, 'all' );
         }
 

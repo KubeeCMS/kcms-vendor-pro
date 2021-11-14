@@ -2,6 +2,7 @@
 
 namespace WeDevs\DokanPro\REST;
 
+use WeDevs\DokanPro\Admin\ReportLogExporter;
 use WP_REST_Server;
 use WeDevs\Dokan\Abstracts\DokanRESTAdminController;
 
@@ -26,9 +27,86 @@ class LogsController extends DokanRESTAdminController {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => [ $this, 'get_logs' ],
 					'permission_callback' => [ $this, 'check_permission' ],
+                    'args'                => array_merge(
+                        $this->get_collection_params(),
+                        $this->get_logs_params()
+                    ),
 				],
 			]
         );
+
+        register_rest_route(
+            $this->namespace, '/' . $this->base . '/export', [
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'export_logs' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                    'args'                => array_merge(
+                        $this->get_collection_params(),
+                        $this->get_logs_params()
+                    ),
+                ],
+            ]
+        );
+    }
+
+    /**
+     * Retrieves the query params for the collections.
+     *
+     * @since 3.4.1
+     *
+     * @return array Query parameters for the collection.
+     */
+    public function get_logs_params() {
+        return [
+            'vendor_id' => [
+                'description'       => 'Vendor IDs to filter form',
+                'type'              => [ 'array', 'integer' ],
+                'default'           => [],
+                'validate_callback' => 'rest_validate_request_arg',
+                'items'             => [
+                    'type'              => 'integer',
+                    'sanitize_callback' => 'absint',
+                ],
+            ],
+            'order_id' => [
+                'description'       => 'Order IDs to filter form',
+                'type'              => [ 'array', 'integer' ],
+                'default'           => [],
+                'validate_callback' => 'rest_validate_request_arg',
+                'items'             => [
+                    'type'              => 'integer',
+                    'sanitize_callback' => 'absint',
+                ],
+            ],
+            'order_status' => [
+                'description' => 'Order status to filter form',
+                'required'    => false,
+                'type'        => 'string',
+                'default'     => '',
+            ],
+            'orderby' => [
+                'description' => 'Filter by column',
+                'required'    => false,
+                'type'        => 'string',
+                'default'     => 'order_id',
+            ],
+            'order' => [
+                'description' => 'Order by type',
+                'required'    => false,
+                'type'        => 'string',
+                'enum'        => [ 'desc', 'asc' ],
+                'default'     => 'desc',
+            ],
+            'return' => [
+                'description' => 'How data will be returned',
+                'type'        => 'string',
+                'required'    => false,
+                'enum'        => [ 'all', 'ids', 'count' ],
+                'context'     => [ 'view' ],
+                'default'     => 'all',
+            ],
+        ];
     }
 
     /**
@@ -39,47 +117,80 @@ class LogsController extends DokanRESTAdminController {
      * @return object
      */
     public function get_logs( $request ) {
-        global $wpdb;
-
         $params = wp_unslash( $request->get_params() );
-        $limit  = isset( $params['per_page'] ) ? (int) $params['per_page'] : 20;
-        $offset = isset( $params['page'] ) ? (int) ( $params['page'] - 1 ) * $params['per_page'] : 0;
+        $items_count = dokan_pro()->reports->get_logs( array_merge( $params, [ 'return' => 'count' ] ) );
 
-        // filter the log query
-        $order_id     = ! empty( $params['order_id'] ) ? (int) sanitize_key( $params['order_id'] ) : 0;
-        $vendor_id    = ! empty( $params['vendor_id'] ) ? (int) sanitize_key( $params['vendor_id'] ) : 0;
-        $order_status = ! empty( $params['order_status'] ) ? sanitize_text_field( $params['order_status'] ) : '';
-
-        $order_clause  = $order_id ? "order_id = {$order_id}" : 'order_id != 0';
-        $seller_clause = $vendor_id ? "seller_id = {$vendor_id}" : 'seller_id != 0';
-        $status_clause = $order_status ? "p.post_status = '{$order_status}'" : "p.post_status != 'trash'";
-        $where_query   = "{$seller_clause} AND {$status_clause} AND {$order_clause}";
-
-        $items = $wpdb->get_row(
-            "SELECT COUNT( do.id ) as total FROM {$wpdb->prefix}dokan_orders do
-            LEFT JOIN $wpdb->posts p ON do.order_id = p.ID
-            WHERE $where_query
-            ORDER BY do.order_id"
-        );
-
-        if ( is_wp_error( $items ) ) {
-            return $items->get_error_message();
+        if ( is_wp_error( $items_count ) ) {
+            return $items_count->get_error_message();
         }
 
-        if ( ! $items->total ) {
+        if ( ! $items_count ) {
             wp_send_json_error( __( 'No logs found', 'dokan' ) );
         }
 
-        $sql = $wpdb->prepare(
-            "SELECT do.*, p.post_date FROM {$wpdb->prefix}dokan_orders do
-            LEFT JOIN $wpdb->posts p ON do.order_id = p.ID
-            WHERE $where_query
-            ORDER BY do.order_id DESC LIMIT %d OFFSET %d",
-            $limit,
-            $offset
-        );
+        $results  = dokan_pro()->reports->get_logs( $params );
+        $logs     = $this->prepare_logs_data( $results );
 
-        $results  = $wpdb->get_results( $sql ); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $response = rest_ensure_response( $logs );
+        $response = $this->format_collection_response( $response, $request, $items_count );
+
+        return $response;
+    }
+
+    /**
+     * Export all logs, send a json response after writing chunk data in file
+     *
+     * @since 3.4.1
+     *
+     * @param $request
+     */
+    public function export_logs( $request ) {
+        include_once DOKAN_PRO_INC . '/Admin/ReportLogExporter.php';
+
+        $params = $request->get_params();
+        $step   = isset( $params['page'] ) ? absint( $params['page'] ) : 1; // phpcs:ignore
+        $logs   = $this->prepare_logs_data( dokan_pro()->reports->get_logs( $params ) );
+
+        $exporter = new ReportLogExporter();
+        $exporter->set_items( $logs );
+        $exporter->set_page( $step );
+        $exporter->set_limit( $params['per_page'] );
+        $exporter->set_total_rows( dokan_pro()->reports->get_logs( array_merge( $params, [ 'return' => 'count' ] ) ) );
+        $exporter->generate_file();
+
+        if ( $exporter->get_percent_complete() >= 100 ) {
+            wp_send_json_success(
+                [
+                    'step'       => 'done',
+                    'percentage' => 100,
+                    'url'        => add_query_arg(
+                        [
+                            'download-order-log-csv'  => wp_create_nonce( 'download-order-log-csv-nonce' ),
+                        ], admin_url( 'admin.php' )
+                    ),
+                ], 200
+            );
+        } else {
+            wp_send_json_success(
+                [
+                    'step'       => ++$step,
+                    'percentage' => $exporter->get_percent_complete(),
+                    'columns'    => $exporter->get_column_names(),
+                ], 200
+            );
+        }
+
+        exit();
+    }
+
+    /**
+     * Prepare Log items for response
+     *
+     * @param mixed $results
+     *
+     * @return array
+     */
+    public function prepare_logs_data( $results ) {
         $logs     = [];
         $statuses = wc_get_order_statuses();
 
@@ -116,7 +227,6 @@ class LogsController extends DokanRESTAdminController {
             $commission     = $is_subscription_product ? (float) $result->order_total : (float) $result->order_total - (float) $result->net_amount;
 
             if ( $processing_fee && $processing_fee > 0 ) {
-                //$commission = $is_subscription_product ? (float) $result->order_total : $commission - $processing_fee;
                 $commission = $commission - $processing_fee;
             }
 
@@ -153,9 +263,6 @@ class LogsController extends DokanRESTAdminController {
             ];
         }
 
-        $response = rest_ensure_response( $logs );
-        $response = $this->format_collection_response( $response, $request, $items->total );
-
-        return $response;
+        return $logs;
     }
 }

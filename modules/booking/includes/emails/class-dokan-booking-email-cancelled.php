@@ -146,7 +146,7 @@ class Dokan_Email_Booking_Cancelled extends WC_Email {
                 'email_heading' => $this->get_heading(),
                 'sent_to_admin' => false,
                 'plain_text'    => false
-            ), 'dokan-wc-booking/', $this->template_base );
+            ), 'dokan/', $this->template_base );
 
         return ob_get_clean();
     }
@@ -164,7 +164,7 @@ class Dokan_Email_Booking_Cancelled extends WC_Email {
                 'email_heading' => $this->get_heading(),
                 'sent_to_admin' => false,
                 'plain_text'    => false
-            ), 'dokan-wc-booking/', $this->template_base );
+            ), 'dokan/', $this->template_base );
 
         return ob_get_clean();
     }

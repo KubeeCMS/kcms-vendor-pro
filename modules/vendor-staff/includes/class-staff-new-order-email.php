@@ -132,7 +132,7 @@ if ( ! class_exists( 'Dokan_Staff_New_Order' ) ) :
                     'plain_text'    => false,
                     'email'         => $this,
                     'order_info'    => $this->order_info,
-                ), 'dokan', $this->template_base
+                ), 'dokan/', $this->template_base
             );
         }
 

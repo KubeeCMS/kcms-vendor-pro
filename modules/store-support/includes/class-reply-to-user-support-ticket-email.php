@@ -100,7 +100,7 @@ if ( ! class_exists( 'Dokan_Reply_To_User_Support_Ticket' ) ) :
                     'plain_text'    => false,
                     'email'         => $this,
                     'email_data'    => $this->email_data,
-                ), 'dokan', $this->template_base
+                ), 'dokan/', $this->template_base
             );
         }
 

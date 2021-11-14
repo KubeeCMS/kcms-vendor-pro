@@ -76,6 +76,7 @@ class Module {
             add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
             add_action( 'widgets_init', array( $this, 'register_widget' ) );
             add_action( 'dokan_new_seller_created', array( $this, 'set_default_geolocation_data' ), 35 );
+            add_action( 'woocommerce_product_import_inserted_product_object', array( $this, 'set_product_geo_location_meta_on_import' ), 10, 2 );
         } else {
             add_action( 'admin_notices', array( $this, 'admin_notices' ) );
         }
@@ -263,5 +264,70 @@ class Module {
         $dokan_settings['find_address'] = $default_locations['address'];
 
         update_user_meta( $user_id, 'dokan_profile_settings', $dokan_settings );
+    }
+
+    /**
+     * Set product geo location meta information on product import
+     *
+     * @since 3.4.1
+     *
+     * @param WC_Product $product
+     * @param array $csv_line_item   product line item data
+     *
+     * @return array $product
+     */
+    public function set_product_geo_location_meta_on_import( $product, $csv_line_item ) {
+        if ( substr( wp_get_referer(), 0, strlen( get_admin_url() ) ) === get_admin_url() ) {
+            return;
+        }
+
+        if ( ! is_a( $product, 'WC_Product' ) ) {
+            return;
+        }
+
+        $need_to_add_geo_data = false;
+
+        // check if we are inserting a product, in that case, insert geo location data
+        if ( empty( $csv_line_item['id'] ) ) {
+            $need_to_add_geo_data = true;
+        }
+
+        // check if geo location meta exists
+        if ( false === $need_to_add_geo_data ) {
+            $meta_data = array_column( $csv_line_item['meta_data'], 'value', 'key' );
+            $dokan_geo_meta = [ 'dokan_geo_latitude', 'dokan_geo_longitude' ];
+
+            foreach ( $dokan_geo_meta as $meta_key ) {
+                if ( array_key_exists( $meta_key, $meta_data ) && empty( $meta_data[ $meta_key ] ) ) {
+                    // if meta key exists and is empty, we need to insert geo data
+                    $need_to_add_geo_data = true;
+                    break;
+                }
+            }
+        }
+
+        if ( ! $need_to_add_geo_data ) {
+            return;
+        }
+
+        $user_id = get_post_field( 'post_author', $product->get_id() );
+
+        //initialize vendor geo location if available
+        $dokan_geo_latitude  = get_user_meta( $user_id, 'dokan_geo_latitude', true );
+        $dokan_geo_longitude = get_user_meta( $user_id, 'dokan_geo_longitude', true );
+        $dokan_geo_address   = get_user_meta( $user_id, 'dokan_geo_address', true );
+
+        //if vendor geo location is not found, get from default
+        if ( empty( $dokan_geo_latitude ) || empty( $dokan_geo_longitude ) ) {
+            $default_locations   = dokan_geo_get_default_location();
+            $dokan_geo_latitude  = $default_locations['latitude'];
+            $dokan_geo_longitude = $default_locations['longitude'];
+            $dokan_geo_address   = $default_locations['address'];
+        }
+
+        update_post_meta( $product->get_id(), 'dokan_geo_latitude', $dokan_geo_latitude );
+        update_post_meta( $product->get_id(), 'dokan_geo_longitude', $dokan_geo_longitude );
+        update_post_meta( $product->get_id(), 'dokan_geo_public', 1 );
+        update_post_meta( $product->get_id(), 'dokan_geo_address', $dokan_geo_address );
     }
 }

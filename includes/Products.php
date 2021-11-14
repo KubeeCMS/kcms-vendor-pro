@@ -933,12 +933,14 @@ class Products {
             return $this->inline_edit_options;
         }
 
-        $args = array(
-            'taxonomy'   => 'product_cat',
-            'number'     => false,
-            'orderby'    => 'name',
-            'order'      => 'asc',
-            'hide_empty' => false,
+        $args = apply_filters(
+            'dokan_product_cat_dropdown_args', [
+                'taxonomy'   => 'product_cat',
+                'number'     => false,
+                'orderby'    => 'name',
+                'order'      => 'asc',
+                'hide_empty' => false,
+            ]
         );
 
         $categories = get_terms( $args );
@@ -1110,7 +1112,7 @@ class Products {
                 wp_send_json_error( sprintf( __( 'You can only select %s tags', 'dokan' ), number_format_i18n( $maximum_tags_select_length ) ), 422 );
             } else {
                 $tags = [];
-                foreach( (array) $cleaned_data['product_tag'] as $tag ) {
+                foreach ( (array) $cleaned_data['product_tag'] as $tag ) {
                     if ( is_numeric( $tag ) ) {
                         $tags[] = $tag;
                         continue;

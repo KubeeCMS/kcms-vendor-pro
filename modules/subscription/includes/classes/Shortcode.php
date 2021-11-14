@@ -196,7 +196,7 @@ class Shortcode {
 
                                 <?php if ( $is_recurring && $recurring_interval === 1 ) { ?>
                                     <span class="dps-rec-period">
-                                        <span class="sep">/</span><?php echo Helper::recurring_period( $recurring_period ); ?>
+                                        <span class="sep">/</span><?php echo Helper::recurring_period( $recurring_period, $recurring_interval ); ?>
                                     </span>
                                 <?php } ?>
                             </div><!-- .pack_price -->
@@ -219,23 +219,24 @@ class Shortcode {
                                         <span class="dps-rec-period">
                                             <?php esc_html_e( 'In every', 'dokan' ); ?>
                                             <?php echo number_format_i18n( $recurring_interval ); ?>
-                                            <?php echo Helper::recurring_period( $recurring_period ); ?>
+                                            <?php echo Helper::recurring_period( $recurring_period, $recurring_interval ); ?>
                                         </span>
                                     <?php elseif ( $is_recurring && $sub_pack->is_trial() ) : ?>
                                         <span class="dps-rec-period">
                                             <?php esc_html_e( 'In every', 'dokan' ); ?>
                                             <?php echo number_format_i18n( $recurring_interval ); ?>
-                                            <?php echo Helper::recurring_period( $recurring_period ); ?>
+                                            <?php echo Helper::recurring_period( $recurring_period, $recurring_interval ); ?>
                                             <p class="trail-details">
                                                 <?php echo $sub_pack->get_trial_range(); ?>
-                                                <?php echo Helper::recurring_period( $sub_pack->get_trial_period_types() ); ?>
+                                                <?php echo Helper::recurring_period( $sub_pack->get_trial_period_types(), $sub_pack->get_trial_range() ); ?>
+                                                <?php esc_html_e( 'trial', 'dokan' ); ?>
                                             </p>
                                         </span>
                                     <?php elseif ( $is_recurring && $recurring_interval >= 1 ) : ?>
                                         <span class="dps-rec-period">
                                             <?php esc_html_e( 'In every', 'dokan' ); ?>
                                             <?php echo number_format_i18n( $recurring_interval ); ?>
-                                            <?php echo Helper::recurring_period( $recurring_period ); ?>
+                                            <?php echo Helper::recurring_period( $recurring_period, $recurring_interval ); ?>
                                         </span>
                                         <?php
                                     else :

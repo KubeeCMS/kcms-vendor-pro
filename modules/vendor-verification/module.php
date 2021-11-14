@@ -680,6 +680,8 @@ class Module {
                 break;
         }
 
+        dokan_verification_request_changed_by_admin_email( $seller_profile, $postdata );
+
         $msg = __( 'Information updated', 'dokan' );
         wp_send_json_success( $msg );
     }

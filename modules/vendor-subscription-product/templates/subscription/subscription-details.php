@@ -53,7 +53,7 @@ $subscription_post  = get_post( $subscription_id );
           <div class="dokan-clearfix">
             <div class="" style="width:100%">
               <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading"><strong><?php printf( esc_html__( 'Subscription', 'dokan-lite' ) . '#%d', esc_attr( $subscription->get_id() ) ); ?></strong> &rarr; <?php esc_html_e( 'Order Items', 'dokan-lite' ); ?></div>
+                <div class="dokan-panel-heading"><strong><?php printf( esc_html__( 'Subscription', 'dokan' ) . '#%d', esc_attr( $subscription->get_id() ) ); ?></strong> &rarr; <?php esc_html_e( 'Order Items', 'dokan' ); ?></div>
                 <div class="dokan-panel-body" id="woocommerce-order-items">
                   <?php
                   if ( function_exists( 'dokan_render_order_table_items' ) ) {
@@ -63,13 +63,13 @@ $subscription_post  = get_post( $subscription_id );
                     <table cellpadding="0" cellspacing="0" class="dokan-table order-items">
                       <thead>
                         <tr>
-                          <th class="item" colspan="2"><?php esc_html_e( 'Item', 'dokan-lite' ); ?></th>
+                          <th class="item" colspan="2"><?php esc_html_e( 'Item', 'dokan' ); ?></th>
 
-                          <?php do_action( 'woocommerce_admin_order_item_headers' ); ?>
+                          <?php do_action( 'woocommerce_admin_order_item_headers', $subscription ); ?>
 
-                          <th class="quantity"><?php esc_html_e( 'Qty', 'dokan-lite' ); ?></th>
+                          <th class="quantity"><?php esc_html_e( 'Qty', 'dokan' ); ?></th>
 
-                          <th class="line_cost"><?php esc_html_e( 'Totals', 'dokan-lite' ); ?></th>
+                          <th class="line_cost"><?php esc_html_e( 'Totals', 'dokan' ); ?></th>
                         </tr>
                       </thead>
                       <tbody id="order_items_list">
@@ -135,7 +135,7 @@ $subscription_post  = get_post( $subscription_id );
                       ?>
                       <table class="dokan-table order-items">
                         <tr>
-                          <th><?php esc_html_e( 'Coupons', 'dokan-lite' ); ?></th>
+                          <th><?php esc_html_e( 'Coupons', 'dokan' ); ?></th>
                           <td>
                             <ul class="list-inline"><?php
                             foreach ( $coupons as $item_id => $item ) {
@@ -161,13 +161,13 @@ $subscription_post  = get_post( $subscription_id );
 
             <div class="dokan-left dokan-order-billing-address">
               <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Billing Address', 'dokan-lite' ); ?></strong></div>
+                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Billing Address', 'dokan' ); ?></strong></div>
                 <div class="dokan-panel-body">
                   <?php
                   if ( $subscription->get_formatted_billing_address() ) {
                     echo wp_kses_post( $subscription->get_formatted_billing_address() );
                   } else {
-                    _e( 'No billing address set.', 'dokan-lite' );
+                    _e( 'No billing address set.', 'dokan' );
                   }
                   ?>
                 </div>
@@ -176,13 +176,13 @@ $subscription_post  = get_post( $subscription_id );
 
             <div class="dokan-left dokan-order-shipping-address">
               <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Shipping Address', 'dokan-lite' ); ?></strong></div>
+                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Shipping Address', 'dokan' ); ?></strong></div>
                 <div class="dokan-panel-body">
                   <?php
                   if ( $subscription->get_formatted_shipping_address() ) {
                     echo wp_kses_post( $subscription->get_formatted_shipping_address() );
                   } else {
-                    _e( 'No shipping address set.', 'dokan-lite' );
+                    _e( 'No shipping address set.', 'dokan' );
                   }
                   ?>
                 </div>
@@ -193,7 +193,7 @@ $subscription_post  = get_post( $subscription_id );
 
             <div class="" style="width: 100%">
               <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Downloadable Product Permission', 'dokan-lite' ); ?></strong></div>
+                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Downloadable Product Permission', 'dokan' ); ?></strong></div>
                 <div class="dokan-panel-body">
                   <?php
                   dokan_get_template_part( 'orders/downloadable', '', array( 'order'=> $subscription ) );
@@ -204,7 +204,7 @@ $subscription_post  = get_post( $subscription_id );
 
             <div class="" style="width: 100%">
               <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Related orders', 'dokan-lite' ); ?></strong></div>
+                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Related orders', 'dokan' ); ?></strong></div>
                 <div class="dokan-panel-body">
                   <table class="dokan-table">
                     <thead>
@@ -231,15 +231,15 @@ $subscription_post  = get_post( $subscription_id );
           <div class="dokan-clearfix">
             <div class="" style="width:100%">
                 <div class="dokan-panel dokan-panel-default">
-                    <div class="dokan-panel-heading"><strong><?php esc_html_e( 'General Details', 'dokan-lite' ); ?></strong></div>
+                    <div class="dokan-panel-heading"><strong><?php esc_html_e( 'General Details', 'dokan' ); ?></strong></div>
                     <div class="dokan-panel-body general-details">
                         <ul class="list-unstyled order-status">
                             <li>
-                                <span><?php esc_html_e( 'Subscription Status:', 'dokan-lite' ); ?></span>
+                                <span><?php esc_html_e( 'Subscription Status:', 'dokan' ); ?></span>
                                 <label class="dokan-label dokan-label-<?php echo esc_attr( dokan_vps_get_subscription_status_class( $subscription->get_status() ) ); ?>"><?php echo esc_html( dokan_vps_get_subscription_status_translated( $subscription->get_status() ) ); ?></label>
 
                                 <?php if ( current_user_can( 'dokan_manage_order' ) && dokan_get_option( 'order_status_change', 'dokan_selling', 'on' ) == 'on' && $subscription->get_status() !== 'cancelled' && $subscription->get_status() !== 'refunded' ) {?>
-                                    <a href="#" class="dokan-edit-status"><small><?php esc_html_e( '&nbsp; Edit', 'dokan-lite' ); ?></small></a>
+                                    <a href="#" class="dokan-edit-status"><small><?php esc_html_e( '&nbsp; Edit', 'dokan' ); ?></small></a>
                                 <?php } ?>
                             </li>
                             <?php if ( current_user_can( 'dokan_manage_order' ) ): ?>
@@ -260,22 +260,22 @@ $subscription_post  = get_post( $subscription_id );
                                         <input type="hidden" name="subscription_id" value="<?php echo $subscription->get_id(); ?>">
                                         <input type="hidden" name="action" value="dokan_vps_change_status">
                                         <input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'dokan_vps_change_status' ) ); ?>">
-                                        <input type="submit" class="dokan-btn dokan-btn-success dokan-btn-sm" name="dokan_vps_change_status" value="<?php esc_attr_e( 'Update', 'dokan-lite' ); ?>">
+                                        <input type="submit" class="dokan-btn dokan-btn-success dokan-btn-sm" name="dokan_vps_change_status" value="<?php esc_attr_e( 'Update', 'dokan' ); ?>">
 
-                                        <a href="#" class="dokan-btn dokan-btn-default dokan-btn-sm dokan-cancel-status"><?php esc_html_e( 'Cancel', 'dokan-lite' ) ?></a>
+                                        <a href="#" class="dokan-btn dokan-btn-default dokan-btn-sm dokan-cancel-status"><?php esc_html_e( 'Cancel', 'dokan' ) ?></a>
                                     </form>
                                 </li>
                             <?php endif ?>
 
                             <li>
-                                <span><?php esc_html_e( 'Order Date:', 'dokan-lite' ); ?></span>
+                                <span><?php esc_html_e( 'Order Date:', 'dokan' ); ?></span>
                                 <?php echo esc_html( dokan_get_date_created( $subscription ) ); ?>
                             </li>
                         </ul>
                         <?php if ( 'off' === $hide_customer_info && ( $subscription->get_formatted_billing_address() || $subscription->get_formatted_shipping_address() ) ) : ?>
                         <ul class="list-unstyled customer-details">
                             <li>
-                                <span><?php esc_html_e( 'Customer:', 'dokan-lite' ); ?></span>
+                                <span><?php esc_html_e( 'Customer:', 'dokan' ); ?></span>
                                 <?php
                                 $customer_user = absint( get_post_meta( $subscription->get_id(), '_customer_user', true ) );
                                 if ( $customer_user && $customer_user != 0 ) {
@@ -288,15 +288,15 @@ $subscription_post  = get_post( $subscription_id );
                                 <a href="#"><?php echo esc_html( $display_name ); ?></a><br>
                             </li>
                             <li>
-                                <span><?php esc_html_e( 'Email:', 'dokan-lite' ); ?></span>
+                                <span><?php esc_html_e( 'Email:', 'dokan' ); ?></span>
                                 <?php echo esc_html( get_post_meta( $subscription->get_id(), '_billing_email', true ) ); ?>
                             </li>
                             <li>
-                                <span><?php esc_html_e( 'Phone:', 'dokan-lite' ); ?></span>
+                                <span><?php esc_html_e( 'Phone:', 'dokan' ); ?></span>
                                 <?php echo esc_html( get_post_meta( $subscription->get_id(), '_billing_phone', true ) ); ?>
                             </li>
                             <li>
-                                <span><?php esc_html_e( 'Customer IP:', 'dokan-lite' ); ?></span>
+                                <span><?php esc_html_e( 'Customer IP:', 'dokan' ); ?></span>
                                 <?php echo esc_html( get_post_meta( $subscription->get_id(), '_customer_ip_address', true ) ); ?>
                             </li>
                         </ul>
@@ -308,7 +308,7 @@ $subscription_post  = get_post( $subscription_id );
                             if ( !empty( $customer_note ) ) {
                                 ?>
                                 <div class="alert alert-success customer-note">
-                                    <strong><?php esc_html_e( 'Customer Note:', 'dokan-lite' ) ?></strong><br>
+                                    <strong><?php esc_html_e( 'Customer Note:', 'dokan' ) ?></strong><br>
                                     <?php echo wp_kses_post( $customer_note ); ?>
                                 </div>
                             <?php } ?>
@@ -319,13 +319,13 @@ $subscription_post  = get_post( $subscription_id );
 
             <div class="" style="width:100%">
               <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Subscription Schedule', 'dokan-lite' ); ?></strong></div>
+                <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Subscription Schedule', 'dokan' ); ?></strong></div>
                 <div class="dokan-panel-body general-details">
                   <form id="dokan-subscription-schedule-form" action="" method="post">
                     <?php include_once plugin_dir_path( __FILE__ ) . 'html-subscription-schedule.php'; ?>
                     <input type="hidden" name="subscription_id" value="<?php echo $subscription->get_id(); ?>">
                     <input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'dokan_change_subscription_schedule' ) ); ?>">
-                    <input type="submit" class="dokan-btn dokan-btn-success dokan-btn-sm" name="dokan_change_subscription_schedule" value="<?php esc_attr_e( 'Update Schedule', 'dokan-lite' ); ?>">
+                    <input type="submit" class="dokan-btn dokan-btn-success dokan-btn-sm" name="dokan_change_subscription_schedule" value="<?php esc_attr_e( 'Update Schedule', 'dokan' ); ?>">
                   </form>
                 </div>
               </div>
@@ -333,7 +333,7 @@ $subscription_post  = get_post( $subscription_id );
 
             <div class="" style="width:100%">
                 <div class="dokan-panel dokan-panel-default">
-                    <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Subscription Notes', 'dokan-lite' ); ?></strong></div>
+                    <div class="dokan-panel-heading"><strong><?php esc_html_e( 'Subscription Notes', 'dokan' ); ?></strong></div>
                     <div class="dokan-panel-body" id="dokan-order-notes">
                         <?php
                         $args = array(
@@ -357,16 +357,16 @@ $subscription_post  = get_post( $subscription_id );
                                         <?php echo wp_kses_post( wpautop( wptexturize( $note->comment_content ) ) ); ?>
                                     </div>
                                     <p class="meta">
-                                        <?php printf( esc_html__( 'added %s ago', 'dokan-lite' ), esc_textarea( human_time_diff( strtotime( $note->comment_date_gmt ), current_time( 'timestamp', 1 ) ) ) ); ?>
+                                        <?php printf( esc_html__( 'added %s ago', 'dokan' ), esc_textarea( human_time_diff( strtotime( $note->comment_date_gmt ), current_time( 'timestamp', 1 ) ) ) ); ?>
                                         <?php if ( current_user_can( 'dokan_manage_order_note' ) ): ?>
-                                            <a href="#" class="delete_note"><?php esc_html_e( 'Delete note', 'dokan-lite' ); ?></a>
+                                            <a href="#" class="delete_note"><?php esc_html_e( 'Delete note', 'dokan' ); ?></a>
                                         <?php endif ?>
                                     </p>
                                 </li>
                                 <?php
                             }
                         } else {
-                            echo '<li>' . esc_html__( 'There are no notes for this order yet.', 'dokan-lite' ) . '</li>';
+                            echo '<li>' . esc_html__( 'There are no notes for this order yet.', 'dokan' ) . '</li>';
                         }
 
                         echo '</ul>';
@@ -375,7 +375,7 @@ $subscription_post  = get_post( $subscription_id );
                         ?>
                         <div class="add_note">
                             <?php if ( current_user_can( 'dokan_manage_order_note' ) ): ?>
-                                <h4><?php esc_html_e( 'Add note', 'dokan-lite' ); ?></h4>
+                                <h4><?php esc_html_e( 'Add note', 'dokan' ); ?></h4>
                                 <form class="dokan-form-inline" id="add-order-note" role="form" method="post">
                                     <p>
                                         <textarea type="text" id="add-note-content" name="note" class="form-control" cols="19" rows="3"></textarea>
@@ -383,8 +383,8 @@ $subscription_post  = get_post( $subscription_id );
                                     <div class="clearfix">
                                         <div class="order_note_type dokan-form-group">
                                             <select name="note_type" id="order_note_type" class="dokan-form-control">
-                                                <option value="customer"><?php esc_html_e( 'Customer note', 'dokan-lite' ); ?></option>
-                                                <option value=""><?php esc_html_e( 'Private note', 'dokan-lite' ); ?></option>
+                                                <option value="customer"><?php esc_html_e( 'Customer note', 'dokan' ); ?></option>
+                                                <option value=""><?php esc_html_e( 'Private note', 'dokan' ); ?></option>
                                             </select>
                                         </div>
 
@@ -392,7 +392,7 @@ $subscription_post  = get_post( $subscription_id );
                                         <input type="hidden" name="delete-note-security" id="delete-note-security" value="<?php echo esc_attr( wp_create_nonce('delete-order-note') ); ?>">
                                         <input type="hidden" name="post_id" value="<?php echo esc_attr( $subscription_id ); ?>">
                                         <input type="hidden" name="action" value="dokan_add_order_note">
-                                        <input type="submit" name="add_order_note" class="add_note btn btn-sm btn-theme" value="<?php esc_attr_e( 'Add Note', 'dokan-lite' ); ?>">
+                                        <input type="submit" name="add_order_note" class="add_note btn btn-sm btn-theme" value="<?php esc_attr_e( 'Add Note', 'dokan' ); ?>">
                                     </div>
                                 </form>
                             <?php endif; ?>

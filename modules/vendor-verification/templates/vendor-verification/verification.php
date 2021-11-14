@@ -118,6 +118,7 @@ $phone_no       = isset( $seller_profile['dokan_verification']['verified_info'][
                                         <a href="#" class="dokan-gravatar-drag dokan-btn dokan-btn-default"><i class="fa fa-cloud-upload"></i> <?php _e( 'Upload Photo', 'dokan' ); ?></a>
                                     </div>
 
+
                                     <?php wp_nonce_field( 'dokan_verify_action', 'dokan_verify_action_nonce' ); ?>
                                     <input type="submit" id='dokan_v_id_submit' class="dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Submit', 'dokan' ); ?>">
                                     <input type="button" id='dokan_v_id_cancel_form' class="dokan-btn dokan-btn-theme dokan-v-cancel-btn" value="<?php esc_attr_e( 'Cancel', 'dokan' ); ?>">
@@ -178,7 +179,6 @@ $phone_no       = isset( $seller_profile['dokan_verification']['verified_info'][
                                         <input id="sms_code" value="" name="sms_code" placeholder="" class="dokan-form-control input-md" type="text">
                                     </div>
                                 </div>
-
                                 <div class="dokan-form-group">
                                     <input type="submit" id='dokan_v_code_submit' class="dokan-left dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Submit', 'dokan' ); ?>">
                                 </div>
@@ -278,7 +278,6 @@ $phone_no       = isset( $seller_profile['dokan_verification']['verified_info'][
                     <div class="dokan_v_address_box dokan-hide">
                         <form method="post" id="dokan-verify-address-form"  action="" class="dokan-form-horizontal">
                             <?php dokan_seller_address_fields( false, true ); ?>
-
                             <div class="dokan-form-group">
                                 <input type="submit" id='dokan_v_address_submit' class="dokan-left dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Submit', 'dokan' ); ?>">
                                 <input type="button" id='dokan_v_address_cancel' class="dokan-left dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Cancel', 'dokan' ); ?>">

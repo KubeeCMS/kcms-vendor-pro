@@ -28,6 +28,7 @@ function dokan_geo_get_default_location() {
         $location              = [];
         $location['latitude']  = 23.709921;
         $location['longitude'] = 90.40714300000002;
+        $location['address']   = 'Dhaka';
     }
 
     /**

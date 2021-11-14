@@ -121,19 +121,19 @@ class Helper {
      *
      * @return string
      */
-    public static function recurring_period( $period ) {
+    public static function recurring_period( $period, $length = 1 ) {
         switch ( $period ) {
             case 'day':
-                return __( 'day', 'dokan' );
+                return (int) $length === 1 ? __( 'day', 'dokan' ) : __( 'days', 'dokan' );
 
             case 'week':
-                return __( 'week', 'dokan' );
+                return (int) $length === 1 ? __( 'week', 'dokan' ) : __( 'weeks', 'dokan' );
 
             case 'month':
-                return __( 'month', 'dokan' );
+                return (int) $length === 1 ? __( 'month', 'dokan' ) : __( 'months', 'dokan' );
 
             case 'year':
-                return __( 'year', 'dokan' );
+                return (int) $length === 1 ? __( 'year', 'dokan' ) : __( 'years', 'dokan' );
 
             default:
                 return apply_filters( 'dps_recurring_text', $period );

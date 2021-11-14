@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6
+class ComposerStaticInit5377655b25681d283bce808dd4352d4d
 {
     public static $files = array (
         '7785487378a7be19e13559cd0ddda925' => __DIR__ . '/..' . '/moip/moip-sdk-php/src/Helper/helpers.php',
@@ -129,6 +129,7 @@ class ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6
         'Firebase\\JWT\\ExpiredException' => __DIR__ . '/..' . '/firebase/php-jwt/src/ExpiredException.php',
         'Firebase\\JWT\\JWK' => __DIR__ . '/..' . '/firebase/php-jwt/src/JWK.php',
         'Firebase\\JWT\\JWT' => __DIR__ . '/..' . '/firebase/php-jwt/src/JWT.php',
+        'Firebase\\JWT\\Key' => __DIR__ . '/..' . '/firebase/php-jwt/src/Key.php',
         'Firebase\\JWT\\SignatureInvalidException' => __DIR__ . '/..' . '/firebase/php-jwt/src/SignatureInvalidException.php',
         'Hybridauth\\Adapter\\AbstractAdapter' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Adapter/AbstractAdapter.php',
         'Hybridauth\\Adapter\\AdapterInterface' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Adapter/AdapterInterface.php',
@@ -2340,6 +2341,7 @@ class ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6
         'WeDevs\\DokanPro\\Admin\\AnnouncementBackgroundProcess' => __DIR__ . '/../..' . '/includes/Admin/AnnouncementBackgroundProcess.php',
         'WeDevs\\DokanPro\\Admin\\Pointers' => __DIR__ . '/../..' . '/includes/Admin/Pointers.php',
         'WeDevs\\DokanPro\\Admin\\Promotion' => __DIR__ . '/../..' . '/includes/Admin/Promotion.php',
+        'WeDevs\\DokanPro\\Admin\\ReportLogExporter' => __DIR__ . '/../..' . '/includes/Admin/ReportLogExporter.php',
         'WeDevs\\DokanPro\\Admin\\ShortcodesButton' => __DIR__ . '/../..' . '/includes/Admin/ShortcodesButton.php',
         'WeDevs\\DokanPro\\Ajax' => __DIR__ . '/../..' . '/includes/Ajax.php',
         'WeDevs\\DokanPro\\Assets' => __DIR__ . '/../..' . '/includes/Assets.php',
@@ -2539,6 +2541,7 @@ class ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6
         'WeDevs\\DokanPro\\Refund\\Sanitizer' => __DIR__ . '/../..' . '/includes/Refund/Sanitizer.php',
         'WeDevs\\DokanPro\\Refund\\Validator' => __DIR__ . '/../..' . '/includes/Refund/Validator.php',
         'WeDevs\\DokanPro\\Reports' => __DIR__ . '/../..' . '/includes/Reports.php',
+        'WeDevs\\DokanPro\\Reports\\Manager' => __DIR__ . '/../..' . '/includes/Reports/Manager.php',
         'WeDevs\\DokanPro\\Review' => __DIR__ . '/../..' . '/includes/Review.php',
         'WeDevs\\DokanPro\\Settings' => __DIR__ . '/../..' . '/includes/Settings.php',
         'WeDevs\\DokanPro\\Shipping\\Hooks' => __DIR__ . '/../..' . '/includes/Shipping/Hooks.php',
@@ -2573,10 +2576,10 @@ class ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit9aaf3e32dfa51e65d7a5eee86ff106f6::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$classMap;
 
         }, null, ClassLoader::class);
     }

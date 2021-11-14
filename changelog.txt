@@ -1,3 +1,21 @@
+v3.4.1 Nov 12, 2021
+----------------------------------
+- **new:** [Vendor Verification] No email sent to vendors after vendor verification status has been changed #1569
+- **new:** Added date filter on Dokan —> Reports —> Logs page #1397
+- **update:** [Geolocation] Reset Geolocation fields data after user clears that fields in WooCommerce shop page #1574
+- **update:** [Vendor Verification] added four new action hooks after verification submit button in vendor dashboard (dokan_before_id_verification_submit_button, dokan_before_phone_verification_submit_button, dokan_before_address_verification_submit_button, dokan_before_company_verification_submit_button) #1572
+- **update:** [Vendor Subscription] Added trial text after trial value on vendor subscription list page #1571
+- **update:** [Auction] some sanitization issue fixed for auction module #1496
+- **update:** Now Export button will export all logs based on applied filters #1397
+- **fix:** [Product Subscription] Added missing param on woocommerce_admin_order_item_headers hooks #1578
+- **fix:** Product variation image upload button wasn’t working due to js error #1575
+- **fix:** [Geolocation] Geolocation fields asking for user address each time user visit shop page #1574
+- **fix:** Fixed WC mail template overwrite wasn’t working #1567
+- **fix:** [Vendor Subscription] fixed Vendor Subscription category limitation doesn't work in the quick edit panel.
+- **fix:** Vendor Dashboard created coupon expired date doesn't work correctly #1560
+- **fix:** [Import/Export] Fixed importing products does not get the store geolocation data #1475
+- **fix:**  'Connect With Wirecard' button in vendor payment settings page was hidden, now it is shown #1526
+
 v3.4.0 Oct 31, 2021
 ----------------------------------
 - **feat:** Added Admin coupon support

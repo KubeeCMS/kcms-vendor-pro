@@ -81,7 +81,7 @@ class Update {
      * @return void
      */
     public function license_enter_notice() {
-    	return;
+    return;
         if ( $this->license->is_valid() ) {
             return;
         } ?>

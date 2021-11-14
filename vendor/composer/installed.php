@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'dfda3c7b5827a6052ade210e26895c88a1797009',
+        'reference' => '36b6b80eb1a17d1f2c9bdfa3ff83861c788d4875',
         'name' => 'wedevs/dokan-pro',
         'dev' => false,
     ),
@@ -18,7 +18,7 @@
             'aliases' => array(
                 0 => '9999999-dev',
             ),
-            'reference' => 'd2113d9b2e0e349796e72d2a63cf9319100382d2',
+            'reference' => '83b609028194aa042ea33b5af2d41a7427de80e6',
             'dev_requirement' => false,
         ),
         'hybridauth/hybridauth' => array(
@@ -31,8 +31,8 @@
             'dev_requirement' => false,
         ),
         'moip/moip-sdk-php' => array(
-            'pretty_version' => 'dev-develop',
-            'version' => 'dev-develop',
+            'pretty_version' => 'dev-release/3.4.1',
+            'version' => 'dev-release/3.4.1',
             'type' => 'libraries',
             'install_path' => __DIR__ . '/../moip/moip-sdk-php',
             'aliases' => array(),
@@ -81,7 +81,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'dfda3c7b5827a6052ade210e26895c88a1797009',
+            'reference' => '36b6b80eb1a17d1f2c9bdfa3ff83861c788d4875',
             'dev_requirement' => false,
         ),
     ),

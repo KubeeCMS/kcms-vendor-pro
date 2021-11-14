@@ -114,6 +114,41 @@ From <?php echo dokan()->email->get_from_name(); ?>
 }
 
 /**
+ * Send email to Vendor on change Verification.
+ *
+ * @return void
+ */
+function dokan_verification_request_changed_by_admin_email( $seller_profile, $postdata ) {
+    $user_data = get_userdata( $postdata['seller_id'] );
+    if ( empty( $user_data ) && empty( $user_data->data->user_email ) ) {
+        return;
+    }
+
+    $store_name = $seller_profile['store_name'];
+    $home_url   = dokan_get_navigation_url( 'settings/verification' );
+    /* translators: %s is verification request status */
+    $subject    = sprintf( __( 'Verification Request %s', 'dokan' ), $postdata['status'] );
+    $from_email = dokan()->email->admin_email();
+    ob_start();
+    ?>
+    Hello <?php echo $store_name; ?>,
+
+    Your <?php echo ucwords( str_replace( '_', ' ', $postdata['type'] ) ); ?> Verification request has been changed to <?php echo ucfirst( $postdata['status'] ); ?> by an admin.
+
+    You can check out it by going <a href="<?php echo $home_url; ?>">here</a>
+
+    ---
+    From <?php echo $from_email; ?>
+    <?php echo home_url(); ?>
+
+    <?php
+
+    $message = ob_get_clean();
+
+    dokan()->email->send( $user_data->data->user_email, $subject, $message );
+}
+
+/**
  * Get Verification counts, used in admin area
  *
  * @global WPDB $wpdb

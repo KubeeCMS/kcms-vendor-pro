@@ -322,7 +322,7 @@ class Module {
         }
 
         // @codingStandardsIgnoreLine
-        $selling = sanitize_text_field( $_POST['dokan_disable_auction'] );
+        $selling = wc_clean( wp_unslash( $_POST['dokan_disable_auction'] ) );
         update_user_meta( $user_id, 'dokan_disable_auction', $selling );
     }
 

@@ -372,12 +372,14 @@ class Hooks {
         $usage_limit          = isset( $usage_limit ) ? $usage_limit : '';
         $usage_limit_per_user = isset( $usage_limit_per_user ) ? $usage_limit_per_user : '';
 
+        $now = dokan_current_datetime();
+
         if ( isset( $expire ) && ( (string) (int) $expire === $expire )
             && ( $expire <= PHP_INT_MAX )
             && ( $expire >= ~PHP_INT_MAX ) ) {
-            $expire = date( 'Y-m-d', $expire ); // phpcs:ignore
+            $expire = $now->setTimestamp( $expire )->format( 'Y-m-d' );
         } else {
-            $expire = ! empty( $expire ) ? date( 'Y-m-d', strtotime( $expire ) ) : ''; // phpcs:ignore
+            $expire = ! empty( $expire ) && strtotime( $expire ) ? $now->modify( $expire )->format( 'Y-m-d' ) : '';
         }
 
         $products_id = str_replace( ' ', '', $products );
@@ -670,7 +672,7 @@ class Hooks {
         $amount             = wc_format_decimal( sanitize_text_field( $post_data['amount'] ) );
         $usage_limit        = empty( $post_data['usage_limit'] ) ? '' : absint( $post_data['usage_limit'] );
         $usage_limit_per_user = empty( $post_data['usage_limit_per_user'] ) ? '' : absint( $post_data['usage_limit_per_user'] );
-        $expiry_date        = strtotime( sanitize_text_field( $post_data['expire'] ) );
+        $expiry_date        = dokan_get_timestamp( sanitize_text_field( $post_data['expire'] ) );
         $apply_before_tax   = isset( $post_data['apply_before_tax'] ) ? 'yes' : 'no';
         $exclude_sale_items = isset( $post_data['exclude_sale_items'] ) ? 'yes' : 'no';
         $show_on_store      = isset( $post_data['show_on_store'] ) ? 'yes' : 'no';

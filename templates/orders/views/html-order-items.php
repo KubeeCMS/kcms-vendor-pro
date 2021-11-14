@@ -53,7 +53,7 @@ if ( wc_tax_enabled() ) {
                 <!-- <th><input type="checkbox" class="check-column" /></th> -->
                 <th class="item sortable" colspan="2" data-sort="string-ins"><?php esc_html_e( 'Item', 'dokan' ); ?></th>
 
-                <?php do_action( 'woocommerce_admin_order_item_headers' ); ?>
+                <?php do_action( 'woocommerce_admin_order_item_headers', $order ); ?>
 
                 <th class="item_cost sortable" data-sort="float"><?php esc_html_e( 'Cost', 'dokan' ); ?></th>
                 <th class="quantity sortable" data-sort="int"><?php esc_html_e( 'Qty', 'dokan' ); ?></th>

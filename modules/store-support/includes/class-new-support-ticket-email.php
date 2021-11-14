@@ -103,7 +103,7 @@ if ( ! class_exists( 'Dokan_New_Support_Ticket' ) ) :
                     'email'         => $this,
                     'store_info'    => $this->store_info,
                     'topic_id'      => $this->topic_id,
-                ), 'dokan', $this->template_base
+                ), 'dokan/', $this->template_base
             );
         }
 

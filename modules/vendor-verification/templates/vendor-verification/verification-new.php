@@ -107,6 +107,7 @@ $phone_no       = isset( $seller_profile['dokan_verification']['info']['phone_no
                                             <a href="#" class="dokan-gravatar-drag dokan-btn dokan-btn-default"><i class="fa fa-cloud-upload"></i> <?php esc_html_e( 'Upload Photo', 'dokan' ); ?></a>
                                         </div>
 
+                                        <?php do_action( 'dokan_before_id_verification_submit_button', $seller_profile ); ?>
                                         <?php wp_nonce_field( 'dokan_verify_action', 'dokan_verify_action_nonce' ); ?>
                                         <input type="submit" id='dokan_v_id_submit' class="dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Submit', 'dokan' ); ?>">
                                         <input type="button" id='dokan_v_id_cancel_form' class="dokan-btn dokan-btn-theme dokan-v-cancel-btn" value="<?php esc_attr_e( 'Cancel', 'dokan' ); ?>">
@@ -158,6 +159,7 @@ $phone_no       = isset( $seller_profile['dokan_verification']['info']['phone_no
                                 </div>
 
                             </div>
+                            <?php do_action( 'dokan_before_phone_verification_submit_button', $seller_profile ); ?>
                             <div class="dokan-form-group">
                                 <input type="submit" id='dokan_v_phone_submit' class="dokan-left dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Submit', 'dokan' ); ?>">
                             </div>
@@ -281,7 +283,7 @@ $phone_no       = isset( $seller_profile['dokan_verification']['info']['phone_no
                 <div class="dokan_v_address_box dokan-hide">
                     <form method="post" id="dokan-verify-address-form"  action="" class="dokan-form-horizontal">
                         <?php dokan_seller_address_fields( false, true ); ?>
-
+                        <?php do_action( 'dokan_before_address_verification_submit_button', $seller_profile ); ?>
                         <div class="dokan-form-group">
                             <input type="submit" id='dokan_v_address_submit' class="dokan-left dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Submit', 'dokan' ); ?>">
                             <input type="button" id='dokan_v_address_cancel' class="dokan-left dokan-btn dokan-btn-theme" value="<?php esc_attr_e( 'Cancel', 'dokan' ); ?>">
@@ -492,7 +494,7 @@ $phone_no       = isset( $seller_profile['dokan_verification']['info']['phone_no
                                 </div>
                             </div>
                         </div>
-
+                        <?php do_action( 'dokan_before_company_verification_submit_button', $seller_profile ); ?>
                         <div class="dokan-form-group">
                             <label class="dokan-w3 dokan-control-label" for="setting_bank_iban">&nbsp;</label>
                             <div class="dokan-w5 dokan-text-left">

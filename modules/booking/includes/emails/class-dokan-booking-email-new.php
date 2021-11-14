@@ -30,16 +30,15 @@ class Dokan_Email_Booking_New extends WC_Email {
         $this->subject              = __( '[{blogname}] New booking for {product_title} (Order {order_number}) - {order_date}', 'woocommerce-bookings' );
         $this->subject_confirmation = __( '[{blogname}] A new booking for {product_title} (Order {order_number}) is awaiting your approval - {order_date}', 'woocommerce-bookings' );
 
-        $this->template_base = DOKAN_WC_BOOKING_TEMPLATE_PATH;
         $this->recipient     = "vendor@ofthe.product";
 
-        $this->template_base  = DOKAN_WC_BOOKING_DIR . '/templates/';
         $this->template_html  = 'emails/dokan-admin-new-booking.php';
         $this->template_plain = 'emails/plain/dokan-admin-new-booking.php';
+        $this->template_base  = DOKAN_WC_BOOKING_TEMPLATE_PATH;
 
 
         // Triggers for this email
-        add_action( 'woocommerce_admin_new_booking_notification', array( $this, 'trigger' ), 20, 1 );
+        add_action( 'woocommerce_admin_new_booking_notification', array( $this, 'trigger' ) );
 
         // Call parent constructor
         parent::__construct();
@@ -76,67 +75,68 @@ class Dokan_Email_Booking_New extends WC_Email {
      * @return void
      */
     public function trigger( $booking_id ) {
-        if ( $booking_id ) {
+        if ( ! $booking_id || ! $this->is_enabled() ) {
+            return;
+        }
 
-            // Only send the booking email for booking post types, not orders, etc
-            if ( 'wc_booking' !== get_post_type( $booking_id ) ) {
-                return;
-            }
+        // Only send the booking email for booking post types, not orders, etc
+        if ( 'wc_booking' !== get_post_type( $booking_id ) ) {
+            return;
+        }
 
-            $this->object = get_wc_booking( $booking_id );
+        $this->object = get_wc_booking( $booking_id );
 
-            if ( ! is_object( $this->object ) || ! $this->object->get_order() ) {
-                return;
-            }
+        if ( ! is_object( $this->object ) || ! $this->object->get_order() ) {
+            return;
+        }
 
-            foreach ( array( '{product_title}', '{order_date}', '{order_number}' ) as $key ) {
-                $key = array_search( $key, $this->find );
-                if ( false !== $key ) {
-                    unset( $this->find[ $key ] );
-                    unset( $this->replace[ $key ] );
-                }
-            }
-
-            if ( $this->object->get_product() ) {
-                $this->find[]    = '{product_title}';
-                $this->replace[] = $this->object->get_product()->get_title();
-            }
-
-            $vendor_id    = dokan_get_seller_id_by_order( $this->object->get_order_id() );
-            $vendor       = dokan()->vendor->get( $vendor_id );
-            $vendor_email = $vendor->get_email();
-
-            $this->recipient = $vendor_email;
-            if ( $this->object->get_order() ) {
-                if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
-                    $billing_email = $this->object->get_order()->billing_email;
-                    $order_date    = $this->object->get_order()->order_date;
-                } else {
-                    $billing_email = $this->object->get_order()->get_billing_email();
-                    $order_date    = $this->object->get_order()->get_date_created() ? $this->object->get_order()->get_date_created()->date( 'Y-m-d H:i:s' ) : '';
-                }
-
-                $this->find[]    = '{order_date}';
-                $this->replace[] = date_i18n( wc_date_format(), strtotime( $order_date ) );
-
-                $this->find[]    = '{order_number}';
-                $this->replace[] = $this->object->get_order()->get_order_number();
-
-                $this->recipient = get_bloginfo( 'admin_email' ) . ',' . $vendor_email . ',' . $billing_email;
-            } else {
-                $this->find[]    = '{order_date}';
-                $this->replace[] = date_i18n( wc_date_format(), strtotime( $this->object->booking_date ) );
-
-                $this->find[]    = '{order_number}';
-                $this->replace[] = __( 'N/A', 'woocommerce-bookings' );
-
-                if ( $this->object->customer_id && ( $customer = get_user_by( 'id', $this->object->customer_id ) ) ) {
-                    $this->recipient = get_bloginfo( 'admin_email' ) . ',' . $vendor_email . ',' . $customer->user_email;
-                }
+        foreach ( array( '{product_title}', '{order_date}', '{order_number}' ) as $key ) {
+            $key = array_search( $key, $this->find );
+            if ( false !== $key ) {
+                unset( $this->find[ $key ] );
+                unset( $this->replace[ $key ] );
             }
         }
 
-        if ( ! $this->is_enabled() || ! $this->get_recipient() )
+        if ( $this->object->get_product() ) {
+            $this->find[]    = '{product_title}';
+            $this->replace[] = $this->object->get_product()->get_title();
+        }
+
+        $vendor_id    = dokan_get_seller_id_by_order( $this->object->get_order_id() );
+        $vendor       = dokan()->vendor->get( $vendor_id );
+        $vendor_email = $vendor->get_email();
+
+        $this->recipient = $vendor_email;
+        if ( $this->object->get_order() ) {
+            if ( version_compare( WC_VERSION, '3.0', '<' ) ) {
+                $billing_email = $this->object->get_order()->billing_email;
+                $order_date    = $this->object->get_order()->order_date;
+            } else {
+                $billing_email = $this->object->get_order()->get_billing_email();
+                $order_date    = $this->object->get_order()->get_date_created() ? $this->object->get_order()->get_date_created()->date( 'Y-m-d H:i:s' ) : '';
+            }
+
+            $this->find[]    = '{order_date}';
+            $this->replace[] = date_i18n( wc_date_format(), strtotime( $order_date ) );
+
+            $this->find[]    = '{order_number}';
+            $this->replace[] = $this->object->get_order()->get_order_number();
+
+            $this->recipient = get_bloginfo( 'admin_email' ) . ',' . $vendor_email . ',' . $billing_email;
+        } else {
+            $this->find[]    = '{order_date}';
+            $this->replace[] = date_i18n( wc_date_format(), strtotime( $this->object->booking_date ) );
+
+            $this->find[]    = '{order_number}';
+            $this->replace[] = __( 'N/A', 'woocommerce-bookings' );
+
+            if ( $this->object->customer_id && ( $customer = get_user_by( 'id', $this->object->customer_id ) ) ) {
+                $this->recipient = get_bloginfo( 'admin_email' ) . ',' . $vendor_email . ',' . $customer->user_email;
+            }
+        }
+
+        if ( ! $this->get_recipient() )
             return;
 
         $this->send( $vendor_email, $this->get_subject(), $this->get_content(), $this->get_headers(), $this->get_attachments() );
@@ -156,7 +156,7 @@ class Dokan_Email_Booking_New extends WC_Email {
                 'email_heading' => $this->get_heading(),
                 'sent_to_admin' => false,
                 'plain_text'    => false
-            ), 'dokan-wc-booking/', $this->template_base );
+            ), 'dokan/', $this->template_base );
 
         return ob_get_clean();
     }
@@ -174,7 +174,7 @@ class Dokan_Email_Booking_New extends WC_Email {
                 'email_heading' => $this->get_heading(),
                 'sent_to_admin' => false,
                 'plain_text'    => false
-            ), 'dokan-wc-booking/', $this->template_base );
+            ), 'dokan/', $this->template_base );
 
         return ob_get_clean();
     }

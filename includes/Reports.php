@@ -2,13 +2,14 @@
 
 namespace WeDevs\DokanPro;
 
+use WeDevs\DokanPro\Admin\ReportLogExporter;
+
 /**
  * Dokan Pro Report Class
  *
  * @since 2.4
  *
  * @package dokan
- *
  */
 class Reports {
 
@@ -26,11 +27,12 @@ class Reports {
         add_action( 'dokan_report_content_area_header', array( $this, 'report_header_render' ) );
         add_action( 'dokan_report_content', array( $this, 'render_review_content' ) );
         add_action( 'template_redirect', array( $this, 'handle_statement' ) );
-        add_action( 'woocommerce_order_status_changed', array( $this, 'refresh_reports_cache' ),10, 1 );
+        add_action( 'woocommerce_order_status_changed', array( $this, 'refresh_reports_cache' ), 10, 1 );
         add_action( 'woocommerce_new_order', array( $this, 'refresh_reports_cache' ), 10, 1 );
         add_action( 'woocommerce_update_order', array( $this, 'refresh_reports_cache' ), 10, 1 );
         add_action( 'before_delete_post', array( $this, 'refresh_reports_cache' ), 10, 1 );
         add_action( 'wp_trash_post', array( $this, 'refresh_reports_cache' ), 10, 1 );
+        add_action( 'init', [ $this, 'download_log_export_file' ], 15 );
     }
 
     /**
@@ -95,7 +97,7 @@ class Reports {
 
             $sql = "SELECT * from {$wpdb->prefix}dokan_vendor_balance WHERE vendor_id = %d AND DATE(balance_date) >= %s AND DATE(balance_date) <= %s AND ( ( trn_type = 'dokan_orders' AND status IN ('{$status}') ) OR trn_type IN ( 'dokan_withdraw', 'dokan_refund' ) ) ORDER BY balance_date";
 
-            $statements = $wpdb->get_results( $wpdb->prepare( $sql, $vendor->id, $start_date, $end_date ) );
+            $statements = $wpdb->get_results( $wpdb->prepare( $sql, $vendor->id, $start_date, $end_date ) ); // phpcs:ignore
 
             echo $start_date . ', ';
             echo '--, ';
@@ -169,7 +171,7 @@ class Reports {
             'icon'  => '<i class="fa fa-line-chart"></i>',
             'url'   => dokan_get_navigation_url( 'reports' ),
             'pos'   => 60,
-            'permission' => 'dokan_view_report_menu'
+            'permission' => 'dokan_view_report_menu',
         );
 
         return $urls;
@@ -187,7 +189,14 @@ class Reports {
     public function load_reports_template( $query_vars ) {
         if ( isset( $query_vars['reports'] ) ) {
             if ( ! current_user_can( 'dokan_view_review_menu' ) ) {
-                dokan_get_template_part('global/dokan-error', '', array( 'deleted' => false, 'message' => __( 'You have no permission to view review page', 'dokan' ) ) );
+                dokan_get_template_part(
+                    'global/dokan-error',
+                    '',
+                    [
+                        'deleted' => false,
+                        'message' => __( 'You have no permission to view review page', 'dokan' ),
+                    ]
+                );
                 return;
             } else {
                 dokan_get_template_part( 'report/reports', '', array( 'pro' => true ) );
@@ -217,14 +226,16 @@ class Reports {
 
         $charts  = dokan_get_reports_charts();
         $link    = dokan_get_navigation_url( 'reports' );
-        $current = isset( $_GET['chart'] ) ? $_GET['chart'] : 'overview';
+        $current = isset( $_GET['chart'] ) ? sanitize_text_field( wp_unslash( $_GET['chart'] ) ) : 'overview'; // phpcs:ignore
 
-        dokan_get_template_part( 'report/content', '', array(
-            'pro' => true,
-            'charts' => $charts,
-            'link' => $link,
-            'current' => $current,
-        ) );
+        dokan_get_template_part(
+            'report/content', '', [
+                'pro'     => true,
+                'charts'  => $charts,
+                'link'    => $link,
+                'current' => $current,
+            ]
+        );
     }
 
     /**
@@ -267,4 +278,19 @@ class Reports {
         delete_option( $cache_group );
     }
 
+    /**
+     * Download exported log file
+     *
+     * @since 3.4.1
+     */
+    public function download_log_export_file() {
+        if ( ! isset( $_GET['download-order-log-csv'] ) || ! wp_verify_nonce( $_GET['download-order-log-csv'], 'download-order-log-csv-nonce' ) ) { // phpcs:ignore
+            return;
+        }
+
+        // export logs
+        include_once DOKAN_PRO_INC . '/Admin/ReportLogExporter.php';
+        $exporter = new ReportLogExporter();
+        $exporter->export();
+    }
 }

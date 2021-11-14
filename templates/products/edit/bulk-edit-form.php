@@ -24,21 +24,24 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <div class="dokan-form-group">
                             <?php
                             $drop_down_category = wp_dropdown_categories(
-                                [
-                                    'show_option_none' => $is_single_category ? __( '- Select a category -', 'dokan' ) : '',
-                                    'hierarchical'     => 1,
-                                    'hide_empty'       => 0,
-                                    'name'             => $is_single_category ? 'product_cat' : 'product_cat[]',
-                                    'id'               => 'product_cat',
-                                    'taxonomy'         => 'product_cat',
-                                    'orderby'          => 'name',
-                                    'title_li'         => '',
-                                    'class'            => 'product_cat dokan-form-control dokan-select2',
-                                    'exclude'          => '',
-                                    'selected'         => $is_single_category ? dokan_posted_input( 'product_cat' ) : dokan_posted_input( 'product_cat', true ),
-                                    'echo'             => $is_single_category ? 1 : 0,
-                                    'walker'           => new TaxonomyDropdown(),
-                                ]
+                                apply_filters(
+                                    'dokan_product_cat_dropdown_args',
+                                    [
+                                        'show_option_none' => $is_single_category ? __( '- Select a category -', 'dokan' ) : '',
+                                        'hierarchical'     => 1,
+                                        'hide_empty'       => 0,
+                                        'name'             => $is_single_category ? 'product_cat' : 'product_cat[]',
+                                        'id'               => 'product_cat',
+                                        'taxonomy'         => 'product_cat',
+                                        'orderby'          => 'name',
+                                        'title_li'         => '',
+                                        'class'            => 'product_cat dokan-form-control dokan-select2',
+                                        'exclude'          => '',
+                                        'selected'         => $is_single_category ? dokan_posted_input( 'product_cat' ) : dokan_posted_input( 'product_cat', true ),
+                                        'echo'             => $is_single_category ? 1 : 0,
+                                        'walker'           => new TaxonomyDropdown(),
+                                    ]
+                                )
                             );
 
                             if ( ! $is_single_category ) {

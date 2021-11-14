@@ -1,6 +1,87 @@
 <?php
 $changelog = array(
     array(
+        'version'  => 'Version 3.4.1',
+        'released' => '2021-11-12',
+        'changes'  => array(
+            array(
+                'title'       => '[Vendor Verification] No email sent to vendors after vendor verification status has been changed',
+                'type'        => 'Fix',
+                'description' => 'Now vendors will get email notification after admin approve or reject a verification request.',
+            ),
+            array(
+                'title'       => 'Added date filter on Dokan —> Reports —> Logs page',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Now Export button will export all logs based on applied filters',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Geolocation] Reset Geolocation fields data after user clears that fields in WooCommerce shop page',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Vendor Verification] added four new action hooks after verification submit button in vendor dashboard',
+                'type'        => 'Improvement',
+                'description' => 'Added hooks are: dokan_before_id_verification_submit_button, dokan_before_phone_verification_submit_button, dokan_before_address_verification_submit_button, dokan_before_company_verification_submit_button',
+            ),
+            array(
+                'title'       => '[Vendor Subscription] Added trial text after trial value on vendor subscription list page',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Auction] some sanitization issue fixed for auction module',
+                'type'        => 'Improvement',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Product Subscription] Added missing param on woocommerce_admin_order_item_headers hooks',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Product variation image upload button wasn’t working due to js error',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Geolocation] Geolocation fields asking for user address each time user visit shop page',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Fixed WC mail template overwrite wasn’t working',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Vendor Subscription] fixed Vendor Subscription category limitation doesn\'t work in the quick edit panel',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Vendor Dashboard created coupon expired date doesn\'t work correctly',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Import/Export] Fixed importing products does not get the store geolocation data',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '\'Connect With Wirecard\' button in vendor payment settings page was hidden, now it is shown',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+        )
+    ),
+    array(
         'version'  => 'Version 3.4.0',
         'released' => '2021-10-31',
         'changes'  => array(
