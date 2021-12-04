@@ -1,7 +1,5 @@
 <?php
 
-global $user_login;
-
 $seller_id = ( isset( $_POST['store_id'] ) ) ? $_POST['store_id'] : 0;
 $post_id   = ( isset( $_POST['post_id'] ) ) ? $_POST['post_id'] : 0;
 
@@ -13,12 +11,12 @@ if ( get_current_user_id() != $post->post_author ) {
 
 $store_info = dokan_get_store_info( $seller_id );
 
-wp_get_current_user();
+$current_user      = wp_get_current_user();
 
 ?>
 
 <div class="dokan-add-review-wrapper">
-    <strong><?php printf( __( 'Hi, %s', 'dokan' ), $user_login ) ?></strong>
+    <strong><?php printf( __( 'Hi, %s', 'dokan' ), $current_user->display_name ) ?></strong>
 
 <div class="dokan-seller-rating-intro-text">
     <?php printf( __( "Update your Experience with <a href='%s' target='_blank'>%s</a>", 'dokan' ), dokan_get_store_url( $seller_id ), $store_info['store_name'] ) ?>

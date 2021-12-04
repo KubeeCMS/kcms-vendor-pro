@@ -44,6 +44,7 @@ final class Module {
      */
     private function includes() {
         require_once DOKAN_REPORT_ABUSE_INCLUDES . '/functions.php';
+        require_once DOKAN_REPORT_ABUSE_INCLUDES . '/ReportAbuseCache.php';
         require_once DOKAN_REPORT_ABUSE_INCLUDES . '/AdminSettings.php';
         require_once DOKAN_REPORT_ABUSE_INCLUDES . '/Ajax.php';
         require_once DOKAN_REPORT_ABUSE_INCLUDES . '/SingleProduct.php';
@@ -61,6 +62,7 @@ final class Module {
      * @return void
      */
     private function instances() {
+        new \WeDevs\DokanPro\Modules\ReportAbuse\ReportAbuseCache();
         new \WeDevs\DokanPro\Modules\ReportAbuse\AdminSettings();
         new \WeDevs\DokanPro\Modules\ReportAbuse\Ajax();
         new \WeDevs\DokanPro\Modules\ReportAbuse\SingleProduct();

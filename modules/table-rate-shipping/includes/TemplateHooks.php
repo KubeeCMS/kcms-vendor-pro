@@ -73,7 +73,10 @@ class TemplateHooks {
      * @return string $active_menu
      */
     public function filter_nav_active( $active_menu ) {
-        if ( 'settings/table-rate-shipping' === $active_menu ) {
+        if (
+            'settings/table-rate-shipping' === $active_menu ||
+            'settings/distance-rate-shipping' === $active_menu
+        ) {
             return 'settings/shipping';
         }
 
@@ -94,7 +97,7 @@ class TemplateHooks {
         $dokan_shipping_option = get_option( 'woocommerce_dokan_product_shipping_settings' );
         $enable_shipping       = ( isset( $dokan_shipping_option['enabled'] ) ) ? $dokan_shipping_option['enabled'] : 'yes';
 
-        if ( 'table-rate-shipping' === $query_vars && 'yes' === $enable_shipping ) {
+        if ( 'yes' === $enable_shipping && ( in_array( $query_vars, [ 'table-rate-shipping', 'distance-rate-shipping' ], true ) ) ) {
             $help_text = sprintf(
                 '<p>%s</p>',
                 __( 'A shipping zone is a geographic region where a certain set of shipping methods are offered. We will match a customer to a single zone using their shipping address and present the shipping methods within that zone to them.', 'dokan' ),
@@ -118,9 +121,9 @@ class TemplateHooks {
      * @return string
      */
     public function load_settings_header( $header, $query_vars ) {
-        if ( 'table-rate-shipping' === $query_vars ) {
+        if ( in_array( $query_vars, [ 'table-rate-shipping', 'distance-rate-shipping' ], true ) ) {
             $settings_url = dokan_get_navigation_url( 'settings/shipping' ) . '#/settings';
-            $header = sprintf( '%s <span style="position:absolute; right:0px;"><a href="%s" class="dokan-btn dokan-btn-default"><i class="fa fa-gear"></i> %s</a></span>', __( 'Shipping Settings', 'dokan' ), $settings_url, __( 'Click here to add Shipping Policies', 'dokan' ) );
+            $header       = sprintf( '%s <span style="position:absolute; right:0px;"><a href="%s" class="dokan-btn dokan-btn-default"><i class="fa fa-gear"></i> %s</a></span>', __( 'Shipping Settings', 'dokan' ), $settings_url, __( 'Click here to add Shipping Policies', 'dokan' ) );
         }
 
         return $header;

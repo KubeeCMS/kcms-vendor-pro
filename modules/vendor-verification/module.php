@@ -328,6 +328,10 @@ class Module {
         if ( is_admin() ) {
             require_once $inc_dir . 'admin/admin.php';
         }
+
+        // Init Vendor Verification Cache
+        require_once $inc_dir . 'DokanVendorVerificationCache.php';
+        new \DokanVendorVerificationCache();
     }
 
     /**
@@ -527,14 +531,15 @@ class Module {
             $seller_profile['dokan_verification']['info']['dokan_v_id_type']   = $postdata['dokan_v_id_type'];
             $seller_profile['dokan_verification']['info']['dokan_v_id_status'] = 'pending';
 
-            // @codingStandardsIgnoreLine
-            $msg = sprintf( __( 'Your ID verification request is Sent and %s approval', 'dokan' ), $seller_profile['dokan_verification']['info']['dokan_v_id_status'] );
+            update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
+
+            do_action( 'dokan_verification_updated', $user_id );
+
             dokan_verification_request_submit_email();
+
+            $msg = sprintf( __( 'Your ID verification request is Sent and %s approval', 'dokan' ), $seller_profile['dokan_verification']['info']['dokan_v_id_status'] );
+            wp_send_json_success( $msg );
         }
-
-        update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
-
-        wp_send_json_success( $msg );
     }
 
     /*
@@ -554,6 +559,8 @@ class Module {
         unset( $seller_profile['dokan_verification']['info']['dokan_v_id_status'] );
         //update user meta pending here
         update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
+
+        do_action( 'dokan_id_verification_cancelled', $user_id );
 
         $msg = __( 'Your ID Verification request is cancelled', 'dokan' );
 
@@ -578,6 +585,8 @@ class Module {
 
         $msg = __( 'Your Address Verification request is cancelled', 'dokan' );
 
+        do_action( 'dokan_address_verification_cancel', $user_id );
+
         wp_send_json_success( $msg );
     }
 
@@ -593,9 +602,9 @@ class Module {
         if ( ! wp_verify_nonce( $postdata['dokan_sv_nonce'], 'dokan_sv_nonce_action' ) ) {
             wp_send_json_error( __( 'Are you cheating?', 'dokan' ) );
         }
-        $postdata['status']    = $_POST['status'];
-        $postdata['seller_id'] = $_POST['seller_id'];
-        $postdata['type']      = $_POST['type'];
+        $postdata['status']    = sanitize_text_field( wp_unslash( $_POST['status'] ) );
+        $postdata['seller_id'] = absint( $_POST['seller_id'] );
+        $postdata['type']      = sanitize_text_field( wp_unslash( $_POST['type'] ) );
         // @codingStandardsIgnoreEnd
 
         $user_id        = $postdata['seller_id'];
@@ -680,6 +689,8 @@ class Module {
                 break;
         }
 
+        do_action( 'dokan_verification_status_change', $user_id, $seller_profile, $postdata );
+
         dokan_verification_request_changed_by_admin_email( $seller_profile, $postdata );
 
         $msg = __( 'Information updated', 'dokan' );
@@ -728,27 +739,26 @@ class Module {
 
         update_user_meta( $current_user, 'dokan_profile_settings', $seller_profile );
 
+        do_action( 'dokan_after_address_verification_added', $current_user );
+
         $msg = __( 'Your Address verification request is Sent and Pending approval', 'dokan' );
 
         dokan_verification_request_submit_email();
         wp_send_json_success( $msg );
     }
 
-    /*
+    /**
      * Sets the value of main verification status meta automatically
      *
      * @since 1.0.0
      *
      * @return void
-     *
      */
-
     public function dokan_v_recheck_verification_status_meta( $meta_id, $object_id, $meta_key, $_meta_value ) {
         if ( 'dokan_profile_settings' !== (string) $meta_key ) {
             return;
         }
-        $current_user = $object_id;
-
+        $current_user   = $object_id;
         $seller_profile = dokan_get_store_info( $current_user );
 
         if ( ! isset( $seller_profile['dokan_verification']['info'] ) ) {
@@ -759,42 +769,16 @@ class Module {
         $address_status   = isset( $seller_profile['dokan_verification']['info']['store_address']['v_status'] ) ? $seller_profile['dokan_verification']['info']['store_address']['v_status'] : '';
         $company_v_status = isset( $seller_profile['dokan_verification']['info']['company_v_status'] ) ? $seller_profile['dokan_verification']['info']['company_v_status'] : '';
 
-        if ( $id_status === $address_status && $address_status === $company_v_status ) {
-            update_user_meta( $current_user, 'dokan_verification_status', $id_status );
-        } elseif ( ( 'pending' === $id_status || 'approved' === $id_status || 'rejected' === $id_status ) && ( 'approved' === $address_status || 'pending' === $address_status || 'rejected' === $address_status ) && ( 'approved' === $company_v_status || 'pending' === $company_v_status || 'rejected' === $company_v_status ) ) {
-            $st = $id_status . ',' . $address_status . ',' . $company_v_status;
-            update_user_meta( $current_user, 'dokan_verification_status', $st );
-        } elseif ( ( ( 'pending' === $id_status || 'approved' === $id_status || 'rejected' === $id_status ) || ( 'approved' === $address_status || 'pending' === $address_status || 'rejected' === $address_status ) ) && '' === $company_v_status ) {
-            if ( $id_status === $address_status ) {
-                $st = $id_status;
-                update_user_meta( $current_user, 'dokan_verification_status', $st );
-            } else {
-                $st = $id_status . ',' . $address_status;
-                update_user_meta( $current_user, 'dokan_verification_status', $st );
-            }
-        } elseif ( ( ( 'approved' === $address_status || 'pending' === $address_status || 'rejected' === $address_status ) && ( 'approved' === $company_v_status || 'pending' === $company_v_status || 'rejected' === $company_v_status ) ) && '' === $id_status ) {
-            if ( $company_v_status === $address_status ) {
-                $st = $company_v_status;
-                update_user_meta( $current_user, 'dokan_verification_status', $st );
-            } else {
-                $st = $company_v_status . ',' . $address_status;
-                update_user_meta( $current_user, 'dokan_verification_status', $st );
-            }
-        } elseif ( ( ( 'approved' === $id_status || 'pending' === $id_status || 'rejected' === $id_status ) && ( 'approved' === $company_v_status || 'pending' === $company_v_status || 'rejected' === $company_v_status ) ) && '' === $address_status ) {
-            if ( $company_v_status === $id_status ) {
-                $st = $company_v_status;
-                update_user_meta( $current_user, 'dokan_verification_status', $st );
-            } else {
-                $st = $company_v_status . ',' . $id_status;
-                update_user_meta( $current_user, 'dokan_verification_status', $st );
-            }
-        } elseif ( ( 'pending' === $id_status || 'approved' === $id_status || 'rejected' === $id_status ) && ( '' === $address_status && '' === $company_v_status ) ) {
-            update_user_meta( $current_user, 'dokan_verification_status', $id_status );
-        } elseif ( ( 'pending' === $address_status || 'approved' === $address_status || 'rejected' === $address_status ) && ( '' === $id_status && '' === $company_v_status ) ) {
-            update_user_meta( $current_user, 'dokan_verification_status', $address_status );
-        } elseif ( ( 'pending' === $company_v_status || 'approved' === $company_v_status || 'rejected' === $company_v_status ) && ( '' === $id_status && '' === $address_status ) ) {
-            update_user_meta( $current_user, 'dokan_verification_status', $company_v_status );
-        }
+        $get_status = array_map(
+            function( $status ) {
+                if ( in_array( $status, array( 'approved', 'rejected', 'pending' ), true ) ) {
+                    return $status;
+                }
+            }, array_unique( [ $id_status, $address_status, $company_v_status ] )
+        );
+
+        $get_status = implode( ',', array_filter( $get_status, 'strlen' ) );
+        update_user_meta( $current_user, 'dokan_verification_status', $get_status );
 
         //clear info meta if empty
         if ( empty( $seller_profile['dokan_verification']['info'] ) ) {
@@ -1011,7 +995,7 @@ EOD;
             wp_send_json_error( __( 'Are you cheating?', 'dokan' ) );
         }
 
-        $current_user   = get_current_user_id();
+        $current_user   = dokan_get_current_user_id();
 
         if ( ! dokan_is_user_seller( $current_user ) ) {
             wp_send_json_error( __( 'Are you cheating?', 'dokan' ) );
@@ -1030,6 +1014,8 @@ EOD;
         $seller_profile['dokan_verification']['info']['company_v_status'] = 'pending';
 
         update_user_meta( $current_user, 'dokan_profile_settings', $seller_profile );
+
+        do_action( 'dokan_company_verification_submitted', $current_user, $seller_profile );
 
         $msg = __( 'Your company verification request is sent and pending approval', 'dokan' );
 
@@ -1051,6 +1037,8 @@ EOD;
         unset( $seller_profile['dokan_verification']['info']['company_v_status'] );
         //update user meta pending here
         update_user_meta( $user_id, 'dokan_profile_settings', $seller_profile );
+
+        do_action( 'dokan_company_verification_cancelled', $user_id, $seller_profile );
 
         $msg = __( 'Your company verification request is cancelled', 'dokan' );
 

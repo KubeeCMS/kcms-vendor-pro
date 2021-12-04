@@ -4,6 +4,7 @@ namespace WeDevs\DokanPro\Refund;
 
 use WP_Error;
 use WeDevs\Dokan\Abstracts\DokanModel;
+use WeDevs\Dokan\Cache;
 
 class Refund extends DokanModel {
 
@@ -36,7 +37,7 @@ class Refund extends DokanModel {
             'restock_items'   => null,
             'date'            => current_time( 'mysql' ),
             'status'          => 0,
-            'method'          => 'false',
+            'method'          => '0',
         ];
 
         $data = wp_parse_args( $data, $defaults );
@@ -386,6 +387,7 @@ class Refund extends DokanModel {
      * Prepare model for DB insertion
      *
      * @since 3.0.0
+     * @since 3.4.2 Refund method changed to `1` for API, `0` for manual.
      *
      * @return array
      */
@@ -395,6 +397,9 @@ class Refund extends DokanModel {
         $data['item_qtys']       = is_array( $data['item_qtys'] ) ? json_encode( $data['item_qtys'] ) : null;
         $data['item_totals']     = is_array( $data['item_totals'] ) ? json_encode( $data['item_totals'] ) : null;
         $data['item_tax_totals'] = is_array( $data['item_tax_totals'] ) ? json_encode( $data['item_tax_totals'] ) : null;
+
+        // we are setting WC provided method `true` or `false` to `1` or `0`
+        $data['method'] = dokan_validate_boolean( $data['method'] ) ? '1' : '0';
 
         return $data;
     }
@@ -565,7 +570,7 @@ class Refund extends DokanModel {
         $shipping_refund        = 0;
         $current_user           = is_user_logged_in() ? wp_get_current_user() : '';
         $approved_by            = ! empty( $current_user ) ? $current_user->get( 'user_nicename' ) : 'admin';
-
+        $payment_method_title   = $order->get_payment_method_title();
         $shipping_fee_recipient = dokan_get_option( 'shipping_fee_recipient', 'dokan_general', 'seller' );
         $tax_fee_recipient      = dokan_get_option( 'tax_fee_recipient', 'dokan_general', 'seller' );
 
@@ -685,12 +690,13 @@ class Refund extends DokanModel {
                 return new WP_Error( 'dokan_pro_refund_error_processing', __( 'This refund is failed to process.', 'dokan' ) );
             }
 
-            $parent_order = wc_get_order( $parent_order_id );
+            $parent_order         = wc_get_order( $parent_order_id );
+            $payment_method_title = $parent_order->get_payment_method_title();
             $parent_order->add_order_note(
                 sprintf(
                     // translators: 1: Payment gateway name 2: Refund Reason 3:Suborder ID 4: Approved by.
                     __( 'Refund Processed via %1$s – Reason: %2$s - Suborder %3$s - Approved by %4$s', 'dokan' ),
-                    $api_refund ? $parent_order->get_payment_method_title() : __( 'Manual Approval', 'dokan' ),
+                    $api_refund || ! empty( $args ) ? $payment_method_title : __( 'Manual Processing', 'dokan' ),
                     $refund->get_reason(),
                     $this->get_order_id(),
                     $approved_by
@@ -712,17 +718,15 @@ class Refund extends DokanModel {
             return new WP_Error( 'dokan_pro_refund_error_processing', __( 'This refund is failed to process.', 'dokan' ) );
         }
 
-        if ( $api_refund ) {
-            $order->add_order_note(
-                sprintf(
-                    // translators: 1: Refund amount 2: Payment gateway name 3: Refund reason.
-                    __( 'Refunded %1$s via %2$s – Reason: %3$s ', 'dokan' ),
-                    $refund->get_formatted_refund_amount(),
-                    ( dokan_is_sub_order( $this->get_order_id() ) && isset( $parent_order ) ) ? $parent_order->get_payment_method_title() : $order->get_payment_method_title(),
-                    $refund->get_reason()
-                )
-            );
-        }
+        $order->add_order_note(
+            sprintf(
+                // translators: 1: Refund amount 2: Payment gateway name 3: Refund reason.
+                __( 'Refunded %1$s via %2$s – Reason: %3$s ', 'dokan' ),
+                $refund->get_formatted_refund_amount(),
+                $api_refund || ! empty( $args ) ? $payment_method_title : __( 'Manual Processing', 'dokan' ),
+                $refund->get_reason()
+            )
+        );
 
         if ( 'seller' === $shipping_fee_recipient ) {
             $vendor_refund += $shipping_refund;
@@ -842,18 +846,12 @@ class Refund extends DokanModel {
         $refund = $this->save();
 
         //remove cache for seller earning
-        $cache_key = 'dokan_get_earning_from_order_table' . $this->get_order_id() . 'seller';
-        wp_cache_delete( $cache_key );
+        $cache_key = "get_earning_from_order_table_{$this->get_order_id()}_seller";
+        Cache::delete( $cache_key );
 
         // remove cache for seller earning
-        $cache_key = 'dokan_get_earning_from_order_table' . $this->get_order_id() . 'admin';
-        wp_cache_delete( $cache_key );
-
-        // remove cache for seller
-        $cache_group = 'dokan_cache_report_data_seller_' . $this->get_seller_id();
-        $tracked_cache_keys_array = get_option( $cache_group, [] );
-        array_map( 'delete_transient', $tracked_cache_keys_array );
-        delete_option( $cache_group );
+        $cache_key = "get_earning_from_order_table_{$this->get_order_id()}_admin";
+        Cache::delete( $cache_key );
 
         if ( is_wp_error( $refund ) ) {
             return $refund;
@@ -934,5 +932,27 @@ class Refund extends DokanModel {
         do_action( 'dokan_pro_refund_cancelled', $this );
 
         return $this;
+    }
+
+    /**
+     * Check if refund is via API.
+     *
+     * @since 3.4.2
+     *
+     * @return bool
+     */
+    public function is_via_api() {
+        return dokan_validate_boolean( $this->get_method() );
+    }
+
+    /**
+     * Check if refund is manual.
+     *
+     * @since 3.4.2
+     *
+     * @return bool
+     */
+    public function is_manual() {
+        return dokan_validate_boolean( $this->get_method() ) === false;
     }
 }

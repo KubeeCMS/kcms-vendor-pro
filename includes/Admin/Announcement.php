@@ -2,6 +2,8 @@
 
 namespace WeDevs\DokanPro\Admin;
 
+use WeDevs\Dokan\Cache;
+
 /**
  *  Dokan Announcement class for Admin
  *
@@ -155,6 +157,9 @@ class Announcement {
      * @return void
      */
     public function process_seller_announcement_data( $announcement_seller, $post_id ) {
+        // delete old cache
+        self::delete_announcement_cache( $announcement_seller );
+
         $inserted_seller_id = $this->get_assign_seller( $post_id );
 
         if ( ! empty( $inserted_seller_id ) ) {
@@ -361,5 +366,32 @@ class Announcement {
         do_action( 'dokan_after_announcement_saved', $post_id, $assigned_sellers );
 
         return $post_id;
+    }
+
+    /**
+     * Delete individual seller announcement cache.
+     *
+     * @since 3.4.2
+     *
+     * @param array|int $seller_ids
+     * @param int $post_id
+     *
+     * @return void
+     */
+    public static function delete_announcement_cache( $seller_ids, $post_id = null ) {
+        if ( is_array( $seller_ids ) ) {
+            foreach ( $seller_ids as $seller_id ) {
+                Cache::invalidate_group( "seller_announcement_{$seller_id}" );
+            }
+        } elseif ( is_numeric( $seller_ids ) ) {
+            Cache::invalidate_group( "seller_announcement_{$seller_ids}" );
+        } elseif ( is_numeric( $post_id ) ) {
+            $seller_ids = dokan_pro()->announcement->get_assign_seller( $post_id );
+            foreach ( $seller_ids as $seller_id ) {
+                Cache::invalidate_group( "seller_announcement_{$seller_id['user_id']}" );
+            }
+        }
+        // remove main cache group
+        Cache::invalidate_group( 'announcements' );
     }
 }

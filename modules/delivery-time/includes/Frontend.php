@@ -292,9 +292,15 @@ class Frontend {
      * @return void
      */
     public function validate_delivery_time_slot_args( $wc_data, $errors ) {
-        $posted_data = isset( $_POST['vendor_delivery_time'] ) ? wp_unslash( wc_clean( $_POST['vendor_delivery_time'] ) ) : []; //phpcs:ignore
+        $is_time_selection_required = dokan_get_option( 'selection_required', 'dokan_delivery_time', 'on' );
+        $posted_data                = isset( $_POST['vendor_delivery_time'] ) ? wp_unslash( wc_clean( $_POST['vendor_delivery_time'] ) ) : []; //phpcs:ignore
 
         foreach ( $posted_data as $data ) {
+            if ( 'on' === $is_time_selection_required && ! empty( $data['selected_delivery_type'] ) && ( ! empty( $data['vendor_id'] ) && empty( $data['delivery_date'] ) ) ) {
+                /* translators: %1$s selected delivery type name, %2$s: store name */
+                $errors->add( 'dokan_delivery_date_required_error', sprintf( __( 'Please make sure you have selected the %1$s date for %2$s.', 'dokan' ), $data['selected_delivery_type'], $data['store_name'] ) );
+            }
+
             if ( ! empty( $data['selected_delivery_type'] ) && ( ! empty( $data['vendor_id'] ) && ! empty( $data['delivery_date'] ) ) && empty( $data['delivery_time_slot'] ) ) {
                 /* translators: %s: store name */
                 $errors->add( 'dokan_delivery_time_slot_error', sprintf( __( 'Please make sure you have selected the delivery time slot for %1$s.', 'dokan' ), $data['store_name'] ) );

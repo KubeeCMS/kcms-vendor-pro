@@ -52,13 +52,15 @@ class AdminSettings {
                 'desc'    => __( 'Only logged-in users can report', 'dokan' ),
                 'type'    => 'checkbox',
                 'default' => 'off',
+                'tooltip' => __( 'Restrict Product Abuse feature for logged-In users only', 'dokan' ),
             ],
 
             'abuse_reasons' => [
                 'name'    => 'abuse_reasons',
                 'label'   => __( 'Reasons for Abuse Report', 'dokan' ),
                 'type'    => 'repeatable',
-                'desc'  => __( 'Add your reasons whatever you want.', 'dokan' )
+                'desc'    => __( 'Add multiple customized reasons.', 'dokan' ),
+                'tooltip' => __( 'Add multiple customized reasons.', 'dokan' ),
             ],
         ];
 

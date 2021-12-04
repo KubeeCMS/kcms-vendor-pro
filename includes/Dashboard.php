@@ -2,6 +2,7 @@
 
 namespace WeDevs\DokanPro;
 
+use WeDevs\Dokan\Cache;
 use WeDevs\Dokan\Dashboard\Templates\Dashboard as DokanDashboard;
 
 /**
@@ -94,14 +95,25 @@ class Dashboard extends DokanDashboard {
 
         $template_notice->add_query_filter();
 
-        $seller_posts = new \WP_Query( $args );
+        $seller_id   = dokan_get_current_user_id();
+        $cache_group = "seller_announcement_{$seller_id}";
+        $cache_key   = 'get_announcement_' . md5( wp_json_encode( array_merge( $args, [ 'author' => $seller_id ] ) ) );
+        $posts_data  = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $posts_data ) {
+            $posts_data   = new \WP_Query( $args );
+
+            Cache::set( $cache_key, $posts_data, $cache_group );
+        }
+
+        $seller_posts = $posts_data->posts;
 
         $template_notice->remove_query_filter();
 
         dokan_get_template_part(
             'dashboard/announcement-widget', '', array(
 				'pro'              => true,
-				'notices'          => $seller_posts->posts,
+				'notices'          => $seller_posts,
 				'announcement_url' => dokan_get_navigation_url( 'announcement' ),
 			)
         );

@@ -20,13 +20,13 @@ if ( 'show' === $opt_show_image_swatch ) {
 }
 ?>
 <div class="wc-pao-addon-option-row">
-	<span class="wc-pao-addon-sort-handle dashicons dashicons-menu"></span>
+	<span class="wc-pao-addon-sort-handle fa fa-bars"></span>
 	<div class="wc-pao-addon-content-image <?php echo esc_attr( $opt_display_image ); ?>">
-		<span class="dashicons dashicons-format-image wc-pao-addon-add-image <?php echo esc_attr( $opt_show_add_image ); ?>">
+		<span class="fa fa-picture-o wc-pao-addon-add-image <?php echo esc_attr( $opt_show_add_image ); ?>">
 			<input type="hidden" name="product_addon_option_image[<?php echo $loop; ?>][]" value="<?php echo esc_attr( $opt_image ); ?>" class="wc-pao-addon-option-image-id" />
 		</span>
-		<span class="dashicons dashicons-plus <?php echo esc_attr( $opt_show_add_image ); ?>"></span>
-		<a href="#" class="wc-pao-addon-image-swatch <?php echo esc_attr( $opt_show_image_swatch ); ?>"><?php echo $opt_image_thumb; ?><span class="dashicons dashicons-dismiss"></span></a>
+		<span class="fa fa-plus <?php echo esc_attr( $opt_show_add_image ); ?>"></span>
+		<a href="#" class="wc-pao-addon-image-swatch <?php echo esc_attr( $opt_show_image_swatch ); ?>"><?php echo $opt_image_thumb; ?><span class="fa fa-times-circle"></span></a>
 	</div>
 
 	<div class="wc-pao-addon-content-label <?php echo esc_attr( $opt_label_column ); ?>">

@@ -2,6 +2,7 @@
 
 namespace WeDevs\DokanPro\Refund;
 
+use WeDevs\Dokan\Cache;
 use WeDevs\Dokan\Traits\ChainableContainer;
 use WP_Error;
 
@@ -15,6 +16,8 @@ class Manager {
      */
     public function __construct() {
         $this->container['non_dokan_auto_refund'] = ProcessAutomaticRefund::instance();
+
+        new RefundCache();
     }
 
     /**
@@ -28,7 +31,16 @@ class Manager {
      *                      is provided
      */
     public function all( $args = [] ) {
-        $refunds = new Refunds( $args );
+        //todo: will change cache group to individual seller after seller filter is added
+        $cache_group = 'refunds';
+        $cache_key   = 'refunds_data_' . md5( wp_json_encode( $args ) );
+        $refunds     = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $refunds ) {
+            $refunds = new Refunds( $args );
+
+            Cache::set( $cache_key, $refunds, $cache_group );
+        }
 
         if ( empty( $args['paginate'] ) ) {
             return $refunds->get_refunds();
@@ -210,10 +222,18 @@ class Manager {
             $query_args[] = $seller_id;
         }
 
-        $results = $wpdb->get_results( $wpdb->prepare(
-            "select count(*) as count, status from $wpdb->dokan_refund where %d=%d $where group by status",
-            ...$query_args
-        ), ARRAY_A );
+        $cache_group = ! empty( $seller_id ) ? "refund_{$seller_id}" : 'refunds';
+        $cache_key   = 'get_status_counts_' . md5( wp_json_encode( $query_args ) );
+        $results     = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $results ) {
+            $results = $wpdb->get_results( $wpdb->prepare(
+                "select count(*) as count, status from $wpdb->dokan_refund where %d=%d $where group by status",
+                ...$query_args
+            ), ARRAY_A );
+
+            Cache::set( $cache_key, $results, $cache_group );
+        }
 
         $counts     = [];
         $count_list = wp_list_pluck( $results, 'count', 'status' );

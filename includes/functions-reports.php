@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Returns the definitions for the reports and charts
  *
@@ -409,15 +411,10 @@ function dokan_get_order_report_data( $args, $start_date, $end_date, $current_us
         printf( '<pre>%s</pre>', print_r( $query, true ) );
     }
 
-    $cache_group = 'dokan_cache_report_data_seller_' . $current_user;
-    $tracked_cache_hashes = get_option( $cache_group, array() );
-    $cache_key = 'dokan_wc_report_' . $query_hash;
-    if ( ! in_array( $cache_key, $tracked_cache_hashes, true ) ) {
-        $tracked_cache_hashes[] = $cache_key;
-        update_option( $cache_group, $tracked_cache_hashes );
-    }
+    $cache_group = "report_data_seller_{$current_user}";
+    $cache_key   = 'wc_report_' . $query_hash;
 
-    $result = get_transient( $cache_key );
+    $result = Cache::get_transient( $cache_key, $cache_group );
     if ( $debug || $nocache || ( false === $result ) ) {
         $result = apply_filters( 'dokan_reports_get_order_report_data', $wpdb->$query_type( $query ), $data );
 
@@ -431,7 +428,7 @@ function dokan_get_order_report_data( $args, $start_date, $end_date, $current_us
             $expiration = 60 * 60 * 24; // 24 hour
         }
 
-        set_transient( $cache_key, $result, $expiration );
+        Cache::set_transient( $cache_key, $result, $cache_group, $expiration );
     }
 
     return $result;

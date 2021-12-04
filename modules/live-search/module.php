@@ -234,6 +234,7 @@ class Module {
                     'suggestion_box'  => __( 'Search with Suggestion Box', 'dokan' ),
                     'old_live_search' => __( 'Autoload Replace Current Content', 'dokan' ),
                 ),
+                'tooltip' => __( 'Select one option which one will apply on search box.', 'dokan' ),
             ),
         );
 

@@ -27,11 +27,6 @@ class Reports {
         add_action( 'dokan_report_content_area_header', array( $this, 'report_header_render' ) );
         add_action( 'dokan_report_content', array( $this, 'render_review_content' ) );
         add_action( 'template_redirect', array( $this, 'handle_statement' ) );
-        add_action( 'woocommerce_order_status_changed', array( $this, 'refresh_reports_cache' ), 10, 1 );
-        add_action( 'woocommerce_new_order', array( $this, 'refresh_reports_cache' ), 10, 1 );
-        add_action( 'woocommerce_update_order', array( $this, 'refresh_reports_cache' ), 10, 1 );
-        add_action( 'before_delete_post', array( $this, 'refresh_reports_cache' ), 10, 1 );
-        add_action( 'wp_trash_post', array( $this, 'refresh_reports_cache' ), 10, 1 );
         add_action( 'init', [ $this, 'download_log_export_file' ], 15 );
     }
 
@@ -236,46 +231,6 @@ class Reports {
                 'current' => $current,
             ]
         );
-    }
-
-    /**
-     * Delete the reports cache for vendors.
-     *
-     * @param int $order_id Order ID.
-     *
-     * @since 3.2.4
-     *
-     * @since 3.3.6 rewritten whole function
-     *
-     * @return void
-     */
-    public function refresh_reports_cache( $order_id ) {
-        $order = wc_get_order( $order_id );
-
-        if ( ! $order ) {
-            return;
-        }
-
-        // check if order has suborder
-        if ( $order->get_meta( 'has_sub_order' ) ) {
-            // same hooks will be called for individual sub orders
-            return;
-        }
-
-        // get vendor id from order
-        $vendor_id = dokan_get_seller_id_by_order( $order_id );
-        if ( empty( $vendor_id ) ) {
-            return;
-        }
-
-        $cache_group              = 'dokan_cache_report_data_seller_' . $vendor_id;
-        $tracked_cache_keys_array = get_option( $cache_group, array() );
-        if ( empty( $tracked_cache_keys_array ) ) {
-            return;
-        }
-
-        array_map( 'delete_transient', $tracked_cache_keys_array );
-        delete_option( $cache_group );
     }
 
     /**

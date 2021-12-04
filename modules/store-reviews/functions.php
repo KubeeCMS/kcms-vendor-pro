@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Create or update a store review
  *
@@ -39,6 +41,8 @@ function dsr_save_store_review( $store_id, $data ) {
 
         $rating = isset( $data['rating'] ) ? absint( $data['rating'] ) : 0;
         update_post_meta( $post_id, 'rating', $rating );
+
+        Cache::invalidate_group( 'store_reviews' );
     }
 
     return $post_id;

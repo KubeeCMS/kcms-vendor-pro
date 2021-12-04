@@ -4,6 +4,7 @@ namespace WeDevs\DokanPro\Coupons;
 
 use WP_Error;
 use Exception;
+use WeDevs\DokanPro\Coupons\CouponCache;
 
 /**
 * Hooks Class
@@ -27,6 +28,8 @@ class Hooks {
      * @since 3.0.0
      */
     public function __construct() {
+        $this->init_classes();
+
         add_action( 'dokan_load_custom_template', array( $this, 'load_coupon_template' ) );
         add_action( 'dokan_coupon_content_area_header', array( $this, 'render_coupon_header_template' ), 10 );
         add_action( 'dokan_coupon_content', array( $this, 'render_coupon_content_template' ), 10 );
@@ -40,6 +43,17 @@ class Hooks {
     }
 
     /**
+     * Initialization of Classes related to coupons
+     *
+     * @since 3.4.2
+     *
+     * @return void
+     */
+    public function init_classes() {
+        new CouponCache();
+    }
+
+    /*
      * Check order have admin coupon
      *
      * @param bool       $valid
@@ -278,8 +292,15 @@ class Hooks {
         $coupons_type        = isset( $_GET['coupons_type'] ) ? sanitize_text_field( $_GET['coupons_type'] ) : ''; // phpcs:ignore
         $marketplace_tab     = 'marketplace_coupons' === $coupons_type;
         $link                = dokan_get_navigation_url( 'coupons' );
-        $vendor_coupons      = dokan_pro()->coupon->all( [ 'paged' => $pagenum ] );
-        $marketplace_coupons = dokan_get_marketplace_seller_coupon( dokan_get_current_user_id(), false );
+
+        $vendor_coupons      = [];
+        $marketplace_coupons = [];
+
+        if ( $marketplace_tab ) {
+            $marketplace_coupons = dokan_get_marketplace_seller_coupon( dokan_get_current_user_id(), false );
+        } else {
+            $vendor_coupons      = dokan_pro()->coupon->all( [ 'paged' => $pagenum ] );
+        }
 
         $this->get_messages();
         dokan_get_template_part(
@@ -622,6 +643,14 @@ class Hooks {
         }
 
         dokan_pro()->coupon->delete( $post_id, true ); // phpcs:ignore
+
+        /**
+         * Action: Dokan Delete Coupon
+         *
+         * @since 3.4.2
+         */
+        do_action( 'dokan_after_coupon_delete', $post_id );
+
         wp_safe_redirect( add_query_arg( array( 'message' => 'delete_succefully' ), dokan_get_navigation_url( 'coupons' ) ) );
     }
 
@@ -672,7 +701,7 @@ class Hooks {
         $amount             = wc_format_decimal( sanitize_text_field( $post_data['amount'] ) );
         $usage_limit        = empty( $post_data['usage_limit'] ) ? '' : absint( $post_data['usage_limit'] );
         $usage_limit_per_user = empty( $post_data['usage_limit_per_user'] ) ? '' : absint( $post_data['usage_limit_per_user'] );
-        $expiry_date        = dokan_get_timestamp( sanitize_text_field( $post_data['expire'] ) );
+        $expiry_date        = ! empty( $post_data['expire'] ) ? dokan_get_timestamp( sanitize_text_field( $post_data['expire'] ) ) : '';
         $apply_before_tax   = isset( $post_data['apply_before_tax'] ) ? 'yes' : 'no';
         $exclude_sale_items = isset( $post_data['exclude_sale_items'] ) ? 'yes' : 'no';
         $show_on_store      = isset( $post_data['show_on_store'] ) ? 'yes' : 'no';

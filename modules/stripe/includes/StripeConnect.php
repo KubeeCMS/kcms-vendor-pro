@@ -40,7 +40,7 @@ class StripeConnect extends StripePaymentGateway {
         $this->has_fields         = true;
         $this->supports           = [
             'products',
-            'refund',
+            'refunds',
             'tokenization',
             'subscriptions',
             'subscription_cancellation',

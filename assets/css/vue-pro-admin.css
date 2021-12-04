@@ -893,6 +893,7 @@
 .dokan-announcement-form-wrapper .help-block {
   position: absolute;
   top: 10px;
+  right: 10px;
 }
 .dokan-announcement-form-wrapper .help-block span.help-text {
   display: inline-block;
@@ -964,6 +965,18 @@
   float: right !important;
 }
 
+/*!******************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/less-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/admin/components/EditAnnouncement.vue?vue&type=style&index=0&lang=less& ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************/
+.dokan-announcement-form-wrapper {
+  position: relative;
+}
+.dokan-announcement-form-wrapper .help-block {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
 /*!********************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/less-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js??vue-loader-options!./src/admin/components/Refund.vue?vue&type=style&index=0&lang=less& ***!
   \********************************************************************************************************************************************************************************************************************************************************************************/
@@ -988,6 +1001,30 @@
 }
 .dokan-refund-wrapper table thead tr th.order_id {
   width: 17%;
+}
+.dokan-refund-wrapper table .manual-pill {
+  display: inline-block;
+  background: #2673b2;
+  padding: 3px 5px;
+  margin-left: 5px;
+  color: #fff;
+  font-size: 10px;
+  line-height: 11px;
+  border-radius: 3px;
+}
+.dokan-refund-wrapper .refund-help-tooptip {
+  background: #fb6e75;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 0 5px 0px #525252;
+  display: inline-block;
+  margin: 2px 0 0 5px;
+  padding: 3px;
+}
+.dokan-refund-wrapper .refund-help-tooptip span.dashicons {
+  font-size: 15px;
+  line-height: 20px;
 }
 @media only screen and (max-width: 600px) {
 .dokan-refund-wrapper .help-block {

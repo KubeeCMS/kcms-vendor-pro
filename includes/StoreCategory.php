@@ -89,6 +89,7 @@ class StoreCategory {
                 'multiple' => __( 'Multiple', 'dokan' ),
             ),
             'default' => 'none',
+            'tooltip' => __( 'Only admin can create store categories from Dashboard -> Vendors -> Store Categories to assign categories from vendor listing page. If you select single, vendor will only have one category available during store setup or when navigating to vendor Dashboard -> Store -> Store categories. If you select multiple, multiple categories will be available. Select none if you don\'t want either.', 'dokan' ),
         );
 
         return $dokan_settings_fields;

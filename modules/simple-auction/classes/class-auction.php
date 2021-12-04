@@ -181,6 +181,117 @@ class Dokan_Template_Auction {
                     // Set product type
                     wp_set_object_terms( $product_id, 'auction', 'product_type' );
 
+                    // Save downloadable
+                    $is_downloadable = isset( $data['_downloadable'] ) ? 'yes' : 'no';
+
+                    $auction_product = new \WC_Product_Auction( $product_id );
+
+                    $auction_product->set_downloadable( $is_downloadable );
+
+                    // Downloadable options
+                    if ( 'yes' === $is_downloadable ) {
+
+                        // file paths will be stored in an array keyed off md5(file path)
+                        if ( ! empty( $data['_wc_file_urls'] ) ) {
+                            $files = [];
+
+                            $file_names    = ! empty( $data['_wc_file_names'] ) ? array_map( 'sanitize_file_name', $data['_wc_file_names'] ) : [];
+                            $file_urls     = array_map( 'esc_url_raw', array_map( 'trim', $data['_wc_file_urls'] ) );
+
+                            foreach ( $file_urls as $index => $url ) {
+                                $files[] = [
+                                    'download_id' => md5( $file_urls[ $index ] ),
+                                    'name'        => $file_names[ $index ],
+                                    'file'        => $url,
+                                ];
+                            }
+
+                            // grant permission to any newly added files on any existing orders for this product prior to saving
+                            $variation_id = 0;
+
+                            do_action( 'dokan_process_file_download', $product_id, $variation_id, $files );
+
+                            $auction_product->set_downloads( $files );
+                        } else {
+                            $auction_product->set_downloads( [] );
+                        }
+
+                        if ( ! empty( $data['_download_limit'] ) ) {
+                            $download_limit = absint( wp_unslash( $data['_download_limit'] ) );
+
+                            $auction_product->set_download_limit( $download_limit );
+                        }
+
+                        if ( ! empty( $data['_download_expiry'] ) ) {
+                            $download_expiry = absint( wp_unslash( $data['_download_expiry'] ) );
+
+                            $auction_product->set_download_expiry( $download_expiry );
+                        }
+
+                        if ( ! empty( $data['_download_type'] ) ) {
+                            $download_type = wc_clean( wp_unslash( $data['_download_type'] ) );
+
+                            $auction_product->update_meta_data( '_download_type', $download_type );
+                        }
+                    }
+
+                    // Virtual options
+                    $is_virtual = isset( $data['_virtual'] ) ? 'yes' : 'no';
+
+                    $auction_product->set_virtual( $is_virtual );
+                    
+                    // Dimensions
+                    if ( 'no' === $is_virtual ) {
+                        if ( ! empty( $data['_weight'] ) ) {
+                            $weight = wc_format_decimal( wp_unslash( $data['_weight'] ) );
+
+                            $auction_product->set_weight( $weight );
+                        }
+
+                        if ( ! empty( $data['_length'] ) ) {
+                            $length = wc_format_decimal( wp_unslash( $data['_length'] ) );
+
+                            $auction_product->set_length( $length );
+                        }
+
+                        if ( ! empty( $data['_width'] ) ) {
+                            $width = wc_format_decimal( wp_unslash( $data['_width'] ) );
+
+                            $auction_product->set_width( $width );
+                        }
+
+                        if ( ! empty( $data['_height'] ) ) {
+                            $height = wc_format_decimal( wp_unslash( $data['_height'] ) );
+
+                            $auction_product->set_height( $height );
+                        }
+                    }
+
+                    //Save shipping meta data
+                    $disable_shipping = ! empty( $post_data['_disable_shipping'] ) ? sanitize_term_field( wp_unslash( $post_data['_disable_shipping'] ) ) : 'no';
+
+                    // _disable_shipping does not have setter method
+                    $auction_product->update_meta_data( '_disable_shipping', $disable_shipping );
+
+                    // Save shipping class
+                    $shipping_class_id = ( isset( $data['product_shipping_class'] ) && $data['product_shipping_class'] > 0 && 'external' !== $data['product_type'] ) ? absint( wp_unslash( $data['product_shipping_class'] ) ) : '';
+
+                    $auction_product->set_shipping_class_id( $shipping_class_id );
+
+                    if ( isset( $data['_tax_status'] ) ) {
+                        $_tax_status = sanitize_text_field( wp_unslash( $data['_tax_status'] ) );
+
+                        $auction_product->set_tax_status( $_tax_status );
+                    }
+
+                    if ( isset( $data['_tax_class'] ) ) {
+                        $_tax_class = sanitize_text_field( wp_unslash( $data['_tax_class'] ) );
+
+                        $auction_product->set_tax_class( $_tax_class );
+                    }
+
+                    $auction_product->save();
+
                     $woocommerce_auctions->product_save_data( $product_id, get_post( $product_id ) );
 
                     do_action( 'dokan_new_auction_product_added', $product_id, $post_data );
@@ -517,6 +628,16 @@ class Dokan_Template_Auction {
             }
 
             wp_delete_post( $product_id );
+
+            /**
+             * Fires Auction Product Deleted Action
+             *
+             * @since 3.4.2
+             *
+             * @param int $product_id
+             */
+            do_action( 'dokan_delete_auction_product', $product_id );
+
             wp_redirect( add_query_arg( array( 'message' => 'product_deleted' ), dokan_get_navigation_url( 'auction' ) ) );
             exit;
         }

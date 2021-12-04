@@ -45,10 +45,12 @@ class Dokan_SPMV_Admin {
     function add_new_setting_field_admin_panel( $settings_fields ) {
         $settings_fields['dokan_spmv'] = array(
             'enable_pricing' => array(
-                'name'  => 'enable_pricing',
-                'label' => __( 'Enable Single Product Multiple Vendor', 'dokan' ),
-                'desc'  => __( 'Enable Single Product Multiple Vendor functionality', 'dokan' ),
-                'type'  => 'checkbox'
+                'name'          => 'enable_pricing',
+                'label'         => __( 'Enable Single Product Multiple Vendor', 'dokan' ),
+                'desc'          => __( 'Enable Single Product Multiple Vendor functionality', 'dokan' ),
+                'type'          => 'checkbox',
+                'tooltip'       => __( 'Allow your vendors to sell other vendor\'s product.', 'dokan' ),
+                'content_class' => 'dokan_checkbox_up',
             ),
 
             'sell_item_btn' => array(
@@ -78,6 +80,7 @@ class Dokan_SPMV_Admin {
                     'after_tabs'  => __( 'After Single Product Tabs', 'dokan' ),
                 ),
                 'default' => 'below_tabs',
+                'tooltip' => __( 'Select where to display available vendor section in single product page.', 'dokan' ),
             ),
 
             'show_order' => array(

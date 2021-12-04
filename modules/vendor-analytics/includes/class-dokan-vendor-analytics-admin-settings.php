@@ -99,10 +99,11 @@ class Dokan_Vendor_Analytics_Admin_Settings {
 
             $analytics_fields = array(
                 'authenticate_user'  => array(
-                    'name'  => 'authenticate_user',
-                    'label' => __( 'Authenticate', 'dokan' ),
-                    'type'  => 'html',
-                    'desc'  => sprintf( '<a href="%s">%s</a>', $auth_url, __( 'Log in with Google Analytics Account', 'dokan' ) ),
+                    'name'    => 'authenticate_user',
+                    'label'   => __( 'Authenticate', 'dokan' ),
+                    'type'    => 'html',
+                    'desc'    => sprintf( '<a href="%s">%s</a>', $auth_url, __( 'Log in with Google Analytics Account', 'dokan' ) ),
+                    'tooltip' => __( 'Select which Google Analytics Tracking ID you want to integrate', 'dokan' ),
                 ),
             );
         } else {
@@ -118,13 +119,14 @@ class Dokan_Vendor_Analytics_Admin_Settings {
 
             $analytics_fields = array(
                 'profile'  => array(
-                    'name'        => 'profile',
-                    'label'       => __( 'Analytics Profile', 'dokan' ),
-                    'type'        => 'select',
-                    'placeholder' => __( 'Select your profile', 'dokan' ),
-                    'grouped'     => true,
-                    'options'     => $profiles,
-                    'desc'  => sprintf( '<a class="button button-danger" href="%s">%s</a>', $disconnect_url, __( 'Disconnect', 'dokan' ) ),
+                    'name'            => 'profile',
+                    'label'           => __( 'Analytics Profile', 'dokan' ),
+                    'type'            => 'select',
+                    'placeholder'     => __( 'Select your profile', 'dokan' ),
+                    'grouped'         => true,
+                    'options'         => $profiles,
+                    'desc'            => sprintf( '<a class="button button-danger" href="%s">%s</a>', $disconnect_url, __( 'Disconnect', 'dokan' ) ),
+                    'tooltip'         => __( 'Select which Google Analytics Tracking ID you want to integrate', 'dokan' ),
                     'refresh_options' => array(
                         'messages' => array(
                             'refreshing' => __( 'Refreshing profile list', 'dokan' ),
@@ -132,7 +134,7 @@ class Dokan_Vendor_Analytics_Admin_Settings {
                         ),
                     ),
                 ),
-                'add_tracking_code' => array(
+                'add_tracking_code'   => array(
                     'name'    => 'add_tracking_code',
                     'label'   => __( 'Add Tracking Code', 'dokan' ),
                     'desc'    => __( 'This is an optional settings that will add Analytics Global Site Tag in you site header. If you use any SEO plugin or add your tracking code by other means, then choose `no` in the settings.', 'dokan' ),
@@ -202,8 +204,9 @@ class Dokan_Vendor_Analytics_Admin_Settings {
             return;
         }
 
-        dokan_vendor_analytics_get_template( 'tracking-code', array(
-            'web_properties_id' => $api_data['profiles_map'][ $profile ],
+        dokan_get_template_part( 'tracking-code', '', array(
+            'is_vendor_analytics_views' => true,
+            'web_properties_id'         => $api_data['profiles_map'][ $profile ],
         ) );
     }
 

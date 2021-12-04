@@ -3,6 +3,7 @@
 namespace DokanPro\Modules\Subscription;
 
 use DokanPro\Modules\Subscription\SubscriptionPack;
+use WeDevs\Dokan\Product\ProductCache;
 use WeDevs\Dokan\Traits\Singleton;
 
 /**
@@ -696,6 +697,9 @@ class Helper {
         $status = dokan_get_option( 'product_status_after_end', 'dokan_product_subscription', 'draft' );
         self::log( 'Product status check: As the package has expired of user #' . $user_id . ', we are changing his existing product status to ' . $status );
         $wpdb->query( "UPDATE $wpdb->posts SET post_status = '$status' WHERE post_author = '$user_id' AND post_type = 'product' AND post_status='publish'" );
+
+        // delete product cache for this vendor
+        ProductCache::delete( $user_id );
     }
 
     /**
@@ -788,6 +792,9 @@ class Helper {
         global $wpdb;
 
         $wpdb->query( "UPDATE $wpdb->posts SET post_status = 'publish' WHERE post_author = '$user_id' AND post_type = 'product' AND post_status != 'publish'" );
+
+        // delete product cache for this vendor
+        ProductCache::delete( $user_id );
     }
 
     /**

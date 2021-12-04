@@ -223,7 +223,6 @@ class RefundController extends WP_REST_Controller {
             if ( empty( $seller_id ) ) {
                 return new WP_Error( 'dokan_rest_refund_error_user', __( 'No vendor found', 'dokan' ), [ 'status' => 404 ] );
             }
-
         } else if ( isset( $request['seller_id'] ) ) {
             // Allow manager to filter request with user or vendor id
             $seller_id = $request['seller_id'];
@@ -245,12 +244,14 @@ class RefundController extends WP_REST_Controller {
             $data[] = $this->prepare_response_for_collection( $item );
         }
 
-        $response     = rest_ensure_response( $data );
-        $refund_count = dokan_get_refund_count( $seller_id );
+        $response            = rest_ensure_response( $data );
+        $refund_count        = dokan_get_refund_count( $seller_id );
+        $api_refund_disabled = 'on' !== dokan_get_option( 'automatic_process_api_refund', 'dokan_selling', 'off' );
 
         $response->header( 'X-Status-Pending', $refund_count['pending'] );
         $response->header( 'X-Status-Completed', $refund_count['completed'] );
         $response->header( 'X-Status-Cancelled', $refund_count['cancelled'] );
+        $response->header( 'X-API-Refund-Disabled', $api_refund_disabled );
 
         $response = $this->format_collection_response( $response, $request, $refunds->total );
         return $response;
@@ -603,6 +604,7 @@ class RefundController extends WP_REST_Controller {
             'created'       => mysql_to_rfc3339( Sanitizer::sanitize_date( $refund->get_date() ) ),
             'status'        => $refund->get_status_name(),
             'method'        => get_post_meta( $refund->get_order_id(), '_payment_method_title', true ),
+            'type'          => $refund->get_method(),
         ];
 
         $response = rest_ensure_response( $data );

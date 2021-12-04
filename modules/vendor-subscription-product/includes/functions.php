@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
 * Get vendors subscripton by orders
 *
@@ -49,19 +51,21 @@ function dokan_vps_get_vendor_subscriptons_by_orders( $user_orders, $seller_id )
  * @return Array
  */
 function dokan_vps_get_seller_orders( $seller_id, $status = 'all', $order_date = null, $limit = 10, $offset = 0, $customer_id = null, $relation = null ) {
+    // get all function arguments as key => value pairs
+    $args = get_defined_vars();
+
     global $wpdb;
 
-    $cache_group                 = 'dokan_seller_data_' . $seller_id;
-    $cache_key                   = 'dokan-seller-orders-' . $status . '-' . $seller_id;
-    $orders                      = wp_cache_get( $cache_key, $cache_group );
+    $cache_group = "seller_order_data_{$seller_id}";
+    $cache_key   = 'vps_orders_' . md5( wp_json_encode( $args ) );
+    $orders      = Cache::get( $cache_key, $cache_group );
 
-    $join_meta                   = "LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID";
-    $where_customer              = $customer_id ? sprintf( "pm.meta_key = '_customer_user' AND pm.meta_value = %d AND", $customer_id ) : '';
-    $where_subscription_relation = $relation ? sprintf( "pm.meta_key = 'subscription_order_type' AND pm.meta_value = '%s' AND", $relation ) : '';
-
-    if ( $orders === false ) {
-        $status_where = ( $status === 'all' ) ? '' : $wpdb->prepare( ' AND order_status = %s', $status );
-        $date_query   = ( $order_date ) ? $wpdb->prepare( ' AND DATE( p.post_date ) = %s', $order_date ) : '';
+    if ( false === $orders ) {
+        $join_meta                   = "LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID";
+        $where_customer              = $customer_id ? sprintf( "pm.meta_key = '_customer_user' AND pm.meta_value = %d AND", $customer_id ) : '';
+        $where_subscription_relation = $relation ? sprintf( "pm.meta_key = 'subscription_order_type' AND pm.meta_value = '%s' AND", $relation ) : '';
+        $status_where                = ( $status === 'all' ) ? '' : $wpdb->prepare( ' AND order_status = %s', $status );
+        $date_query                  = ( $order_date ) ? $wpdb->prepare( ' AND DATE( p.post_date ) = %s', $order_date ) : '';
         // @codingStandardsIgnoreStart
         $orders = $wpdb->get_results(
             $wpdb->prepare(
@@ -83,8 +87,7 @@ function dokan_vps_get_seller_orders( $seller_id, $status = 'all', $order_date =
         );
         // @codingStandardsIgnoreEnd
 
-        wp_cache_set( $cache_key, $orders, $cache_group );
-        dokan_cache_update_group( $cache_key, $cache_group );
+        Cache::set( $cache_key, $orders, $cache_group );
     }
 
     return $orders;
@@ -99,19 +102,22 @@ function dokan_vps_get_seller_orders( $seller_id, $status = 'all', $order_date =
  * @return array
  */
 function dokan_vps_get_seller_orders_number( $seller_id, $status = 'all', $relation = null ) {
+    // get all function arguments as key => value pairs
+    $args = get_defined_vars();
+
     global $wpdb;
 
-    $cache_group = 'dokan_seller_data_' . $seller_id;
-    $cache_key   = 'dokan-seller-orders-count-' . $status . '-' . $seller_id;
-    $count       = wp_cache_get( $cache_key, $cache_group );
-    $join_meta   = "LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID";
-    $where_subscription_relation = $relation ? sprintf( "pm.meta_key = 'subscription_order_type' AND pm.meta_value = '%s' AND", $relation ) : '';
+    $cache_group = "seller_order_data_{$seller_id}";
+    $cache_key   = 'vps_orders_count_' . md5( wp_json_encode( $args ) );
+    $count       = Cache::get( $cache_key, $cache_group );
 
-    if ( $count === false ) {
+    if ( false === $count ) {
+        $join_meta = "LEFT JOIN $wpdb->postmeta AS pm ON pm.post_id = p.ID";
+        $where_subscription_relation = $relation ? sprintf( "pm.meta_key = 'subscription_order_type' AND pm.meta_value = '%s' AND", $relation ) : '';
         $status_where = ( $status === 'all' ) ? '' : $wpdb->prepare( ' AND order_status = %s', $status );
 
         // @codingStandardsIgnoreStart
-        $result = $wpdb->get_row(
+        $count = (int) $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(do.order_id) as count
                         FROM {$wpdb->prefix}dokan_orders AS do
@@ -126,10 +132,7 @@ function dokan_vps_get_seller_orders_number( $seller_id, $status = 'all', $relat
         );
         // @codingStandardsIgnoreEnd
 
-        $count = $result->count;
-
-        wp_cache_set( $cache_key, $count, $cache_group );
-        dokan_cache_update_group( $cache_key, $cache_group );
+        Cache::set( $cache_key, $count, $cache_group );
     }
 
     return $count;
@@ -283,13 +286,12 @@ function dokan_vps_get_seller_subscriptions( $args = array() ) {
     );
 
     $args                = wp_parse_args( $args, $default );
-    $cache_hash          = md5( wp_json_encode( $args ) );
-    $cache_group         = 'dokan_seller_data_' . $args['seller_id'];
-    $cache_key           = 'dokan-seller-subscriptions-info-' . $cache_hash;
-    $subscriptions_info  = wp_cache_get( $cache_key, $cache_group );
+    $cache_group         = "seller_order_data_{$args['seller_id']}";
+    $cache_key           = 'seller_subscriptions_info_' . md5( wp_json_encode( $args ) );
+    $subscriptions_info  = Cache::get( $cache_key, $cache_group );
     $subscriptions_array = array();
 
-    if ( $subscriptions_info === false ) {
+    if ( false === $subscriptions_info ) {
         $status_where   = ( $args['status'] === 'all' ) ? '' : $wpdb->prepare( ' AND dokan_orders.order_status = %s', $args['status'] );
         $date_query     = ( $args['order_date'] ) ? $wpdb->prepare( ' AND DATE( subscriptions.post_date ) = %s', $args['order_date'] ) : '';
         $where_customer = $args['customer_id'] ? $wpdb->prepare( ' AND postmeta.meta_key = %s AND postmeta.meta_value = %d', '_customer_user', $args['customer_id'] ) : '';
@@ -319,8 +321,7 @@ function dokan_vps_get_seller_subscriptions( $args = array() ) {
         $subscriptions_info        = ( $args['return'] === 'subscriptions' ) ? $wpdb->get_results( $subscriptions_query ) : $wpdb->get_var( $subscriptions_count_query );
         // phpcs:enable
 
-        wp_cache_set( $cache_key, $subscriptions_info, $cache_group );
-        dokan_cache_update_group( $cache_key, $cache_group );
+        Cache::set( $cache_key, $subscriptions_info, $cache_group );
     }
 
     if ( $args['return'] === 'subscriptions' ) {

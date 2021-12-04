@@ -162,7 +162,7 @@ class Dokan_RMA_Ajax {
             'line_item_qtys'         => json_encode( $line_item_qty_array ), //phpcs:ignore.
             'line_item_totals'       => json_encode( $line_item_total_array ), //phpcs:ignore.
             'line_item_tax_totals'   => json_encode( $line_item_tax_total_array ), //phpcs:ignore.
-            'api_refund'             => false,
+            'api_refund'             => '1', // if the payment gateway supports then the Refund will be via API.
             'restock_refunded_items' => null,
             'status'                 => 0,
         ];

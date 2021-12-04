@@ -6,6 +6,8 @@ use WC_Countries;
 use WC_Meta_Box_Product_Data;
 use WC_Product_Variable;
 use WC_Tax;
+use WeDevs\Dokan\Cache;
+use WeDevs\DokanPro\Admin\Announcement;
 use WeDevs\DokanPro\Shipping\ShippingZone;
 
 /**
@@ -1215,6 +1217,9 @@ class Ajax {
             ),
             array( 'post_id' => $row_id, 'user_id' => dokan_get_current_user_id() )
         );
+
+        // delete announcement cache
+        Announcement::delete_announcement_cache( [], $row_id );
 
         ob_start();
         ?>

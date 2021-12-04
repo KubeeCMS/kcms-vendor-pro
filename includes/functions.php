@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  *  General Fnctions for Dokan Pro features
  *
@@ -264,14 +266,14 @@ function dokan_render_order_table_items( $order_id ) {
 /**
  * Get best sellers list
  *
- * @param  integer $limit
+ * @param  int $limit
  * @return array
  */
 function dokan_get_best_sellers( $limit = 5 ) {
     global  $wpdb;
 
-    $cache_key = 'dokan-best-seller-' . $limit;
-    $seller = wp_cache_get( $cache_key, 'widget' );
+    $cache_key = 'best_seller_' . $limit;
+    $seller    = Cache::get( $cache_key, 'widget' );
 
     if ( false === $seller ) {
         $qry = "SELECT seller_id, display_name, SUM( net_amount ) AS total_sell
@@ -282,7 +284,7 @@ function dokan_get_best_sellers( $limit = 5 ) {
             ORDER BY total_sell DESC LIMIT " . $limit;
 
         $seller = $wpdb->get_results( $qry );
-        wp_cache_set( $cache_key, $seller, 'widget', 3600 * 6 );
+        Cache::set( $cache_key, $seller, 'widget', 3600*6 );
     }
 
     return $seller;
@@ -460,8 +462,7 @@ add_shortcode( 'dokan-customer-migration', 'dokan_render_customer_migration_temp
  * @return void
  */
 function dokan_send_announcement_email( $announcement_id ) {
-    $announcement = new \WeDevs\DokanPro\Admin\Announcement();
-    $announcement->trigger_mail( $announcement_id );
+    dokan_pro()->announcement->trigger_mail( $announcement_id );
 }
 
 add_action( 'dokan_after_announcement_saved', 'dokan_send_announcement_email' );
@@ -480,8 +481,7 @@ function dokan_send_scheduled_announcement_email( $post ) {
         return;
     }
 
-    $announcement = new \WeDevs\DokanPro\Admin\Announcement();
-    $announcement->trigger_mail( $post->ID );
+    dokan_pro()->announcement->trigger_mail( $post->ID );
 }
 
 add_action( 'future_to_publish', 'dokan_send_scheduled_announcement_email' );
@@ -966,9 +966,9 @@ function dokan_get_order_shipment_current_status( $order_id, $get_only_status = 
         return;
     }
 
-    $cache_group = 'dokan_cache_seller_shipment_tracking_data_' . $order_id;
-    $cache_key   = 'dokan_order_shipment_tracking_status_' . $order_id;
-    $get_status  = wp_cache_get( $cache_key, $cache_group );
+    $cache_group = "seller_shipment_tracking_data_{$order_id}";
+    $cache_key   = "order_shipment_tracking_status_{$order_id}";
+    $get_status  = Cache::get( $cache_key, $cache_group );
 
     // early return if cached data found
     if ( false !== $get_status ) {
@@ -984,7 +984,7 @@ function dokan_get_order_shipment_current_status( $order_id, $get_only_status = 
     if ( empty( $shipment_tracking_data ) ) {
         $get_status = '--';
         // set cache
-        wp_cache_set( $cache_key, $get_status, $cache_group );
+        Cache::set( $cache_key, $get_status, $cache_group );
         if ( $get_only_status ) {
             return $get_status;
         }
@@ -1021,7 +1021,7 @@ function dokan_get_order_shipment_current_status( $order_id, $get_only_status = 
         $get_status = 'not_shipped';
     }
 
-    wp_cache_set( $cache_key, $get_status, $cache_group );
+    Cache::set( $cache_key, $get_status, $cache_group );
 
     if ( $get_only_status ) {
         return $get_status;
@@ -1045,9 +1045,9 @@ function dokan_get_main_order_shipment_current_status( $order_id ) {
     }
 
     $user_id     = dokan_get_current_user_id();
-    $cache_group = 'dokan_cache_seller_shipment_tracking_data_' . $order_id;
-    $cache_key   = 'dokan_order_shipment_tracking_status_' . $order_id;
-    $get_status  = wp_cache_get( $cache_key, $cache_group );
+    $cache_group = "seller_shipment_tracking_data_{$order_id}";
+    $cache_key   = "order_shipment_tracking_status_{$order_id}";
+    $get_status  = Cache::get( $cache_key, $cache_group );
 
     if ( false === $get_status ) {
         $sub_orders = get_children(
@@ -1092,7 +1092,7 @@ function dokan_get_main_order_shipment_current_status( $order_id ) {
             $get_status = '--';
         }
 
-        wp_cache_set( $cache_key, $get_status, $cache_group );
+        Cache::set( $cache_key, $get_status, $cache_group );
     }
 
     return dokan_get_order_shipment_status_html( $get_status );
@@ -1129,12 +1129,12 @@ function dokan_get_order_shipment_status_html( $get_status ) {
  * @return void
  */
 function dokan_shipment_cache_clear_group( $order_id ) {
-    $group                    = 'dokan_cache_seller_shipment_tracking_data_' . $order_id;
-    $tracking_data_key        = 'dokan_get_shipping_tracking_data_' . $order_id;
-    $tracking_status_key      = 'dokan_order_shipment_tracking_status_' . $order_id;
+    $group                    = 'seller_shipment_tracking_data_' . $order_id;
+    $tracking_data_key        = 'shipping_tracking_data_' . $order_id;
+    $tracking_status_key      = 'order_shipment_tracking_status_' . $order_id;
 
-    wp_cache_delete( $tracking_data_key, $group );
-    wp_cache_delete( $tracking_status_key, $group );
+    Cache::delete( $tracking_data_key, $group );
+    Cache::delete( $tracking_status_key, $group );
 }
 
 /**

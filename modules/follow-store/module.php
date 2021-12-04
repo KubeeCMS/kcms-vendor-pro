@@ -63,6 +63,7 @@ final class Module {
         require_once DOKAN_FOLLOW_STORE_INCLUDES . '/class-dokan-follow-store-vendor-dashboard.php';
         require_once DOKAN_FOLLOW_STORE_INCLUDES . '/class-dokan-follow-store-cron.php';
         require_once DOKAN_FOLLOW_STORE_INCLUDES . '/class-dokan-follow-store-email-loader.php';
+        require_once DOKAN_FOLLOW_STORE_INCLUDES . '/FollowStoreCache.php';
     }
 
     /**
@@ -81,6 +82,7 @@ final class Module {
         new \Dokan_Follow_Store_Vendor_Dashboard();
         new \Dokan_Follow_Store_Cron();
         new \Dokan_Follow_Store_Email_Loader();
+        new FollowStoreCache();
     }
 
     /**

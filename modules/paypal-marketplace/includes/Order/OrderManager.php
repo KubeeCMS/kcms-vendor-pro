@@ -4,6 +4,7 @@ namespace WeDevs\DokanPro\Modules\PayPalMarketplace\Order;
 
 use WeDevs\DokanPro\Modules\PayPalMarketplace\Helper;
 use WeDevs\DokanPro\Modules\PayPalMarketplace\Utilities\Processor;
+use WeDevs\Dokan\Cache;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -535,11 +536,12 @@ class OrderManager {
         }
 
         //remove cache for seller earning
-        $cache_key = 'dokan_get_earning_from_order_table' . $withdraw['order_id'] . 'seller';
-        wp_cache_delete( $cache_key );
+        $cache_key = "get_earning_from_order_table_{$withdraw['order_id']}_seller";
+        Cache::delete( $cache_key );
+
         // remove cache for seller earning
-        $cache_key = 'dokan_get_earning_from_order_table' . $withdraw['order_id'] . 'admin';
-        wp_cache_delete( $cache_key );
+        $cache_key = "get_earning_from_order_table_{$withdraw['order_id']}_admin";
+        Cache::delete( $cache_key );
 
         return true;
     }
@@ -626,11 +628,11 @@ class OrderManager {
         update_post_meta( $withdraw['order_id'], '_dokan_paypal_payment_withdraw_balance_added', 'yes' );
 
         //remove cache for seller earning
-        $cache_key = 'dokan_get_earning_from_order_table' . $withdraw['order_id'] . 'seller';
-        wp_cache_delete( $cache_key );
+        $cache_key = "get_earning_from_order_table_{$withdraw['order_id']}_seller";
+        Cache::delete( $cache_key );
         // remove cache for seller earning
-        $cache_key = 'dokan_get_earning_from_order_table' . $withdraw['order_id'] . 'admin';
-        wp_cache_delete( $cache_key );
+        $cache_key = "get_earning_from_order_table_{$withdraw['order_id']}_admin";
+        Cache::delete( $cache_key );
 
         return true;
     }

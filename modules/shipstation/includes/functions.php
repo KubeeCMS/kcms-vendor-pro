@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Include Dokan ShipStation template
  *
@@ -27,12 +29,12 @@ function dokan_shipstation_get_template( $name, $args = [] ) {
 function dokan_shipstation_get_orders( $seller_id, $args = array() ) {
     global $wpdb;
 
-    $current_time = current_time( 'mysql' );
+    $current_time = dokan_current_datetime();
 
     $defaults = array(
         'count' => false,
-        'start_date' => date( 'Y-m-d 00:00:00', strtotime( $current_time ) ),
-        'end_date' => $current_time,
+        'start_date' => $current_time->setTime( 0, 0, 0 )->format( 'Y-m-d H:i:s' ),
+        'end_date' => $current_time->format( 'Y-m-d H:i:s' ),
         'status' => null,
         'page' => 1,
         'fields' => array( 'do.*', 'p.post_date_gmt' ),
@@ -42,11 +44,11 @@ function dokan_shipstation_get_orders( $seller_id, $args = array() ) {
 
     $args = wp_parse_args( $args, $defaults );
 
-    $cache_group = 'dokan_seller_data_' . $seller_id;
-    $cache_key   = 'dokan-seller-orders-' . md5( serialize( $args ) ) . '-' . $seller_id;
-    $orders      = wp_cache_get( $cache_key, $cache_group );
+    $cache_group = "seller_order_data_{$seller_id}";
+    $cache_key   = "shipstation_orders_" . md5( wp_json_encode( $args ) );
+    $orders      = Cache::get( $cache_key, $cache_group );
 
-    if ( ! $orders ) {
+    if ( false === $orders ) {
         $select = implode( ', ', $args['fields'] );
 
         $where = $wpdb->prepare(
@@ -80,8 +82,7 @@ function dokan_shipstation_get_orders( $seller_id, $args = array() ) {
 
         $orders = $wpdb->get_results( $sql );
 
-        wp_cache_set( $cache_key, $orders, $cache_group, HOUR_IN_SECONDS * 2 );
-        dokan_cache_update_group( $cache_key, $cache_group );
+        Cache::set( $cache_key, $orders, $cache_group, HOUR_IN_SECONDS * 2 );
     }
 
     return $orders;

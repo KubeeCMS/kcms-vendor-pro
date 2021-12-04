@@ -7,6 +7,10 @@
          *
          *  @hooked get_dashboard_side_navigation
          *
+         * @var array $customers
+         * @var object[] $followers
+         *
+         *
          *  @since 1.0.0
          */
         do_action( 'dokan_dashboard_content_before' );
@@ -32,15 +36,15 @@
                     </tbody>
                 <?php else: ?>
                     <tbody>
-                        <?php foreach ( $customers as $customer ): ?>
+                        <?php foreach ( $customers as $customer_id ): ?>
                             <tr>
                                 <td class="dokan-column-name-with-avatar">
-                                    <?php echo get_avatar( $customer->ID, 32 ); ?>
+                                    <?php echo get_avatar( $customer_id, 32 ); ?>
 
                                     <?php
                                         $name = array(
-                                            'first_name' => get_user_meta( $customer->ID, 'first_name', true ),
-                                            'last_name'  => get_user_meta( $customer->ID, 'last_name', true ),
+                                            'first_name' => get_user_meta( $customer_id, 'first_name', true ),
+                                            'last_name'  => get_user_meta( $customer_id, 'last_name', true ),
                                         );
 
                                         $name = implode( ' ', $name );
@@ -51,7 +55,7 @@
                                 </td>
                                 <td>
                                     <?php
-                                        $follower = $followers[ $customer->ID ];
+                                        $follower = $followers[ $customer_id ];
                                         $followed_at = $follower->followed_at;
                                         $diff = human_time_diff( strtotime($followed_at), current_time( 'timestamp' ) );
 

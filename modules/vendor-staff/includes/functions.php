@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Dokan get all vendor staffs
  *
@@ -7,16 +9,16 @@
  */
 function dokan_get_all_vendor_staffs( $args ) {
     $defaults = array(
-        'number' => 10,
-        'offset' => 0,
+        'number'    => 10,
+        'offset'    => 0,
         'vendor_id' => get_current_user_id(),
-        'orderby' => 'registered',
-        'order' => 'desc',
+        'orderby'   => 'registered',
+        'order'     => 'desc',
     );
 
     $args = wp_parse_args( $args, $defaults );
 
-    $args['role'] = 'vendor_staff';
+    $args['role']       = 'vendor_staff';
     $args['meta_query'] = array(
         array(
             'key'     => '_vendor_id',
@@ -25,12 +27,24 @@ function dokan_get_all_vendor_staffs( $args ) {
         ),
     );
 
-    $user_search = new WP_User_Query( $args );
-    $staffs     = $user_search->get_results();
-    return array(
+    $cache_group = "vendor_staff_{$args['vendor_id']}";
+    $cache_key   = 'staffs_data_' . md5( wp_json_encode( $args ) );
+    $user_search = Cache::get( $cache_key, $cache_group );
+
+    if ( false === $user_search ) {
+        $user_search = new WP_User_Query( $args );
+
+        Cache::set( $cache_key, $user_search, $cache_group );
+    }
+
+    $staffs = $user_search->get_results();
+
+    $response = array(
         'total_users' => $user_search->total_users,
-        'staffs' => $staffs,
+        'staffs'      => $staffs,
     );
+
+    return $response;
 }
 
 function dokan_get_staff_capabilities() {

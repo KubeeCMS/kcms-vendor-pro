@@ -3,6 +3,7 @@
 namespace WeDevs\DokanPro\Modules\Stripe;
 
 use WeDevs\Dokan\Traits\ChainableContainer;
+use WeDevs\DokanPro\Admin\Announcement;
 use WeDevs\DokanPro\Modules\Stripe\Gateways\RegisterGateways;
 use WeDevs\DokanPro\Modules\Stripe\Subscriptions\ProductSubscription;
 use WeDevs\DokanPro\Modules\Stripe\WithdrawMethods\RegisterWithdrawMethods;
@@ -112,7 +113,10 @@ class Module {
 
         // check vendor is connected to stripe account
         $access_token = get_user_meta( $seller_id, 'dokan_connected_vendor_id', true );
-        $announcement = new \WeDevs\DokanPro\Admin\Announcement();
+        /**
+         * @var $announcement Announcement
+         */
+        $announcement = dokan_pro()->announcement;
 
         if ( empty( $access_token ) ) {
             if ( Helper::display_notice_to_non_connected_sellers() && false === get_transient( "non_connected_sellers_notice_intervals_$seller_id" ) ) {

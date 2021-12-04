@@ -200,7 +200,7 @@ if ( wc_tax_enabled() ) {
     ?>
     <table class="wc-order-totals">
         <tr>
-            <td><?php esc_html_e( 'Discount', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the total discount. Discounts are defined per line item.', 'dokan' ); ?>"><span class="dashicons dashicons-editor-help dokan-vendor-order-page-tips"></span></span>:</td>
+            <td><?php esc_html_e( 'Discount', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the total discount. Discounts are defined per line item.', 'dokan' ); ?>"><span class="fa fa-question-circle dokan-vendor-order-page-tips"></span></span> :</td>
             <td class="total">
                 <?php echo wc_price( $order->get_total_discount(), array( 'currency' => dokan_replace_func( 'get_order_currency', 'get_currency', $order ) ) ); ?>
             </td>
@@ -210,7 +210,7 @@ if ( wc_tax_enabled() ) {
         <?php do_action( 'woocommerce_admin_order_totals_after_discount', dokan_get_prop( $order, 'id' ) ); ?>
 
         <tr>
-            <td><?php esc_html_e( 'Shipping', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the shipping and handling total costs for the order.', 'dokan' ); ?>"><span class="dashicons dashicons-editor-help dokan-vendor-order-page-tips"></span></span>:</td>
+            <td><?php esc_html_e( 'Shipping', 'dokan' ); ?> <span class="tips" title="<?php esc_attr_e( 'This is the shipping and handling total costs for the order.', 'dokan' ); ?>"><span class="fa fa-question-circle dokan-vendor-order-page-tips"></span></span> :</td>
             <td class="total"><?php echo wc_price( $order->get_total_shipping(), array( 'currency' => dokan_replace_func( 'get_order_currency', 'get_currency', $order ) ) ); ?></td>
             <td width="1%"></td>
         </tr>
@@ -313,10 +313,21 @@ if ( wc_tax_enabled() ) {
             <div class="refund-actions">
                 <?php
                 $refund_amount = '<span class="wc-order-refund-amount">' . wc_price( 0, array( 'currency' => dokan_replace_func( 'get_order_currency', 'get_currency', $order ) ) ) . '</span>';
+                $gateway_name  = false !== $payment_gateway ? ( ! empty( $payment_gateway->method_title ) ? $payment_gateway->method_title : $payment_gateway->get_title() ) : __( 'Payment gateway', 'dokan' );
+                ?>
+                <?php // translators: %s: Refund amount ?>
+                <button type="button" class="dokan-btn dokan-btn-default do-manual-refund tips" data-tip="<?php esc_attr_e( 'You will need to manually issue a refund through your payment gateway after using this.', 'dokan' ); ?>"><?php printf( _x( 'Refund %s Manually', 'Refund $amount Manually', 'dokan' ), $refund_amount ); ?></button>
+
+                <?php
+                if (
+                    false !== $payment_gateway
+                    && $payment_gateway->can_refund_order( $order )
+                ) {
+                    /* translators: refund amount, gateway name */
+                    echo '<button type="button" class="dokan-btn dokan-btn-default do-api-refund">' . sprintf( esc_html__( 'Refund %1$s via %2$s', 'dokan' ), wp_kses_post( $refund_amount ), esc_html( $gateway_name ) ) . '</button>';
+                }
                 ?>
 
-                <?php // translators: %s: Refund amount ?>
-                <button type="button" class="dokan-btn dokan-btn-default do-manual-refund tips" data-tip="<?php esc_attr_e( 'You will need to manually issue a refund through your payment gateway after using this.', 'dokan' ); ?>"><?php printf( _x( 'Submit Refund Request %s', 'Submit Refund Request $amount', 'dokan' ), $refund_amount ); ?></button>
                 <button type="button" class="dokan-btn dokan-btn-default cancel-action"><?php esc_html_e( 'Cancel', 'dokan' ); ?></button>
                 <div class="clear"></div>
             </div>

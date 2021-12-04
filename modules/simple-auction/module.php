@@ -68,6 +68,7 @@ class Module {
         add_filter( 'dokan_query_var_filter', array( $this, 'add_dokan_auction_endpoint' ) );
         add_filter( 'dokan_set_template_path', array( $this, 'load_auction_templates' ), 10, 3 );
         add_action( 'dokan_load_custom_template', array( $this, 'load_dokan_auction_template' ), 10, 1 );
+        add_action( 'dokan_auction_before_general_options', [ $this, 'load_downloadable_virtual_option' ] );
         add_action( 'user_register', array( $this, 'dokan_admin_user_register_enable_auction' ), 16 );
         add_action( 'dokan_product_listing_exclude_type', array( $this, 'product_listing_exclude_auction' ), 11 );
 
@@ -225,6 +226,10 @@ class Module {
     public function includes() {
         require_once dirname( __FILE__ ) . '/classes/class-auction.php';
         require_once dirname( __FILE__ ) . '/includes/dokan-auction-functions.php';
+
+        // Init Cache for Auction module
+        require_once dirname( __FILE__ ) . '/includes/DokanAuctionCache.php';
+        new \DokanAuctionCache();
     }
 
     /**
@@ -243,9 +248,12 @@ class Module {
 
         if ( isset( $wp->query_vars['new-auction-product'] ) || isset( $wp->query_vars['auction-activity'] ) ) {
             wp_enqueue_script( 'jquery' );
+            wp_enqueue_script( 'dokan-form-validate' );
             wp_enqueue_script( 'jquery-ui' );
             wp_enqueue_script( 'jquery-ui-datepicker' );
             wp_enqueue_script( 'dokan-auctiondasd-timepicker', plugins_url( 'assets/js/jquery-ui-timepicker.js', __FILE__ ), array( 'jquery' ), $this->version, true );
+            wp_enqueue_script( 'auction-product', plugins_url( 'assets/js/auction-product.js', __FILE__ ), [ 'jquery', 'dokan-script', 'dokan-pro-script' ], $this->version, true );
+            wp_enqueue_media();
         }
 
         // @codingStandardsIgnoreLine
@@ -609,5 +617,34 @@ class Module {
     public function set_email_template_directory( $template_array ) {
         array_push( $template_array, 'auction-product-added.php' );
         return $template_array;
+    }
+
+    /**
+     * Load downloadable and virtual option on product edit page
+     *
+     * @param int $auction_id Auction Product ID
+     *
+     * @return void
+     */
+    public function load_downloadable_virtual_option( $auction_id ) {
+        global $post;
+        $is_downloadable    = 'yes' === get_post_meta( $auction_id, '_downloadable', true );
+        $is_virtual         = 'yes' === get_post_meta( $auction_id, '_virtual', true );
+        $digital_mode       = dokan_get_option( 'global_digital_mode', 'dokan_general', 'sell_both' );
+
+        echo '<div class="product-edit-new-container">';
+            dokan_get_template_part(
+                'products/download-virtual',
+                '',
+                [
+                    'post_id'         => $auction_id,
+                    'post'            => $post,
+                    'is_downloadable' => $is_downloadable,
+                    'is_virtual'      => $is_virtual,
+                    'digital_mode'    => $digital_mode,
+                    'class'           => '',
+                ]
+            );
+        echo '</div>';
     }
 }

@@ -890,6 +890,7 @@ class DPS_Admin {
                 'label'   => __( 'Subscription', 'dokan' ),
                 'type'    => 'select',
                 'options' => $pages_array,
+                'tooltip' => __( 'Select the page in which you want to show subscription packages.', 'dokan' ),
             ),
             'enable_pricing' => array(
                 'name'  => 'enable_pricing',
@@ -898,11 +899,13 @@ class DPS_Admin {
                 'type'  => 'checkbox',
             ),
             'enable_subscription_pack_in_reg' => array(
-                'name'    => 'enable_subscription_pack_in_reg',
-                'label' => __( 'Enable Subscription in registration form', 'dokan' ),
-                'desc'  => __( 'Enable Subscription pack in registration form for new vendor', 'dokan' ),
-                'type'  => 'checkbox',
-                'default' => 'on',
+                'name'          => 'enable_subscription_pack_in_reg',
+                'label'         => __( 'Enable Subscription in registration form', 'dokan' ),
+                'desc'          => __( 'Enable Subscription pack in registration form for new vendor', 'dokan' ),
+                'type'          => 'checkbox',
+                'default'       => 'on',
+                'tooltip'       => __( 'If checked, vendor completes registration only after subscribing to a pack', 'dokan' ),
+                'content_class' => 'dokan_checkbox_up',
             ),
             'notify_by_email' => array(
                 'name'  => 'notify_by_email',

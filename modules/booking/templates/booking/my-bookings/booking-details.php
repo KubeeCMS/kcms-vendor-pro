@@ -19,14 +19,14 @@ if ( $order_id ) {
 
     if ( $sub_orders ) {
         foreach ( $sub_orders as $sub_order ) {
-            if ( (int) $user_id === dokan_get_seller_id_by_order( $sub_order->ID ) ) {
+            if ( $user_id === (int) dokan_get_seller_id_by_order( $sub_order->ID ) ) {
                 $order_id = $sub_order->ID;
                 break;
             }
         }
     }
 
-    if ( (int) $user_id === dokan_get_seller_id_by_order( $order_id ) ) {
+    if ( $user_id === (int) dokan_get_seller_id_by_order( $order_id ) ) {
         $can_edit = true;
     }
 

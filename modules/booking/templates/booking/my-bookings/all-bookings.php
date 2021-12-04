@@ -1,8 +1,10 @@
 <?php
+
+use WeDevs\Dokan\Cache;
+
 global $woocommerce;
 
 $seller_id = dokan_get_current_user_id();
-$counts    = dokan_pro()->module->booking::get_booking_status_counts_by( $seller_id );
 $paged     = isset( $_GET['pagenum'] ) ? absint( $_GET['pagenum'] ) : 1;
 $limit     = 10;
 $offset    = ( $paged - 1 ) * $limit;
@@ -21,8 +23,17 @@ $booking_date        = isset( $_GET['month'] ) ? sanitize_key( $_GET['month'] ) 
 $booking_product     = isset( $_GET['product_id'] ) ? sanitize_key( $_GET['product_id'] ) : NULL;
 $status_class        = isset( $_GET['booking_status'] ) ? $args['post_status'] = sanitize_key( $_GET['booking_status'] ) : 'total';
 
-$query    = new WP_Query( $args );
+$cache_group = "bookings_{$seller_id}";
+$cache_key   = 'bookings_' . md5( wp_json_encode( $args ) );
+$query       = Cache::get( $cache_key, $cache_group );
+
+if ( false === $query ) {
+    $query = new WP_Query( $args );
+    Cache::set( $cache_key, $query, $cache_group );
+}
+
 $bookings = $query->posts;
+$counts   = dokan_pro()->module->booking::get_booking_status_counts_by( $seller_id );
 
 $bookings_url         = dokan_get_navigation_url( 'booking/my-bookings' );
 $booking_products_url = dokan_get_navigation_url( 'booking/edit' );

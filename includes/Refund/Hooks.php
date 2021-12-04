@@ -18,6 +18,7 @@ class Hooks {
         add_action( 'wp_ajax_woocommerce_refund_line_items', [ Ajax::class, 'intercept_wc_ajax_request' ], 1 );
         add_action( 'dokan_pro_refund_approved', [ self::class, 'after_refund_approved' ] );
         add_filter( 'dokan_refund_insert_into_vendor_balance', [ $this, 'exclude_cod_payment' ], 10, 2 );
+        add_action( 'dokan_refund_request_created', [ $this, 'add_order_note_on_refund_request_create' ], 1, 1 );
     }
 
     /**
@@ -67,5 +68,29 @@ class Hooks {
         }
 
         return $ret;
+    }
+
+    /**
+     * Add an Order note on refund request create.
+     *
+     * @since 3.4.2
+     *
+     * @param Refund $refund
+     *
+     * @return void
+     */
+    public function add_order_note_on_refund_request_create( $refund ) {
+        if ( ! ProcessAutomaticRefund::instance()->is_auto_refundable_gateway( $refund ) ) {
+            return;
+        }
+        $order = wc_get_order( $refund->get_order_id() );
+
+        if ( ! $order ) {
+            return;
+        }
+        $order->add_order_note(
+            // translators: 1:Refund request ID, 2: Formatted Refund amount, 3: Refund reason.
+            sprintf( __( 'A new request for refund is placed for the admin approval - Refund request ID: #%1$s - Refund Amount: %2$s - Reason: %3$s', 'dokan' ), $refund->get_id(), wc_price( $refund->get_refund_amount() ), $refund->get_refund_reason() )
+        );
     }
 }

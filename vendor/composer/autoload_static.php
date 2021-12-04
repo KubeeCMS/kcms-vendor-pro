@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit5377655b25681d283bce808dd4352d4d
+class ComposerStaticInit9ee97958238087e45b56c05ea2b5e273
 {
     public static $files = array (
         '7785487378a7be19e13559cd0ddda925' => __DIR__ . '/..' . '/moip/moip-sdk-php/src/Helper/helpers.php',
@@ -586,6 +586,7 @@ class ComposerStaticInit5377655b25681d283bce808dd4352d4d
         'Stripe\\Service\\ReviewService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/ReviewService.php',
         'Stripe\\Service\\SetupAttemptService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/SetupAttemptService.php',
         'Stripe\\Service\\SetupIntentService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/SetupIntentService.php',
+        'Stripe\\Service\\ShippingRateService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/ShippingRateService.php',
         'Stripe\\Service\\Sigma\\ScheduledQueryRunService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/Sigma/ScheduledQueryRunService.php',
         'Stripe\\Service\\Sigma\\SigmaServiceFactory' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/Sigma/SigmaServiceFactory.php',
         'Stripe\\Service\\SkuService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/SkuService.php',
@@ -605,6 +606,7 @@ class ComposerStaticInit5377655b25681d283bce808dd4352d4d
         'Stripe\\Service\\WebhookEndpointService' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Service/WebhookEndpointService.php',
         'Stripe\\SetupAttempt' => __DIR__ . '/..' . '/stripe/stripe-php/lib/SetupAttempt.php',
         'Stripe\\SetupIntent' => __DIR__ . '/..' . '/stripe/stripe-php/lib/SetupIntent.php',
+        'Stripe\\ShippingRate' => __DIR__ . '/..' . '/stripe/stripe-php/lib/ShippingRate.php',
         'Stripe\\Sigma\\ScheduledQueryRun' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Sigma/ScheduledQueryRun.php',
         'Stripe\\SingletonApiResource' => __DIR__ . '/..' . '/stripe/stripe-php/lib/SingletonApiResource.php',
         'Stripe\\Source' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Source.php',
@@ -2352,6 +2354,7 @@ class ComposerStaticInit5377655b25681d283bce808dd4352d4d
         'WeDevs\\DokanPro\\Brands\\Hooks' => __DIR__ . '/../..' . '/includes/Brands/Hooks.php',
         'WeDevs\\DokanPro\\Brands\\Manager' => __DIR__ . '/../..' . '/includes/Brands/Manager.php',
         'WeDevs\\DokanPro\\Coupons\\AdminCoupons' => __DIR__ . '/../..' . '/includes/Coupons/AdminCoupons.php',
+        'WeDevs\\DokanPro\\Coupons\\CouponCache' => __DIR__ . '/../..' . '/includes/Coupons/CouponCache.php',
         'WeDevs\\DokanPro\\Coupons\\Hooks' => __DIR__ . '/../..' . '/includes/Coupons/Hooks.php',
         'WeDevs\\DokanPro\\Coupons\\Manager' => __DIR__ . '/../..' . '/includes/Coupons/Manager.php',
         'WeDevs\\DokanPro\\Dashboard' => __DIR__ . '/../..' . '/includes/Dashboard.php',
@@ -2513,6 +2516,9 @@ class ComposerStaticInit5377655b25681d283bce808dd4352d4d
         'WeDevs\\DokanPro\\Modules\\Stripe\\WebhooksEvents\\SubscriptionTrialWillEnd' => __DIR__ . '/../..' . '/modules/stripe/includes/WebhooksEvents/SubscriptionTrialWillEnd.php',
         'WeDevs\\DokanPro\\Modules\\Stripe\\WebhooksEvents\\SubscriptionUpdated' => __DIR__ . '/../..' . '/modules/stripe/includes/WebhooksEvents/SubscriptionUpdated.php',
         'WeDevs\\DokanPro\\Modules\\Stripe\\WithdrawMethods\\RegisterWithdrawMethods' => __DIR__ . '/../..' . '/modules/stripe/includes/WithdrawMethods/RegisterWithdrawMethods.php',
+        'WeDevs\\DokanPro\\Modules\\TableRate\\DistanceRateMethod' => __DIR__ . '/../..' . '/modules/table-rate-shipping/includes/DistanceRateMethod.php',
+        'WeDevs\\DokanPro\\Modules\\TableRate\\DistanceTemplateHooks' => __DIR__ . '/../..' . '/modules/table-rate-shipping/includes/DistanceTemplateHooks.php',
+        'WeDevs\\DokanPro\\Modules\\TableRate\\DokanGoogleDistanceMatrixAPI' => __DIR__ . '/../..' . '/modules/table-rate-shipping/includes/DokanGoogleDistanceMatrixAPI.php',
         'WeDevs\\DokanPro\\Modules\\TableRate\\Hooks' => __DIR__ . '/../..' . '/modules/table-rate-shipping/includes/Hooks.php',
         'WeDevs\\DokanPro\\Modules\\TableRate\\Method' => __DIR__ . '/../..' . '/modules/table-rate-shipping/includes/Method.php',
         'WeDevs\\DokanPro\\Modules\\TableRate\\TemplateHooks' => __DIR__ . '/../..' . '/modules/table-rate-shipping/includes/TemplateHooks.php',
@@ -2536,6 +2542,7 @@ class ComposerStaticInit5377655b25681d283bce808dd4352d4d
         'WeDevs\\DokanPro\\Refund\\Manager' => __DIR__ . '/../..' . '/includes/Refund/Manager.php',
         'WeDevs\\DokanPro\\Refund\\ProcessAutomaticRefund' => __DIR__ . '/../..' . '/includes/Refund/ProcessAutomaticRefund.php',
         'WeDevs\\DokanPro\\Refund\\Refund' => __DIR__ . '/../..' . '/includes/Refund/Refund.php',
+        'WeDevs\\DokanPro\\Refund\\RefundCache' => __DIR__ . '/../..' . '/includes/Refund/RefundCache.php',
         'WeDevs\\DokanPro\\Refund\\Refunds' => __DIR__ . '/../..' . '/includes/Refund/Refunds.php',
         'WeDevs\\DokanPro\\Refund\\Request' => __DIR__ . '/../..' . '/includes/Refund/Request.php',
         'WeDevs\\DokanPro\\Refund\\Sanitizer' => __DIR__ . '/../..' . '/includes/Refund/Sanitizer.php',
@@ -2576,10 +2583,10 @@ class ComposerStaticInit5377655b25681d283bce808dd4352d4d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit5377655b25681d283bce808dd4352d4d::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$classMap;
 
         }, null, ClassLoader::class);
     }

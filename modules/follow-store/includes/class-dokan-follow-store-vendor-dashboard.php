@@ -55,45 +55,18 @@ class Dokan_Follow_Store_Vendor_Dashboard {
      * @return void
      */
     public function load_dashboard_template( $query_vars ) {
-        global $wpdb;
-
         if ( empty( $query_vars ) || ! array_key_exists( 'followers' , $query_vars ) ) {
             return;
         }
 
         $vendor_id = dokan_get_current_user_id();
-
-        $followers = $wpdb->get_results(
-            $wpdb->prepare(
-                  "select follower_id, vendor_id, followed_at"
-                . " from {$wpdb->prefix}dokan_follow_store_followers"
-                . " where vendor_id = %d"
-                . "     and unfollowed_at is null",
-                $vendor_id
-            ),
-            OBJECT_K
-        );
-
-        if ( empty( $followers ) ) {
-            $customers = array();
-
-        } else {
-            $customer_ids = array_keys( $followers );
-
-            $query = new WP_User_Query( array(
-                'include' => $customer_ids,
-                'number'  => -1,
-            ) );
-
-            $customers = $query->get_results();
-        }
-
-        $args = array(
+        $followers = dokan_follow_store_get_vendor_followers( $vendor_id );
+        $response  = array(
             'vendor_id' => $vendor_id,
-            'followers' => $followers,
-            'customers' => $customers,
+            'followers' => $followers['followers'],
+            'customers' => $followers['customers'],
         );
 
-        dokan_follow_store_get_template( 'vendor-dashboard', $args );
+        dokan_follow_store_get_template( 'vendor-dashboard', $response );
     }
 }

@@ -29,10 +29,11 @@ class Dokan_ShipStation_Settings {
      */
     public function add_admin_settings_fields( $settings_fields ) {
         $settings_fields['enable_shipstation_logging'] = array(
-            'name'  => 'enable_shipstation_logging',
-            'label' => __( 'Log ShipStation API Request', 'dokan' ),
-            'desc'  => __( 'Log all ShipStation API interactions.', 'dokan' ),
-            'type'  => 'checkbox',
+            'name'    => 'enable_shipstation_logging',
+            'label'   => __( 'Log ShipStation API Request', 'dokan' ),
+            'desc'    => __( 'Log all ShipStation API interactions.', 'dokan' ),
+            'type'    => 'checkbox',
+            'tooltip' => __( 'Keep track of ShipStation API requests made by vendors.', 'dokan' ),
         );
 
         return $settings_fields;

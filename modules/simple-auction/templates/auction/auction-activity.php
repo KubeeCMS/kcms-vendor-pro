@@ -48,8 +48,8 @@ $activities = dokan_auction_get_activity();
                         <input class="auction-datepicker" name="_auction_dates_from" id="_auction_dates_from" placeholder="<?php esc_attr_e( 'Date from', 'dokan' ); ?>" type="text" value="<?php echo esc_attr( $date_from ); ?>" readonly="">
                         <input class="auction-datepicker" name="_auction_dates_to" id="_auction_dates_to" placeholder="<?php esc_attr_e( 'Date to', 'dokan' ); ?>" type="text" value="<?php echo esc_attr( $date_to ); ?>" readonly="">
 
-                        <button type="submit" name="auction_activity_date_filter" class="dokan-btn dokan-btn-theme"><span class="dashicons dashicons-filter"></span> <?php esc_html_e( 'Filter', 'dokan' ); ?></button>
-                        <button id="auction-clear-filter-button" type="button" name="clear_filter" style="margin-left: 16px;" class="dokan-btn"><span style="font-size: 16px; vertical-align: middle;" class="dashicons dashicons-image-rotate"></span> <?php esc_html_e( 'Reset', 'dokan' ); ?></button>
+                        <button type="submit" name="auction_activity_date_filter" class="dokan-btn dokan-btn-theme"><span class="fa fa-filter"></span> <?php esc_html_e( 'Filter', 'dokan' ); ?></button>
+                        <button id="auction-clear-filter-button" type="button" name="clear_filter" style="margin-left: 16px;" class="dokan-btn"><span style="font-size: 16px; vertical-align: middle;" class="fa fa-undo"></span> <?php esc_html_e( 'Reset', 'dokan' ); ?></button>
                     </div>
 
                     <div class="search-box">
@@ -162,4 +162,3 @@ $activities = dokan_auction_get_activity();
         });
     })(jQuery)
 </script>
-

@@ -53,6 +53,7 @@ class Settings {
                 'label'   => __( 'Vendor Extra Fields', 'dokan' ),
                 'type'    => 'multicheck',
                 'desc'    => __( 'Checked fields will be used as extra fields for vendors.', 'dokan' ),
+                'tooltip' => __( 'Allow extra input fields for vendor info. Uncheck the fields that won\'t be available to the vendors.', 'dokan' ),
                 'default' => [
                     'dokan_company_name'        => 'dokan_company_name',
                     'dokan_company_id_number'   => 'dokan_company_id_number',
@@ -80,6 +81,7 @@ class Settings {
                 'label'   => __( 'Customer Extra Fields', 'dokan' ),
                 'type'    => 'multicheck',
                 'desc'    => __( 'Checked fields will be used as extra fields for customers.', 'dokan' ),
+                'tooltip' => __( 'Allow extra input fields for customer billing and shipping address.', 'dokan' ),
                 'default' => [
                     'billing_dokan_company_id_number'   => 'billing_dokan_company_id_number',
                     'billing_dokan_vat_number'          => 'billing_dokan_vat_number',
@@ -92,6 +94,7 @@ class Settings {
                     'billing_dokan_bank_name'           => Helper::get_customer_bank_name_label(),
                     'billing_dokan_bank_iban'           => Helper::get_customer_bank_iban_label(),
                 ],
+                'tooltip' => __( 'Display extra fields for customer shipping and billing address', 'dokan' ),
             ],
             'enabled_germanized' => [
                 'name'    => 'enabled_germanized',

@@ -117,6 +117,8 @@ return [
 	__( 'Refund Requests', 'dokan' ),
 	__( 'Approved', 'dokan' ),
 	__( 'Cancelled', 'dokan' ),
+	__( 'Manual', 'dokan' ),
+	__( 'API Refund setting is enabled in Dokan --> Settings --> Selling Options --> Commission --> Refund via API. Refunds will also be processed from the payment gateway if the corresponding gateway supports automatic refunds.', 'dokan' ),
 	__( 'No request found.', 'dokan' ),
 	__( 'Order ID', 'dokan' ),
 	__( 'Refund Amount', 'dokan' ),

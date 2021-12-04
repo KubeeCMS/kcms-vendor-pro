@@ -3,6 +3,7 @@
 namespace WeDevs\DokanPro\Coupons;
 
 use WC_Data_Store;
+use WeDevs\DokanPro\Admin\Announcement;
 
 /**
 * Admin Coupons Class
@@ -620,7 +621,14 @@ class AdminCoupons {
         $vendors  = array( intval( get_post_field( 'post_author', $product->get_id() ) ) );
         $products = array( $product->get_id() );
 
-        return dokan_pro()->coupon->is_admin_coupon_valid( $coupon, $vendors, $products );
+        if (
+            array_intersect( $products, $coupon->get_product_ids() ) ||
+            dokan_pro()->coupon->is_admin_coupon_valid( $coupon, $vendors, $products )
+        ) {
+            return true;
+        }
+
+        return $valid;
     }
 
     /**
@@ -667,7 +675,10 @@ class AdminCoupons {
         update_post_meta( $post_id, 'admin_coupons_show_on_stores', $show_on_stores );
 
         if ( 'yes' === $notify_to_vendors ) {
-            $announcement       = new \WeDevs\DokanPro\Admin\Announcement();
+            /**
+             * @var $announcement Announcement
+             */
+            $announcement       = dokan_pro()->announcement;
             $vendors_ids        = array();
             $exclude_sellers    = array();
             $discount_type      = $coupon->get_discount_type();

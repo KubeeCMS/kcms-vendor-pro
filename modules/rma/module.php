@@ -57,6 +57,7 @@ class Module {
             require_once DOKAN_RMA_INC_DIR . '/class-admin.php';
         }
 
+        require_once DOKAN_RMA_INC_DIR . '/RmaCache.php';
         require_once DOKAN_RMA_INC_DIR . '/class-trait-rma.php';
         require_once DOKAN_RMA_INC_DIR . '/class-ajax.php';
         require_once DOKAN_RMA_INC_DIR . '/class-vendor.php';
@@ -83,6 +84,7 @@ class Module {
             new \Dokan_RMA_Admin();
         }
 
+        new RmaCache();
         new \Dokan_RMA_Ajax();
         new \Dokan_RMA_Vendor();
         new \Dokan_RMA_Frontend();

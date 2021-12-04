@@ -112,6 +112,22 @@ class Refund {
             return;
         }
 
+        /*
+         * Handle manual refund.
+         * Here, if method returns `string true`, that means this refund is for API Refund.
+         * Otherwise handle manual refund.
+         *
+         * Here, we are just approving if it is Manual refund.
+         */
+        if ( $refund->is_manual() ) {
+            $refund = $refund->approve();
+
+            if ( is_wp_error( $refund ) ) {
+                dokan_log( $refund->get_error_message(), 'error' );
+            }
+            return;
+        }
+
         // finally process refund
         $processor   = Processor::init();
         $refund_data = $processor->format_refund_data(

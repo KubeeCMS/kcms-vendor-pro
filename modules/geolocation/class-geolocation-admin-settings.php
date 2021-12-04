@@ -59,6 +59,7 @@ class Dokan_Geolocation_Admin_Settings {
                     'left'  => __( 'Left', 'dokan' ),
                     'right' => __( 'Right', 'dokan' ),
                 ),
+                'tooltip' => __( 'Choose where to place the Location Map of your store.', 'dokan' ),
             ),
 
             'show_location_map_pages' => array(
@@ -72,6 +73,7 @@ class Dokan_Geolocation_Admin_Settings {
                     'store_listing' => __( 'Store Listing', 'dokan' ),
                     'shop'          => __( 'Shop Page', 'dokan' ),
                 ),
+                'tooltip' => __( 'Select which pages to display the store map.', 'dokan' ),
             ),
 
             'show_filters_before_locations_map' => array(
@@ -99,22 +101,27 @@ class Dokan_Geolocation_Admin_Settings {
                     'km'    => __( 'Kilometers', 'dokan' ),
                     'miles' => __( 'Miles', 'dokan' ),
                 ),
+                'tooltip' => __( 'Set the unit measurement for map radius.', 'dokan' ),
             ),
 
             'distance_min' => array(
                 'name'    => 'distance_min',
                 'label'   => __( 'Radius Search - Minimum Distance', 'dokan' ),
+                'desc'    => __( 'Set minimum distance for radius search.', 'dokan' ),
                 'type'    => 'number',
                 'min'     => 0,
                 'default' => 0,
+                'tooltip' => __( 'Set the minimum unit distance of the radius.', 'dokan' ),
             ),
 
             'distance_max' => array(
                 'name'    => 'distance_max',
                 'label'   => __( 'Radius Search - Maximum Distance', 'dokan' ),
+                'desc'    => __( 'Set maximum distance for radius search.', 'dokan' ),
                 'type'    => 'number',
                 'min'     => 1,
                 'default' => 10,
+                'tooltip' => __( 'Set the maximum unit distance of the radius.', 'dokan' ),
             ),
 
             'map_zoom'     => array(

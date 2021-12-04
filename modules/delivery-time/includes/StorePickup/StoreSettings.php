@@ -216,6 +216,11 @@ class StoreSettings {
             return $dokan_settings;
         }
 
+        // If no address has set for store yet, return the default settings.
+        if ( empty( $vendor_settings['address'] ) ) {
+            return $dokan_settings;
+        }
+
         $dokan_settings['address']['location_name'] = $vendor_settings['address']['location_name'];
         $dokan_settings['address']['street_1']      = $vendor_settings['address']['street_1'];
         $dokan_settings['address']['street_2']      = $vendor_settings['address']['street_2'];

@@ -8,6 +8,8 @@ use WP_User_Query;
 use WP_REST_Response;
 use WP_REST_Server;
 use WeDevs\Dokan\Abstracts\DokanRESTController;
+use WeDevs\DokanPro\Admin\Announcement;
+use WeDevs\Dokan\Cache;
 
 class AnnouncementController extends DokanRESTController {
 
@@ -161,18 +163,28 @@ class AnnouncementController extends DokanRESTController {
             'post_status'    => $status,
         );
 
-        $query = new WP_Query( $args );
+        $cache_group = 'announcements';
+        $cache_key   = 'announcements_' . md5( wp_json_encode( $args ) );
+        $query       = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $query ) {
+            $query = new WP_Query( $args );
+
+            Cache::set( $cache_key, $query, $cache_group );
+        }
 
         $data = array();
         if ( $query->posts ) {
-            foreach ( $query->posts as $key => $value ) {
+            foreach ( $query->posts as $value ) {
                 $resp   = $this->prepare_response_for_object( $value, $request );
                 $data[] = $this->prepare_response_for_collection( $resp );
             }
         }
 
-        $response = rest_ensure_response( $data );
-        $count    = wp_count_posts( 'dokan_announcement' );
+        $response       = rest_ensure_response( $data );
+        $response_count = $query->found_posts;
+
+        $count = wp_count_posts( 'dokan_announcement' );
 
         $response->header( 'X-Status-All', ( $count->pending + $count->publish + $count->draft + $count->future + $count->trash ) );
         $response->header( 'X-Status-Pending', $count->pending );
@@ -181,7 +193,7 @@ class AnnouncementController extends DokanRESTController {
         $response->header( 'X-Status-Trash', $count->trash );
         $response->header( 'X-Status-Future', $count->future );
 
-        $response = $this->format_collection_response( $response, $request, $query->found_posts );
+        $response = $this->format_collection_response( $response, $request, $response_count );
         return $response;
     }
 
@@ -213,8 +225,7 @@ class AnnouncementController extends DokanRESTController {
      * @return void
      */
     public function create_announcement( $request ) {
-        $announcement = new \WeDevs\DokanPro\Admin\Announcement();
-        $created_announcement = $announcement->create_announcement( $request );
+        $created_announcement = dokan_pro()->announcement->create_announcement( $request );
 
         if ( is_wp_error( $created_announcement ) ) {
             return new WP_Error( $created_announcement->get_error_code(), $created_announcement->get_error_message(), array( 'status' => 404 ) );
@@ -267,7 +278,10 @@ class AnnouncementController extends DokanRESTController {
         update_post_meta( $post_id, '_announcement_type', $request['sender_type'] );
         update_post_meta( $post_id, '_announcement_selected_user', $request['sender_ids'] );
 
-        $announcement = new \WeDevs\DokanPro\Admin\Announcement();
+        /**
+         * @var $announcement Announcement
+         */
+        $announcement = dokan_pro()->announcement;
 
         $assigned_sellers   = ! empty( $request['sender_ids'] ) ? $request['sender_ids'] : array();
         $announcement_types = apply_filters( 'dokan_announcement_seller_types', [ 'all_seller', 'enabled_seller', 'disabled_seller', 'featured_seller' ] );
@@ -317,6 +331,7 @@ class AnnouncementController extends DokanRESTController {
         }
 
         do_action( 'dokan_after_announcement_saved', $post_id, $assigned_sellers );
+
         $data = $this->prepare_response_for_object( $this->get_object( $post_id ), $request );
 
         return rest_ensure_response( $data );
@@ -336,12 +351,13 @@ class AnnouncementController extends DokanRESTController {
             return $post;
         }
 
-        $id    = $post->ID;
-        $force = (bool) $request['force'];
-
+        $id             = $post->ID;
+        $force          = (bool) $request['force'];
         $supports_trash = ( EMPTY_TRASH_DAYS > 0 );
-
         $supports_trash = apply_filters( "dokan_rest_{$this->post_type}_trashable", $supports_trash, $post );
+
+        // delete individual announcement cache
+        Announcement::delete_announcement_cache( [], $id );
 
         // If we're forcing, then delete permanently.
         if ( $force ) {
@@ -395,8 +411,12 @@ class AnnouncementController extends DokanRESTController {
             return $post;
         }
 
-        $post = wp_untrash_post( $post->ID );
+        $post     = wp_untrash_post( $post->ID );
         $response = $this->prepare_response_for_object( $post, $request );
+
+        // delete individual announcement cache
+        Announcement::delete_announcement_cache( [], $post->ID );
+
         return $response;
     }
 
@@ -435,15 +455,21 @@ class AnnouncementController extends DokanRESTController {
             if ( in_array( $status, $allowed_status, true ) ) {
                 if ( 'delete' === $status ) {
                     foreach ( $value as $announcement_id ) {
+                        // delete individual announcement cache
+                        Announcement::delete_announcement_cache( [], $announcement_id );
                         $result = wp_delete_post( $announcement_id, true );
                         $this->delete_announcement_data( $announcement_id );
                     }
                 } elseif ( 'trash' === $status ) {
                     foreach ( $value as $announcement_id ) {
+                        // delete individual announcement cache
+                        Announcement::delete_announcement_cache( [], $announcement_id );
                         wp_trash_post( $announcement_id );
                     }
                 } elseif ( 'restore' === $status ) {
                     foreach ( $value as $announcement_id ) {
+                        // delete individual announcement cache
+                        Announcement::delete_announcement_cache( [], $announcement_id );
                         wp_untrash_post( $announcement_id );
                     }
                 }

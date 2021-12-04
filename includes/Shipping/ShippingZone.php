@@ -2,6 +2,8 @@
 
 namespace WeDevs\DokanPro\Shipping;
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Dokan Shipping Zone Class
  *
@@ -25,7 +27,7 @@ class ShippingZone {
         foreach ( $raw_zones as $raw_zone ) {
             $zone              = new \WC_Shipping_Zone( $raw_zone );
             $enabled_methods   = $zone->get_shipping_methods( true );
-            $methods_id        = wp_list_pluck( $enabled_methods, 'id' );
+            $methods_ids       = wp_list_pluck( $enabled_methods, 'id' );
 
             if ( ! $zone ) {
                 continue;
@@ -41,29 +43,32 @@ class ShippingZone {
             }
 
             if (
-                ( in_array( 'dokan_vendor_shipping', $methods_id, true ) ||
-                    ( in_array( 'dokan_table_rate_shipping', $methods_id, true ) && dokan_pro()->module->is_active( 'table_rate_shipping' ) )
-                ) &&
-                ! empty( $locations )
+                in_array( 'dokan_vendor_shipping', $methods_ids, true ) ||
+                ( dokan_pro()->module->is_active( 'table_rate_shipping' ) &&
+                    array_intersect( [ 'dokan_table_rate_shipping', 'dokan_distance_rate_shipping' ], $methods_ids )
+                )
             ) {
                 $zones[ $zone->get_id() ]                            = $zone->get_data();
                 $zones[ $zone->get_id() ]['zone_id']                 = $zone->get_id();
                 $zones[ $zone->get_id() ]['formatted_zone_location'] = $zone->get_formatted_location();
                 $zones[ $zone->get_id() ]['shipping_methods']        = self::get_shipping_methods( $zone->get_id(), $seller_id );
                 $zones[ $zone->get_id() ]['available_methods']       = $available_methods;
+
             }
         }
 
         // Everywhere zone if has method called vendor shipping
         $overall_zone      = new \WC_Shipping_Zone( 0 );
         $enabled_methods   = $overall_zone->get_shipping_methods( true );
-        $methods_id        = wp_list_pluck( $enabled_methods, 'id' );
+        $methods_ids       = wp_list_pluck( $enabled_methods, 'id' );
         $available_methods = self::available_shipping_methods( $overall_zone );
 
         if (
-            in_array( 'dokan_vendor_shipping', $methods_id, true ) ||
-            ( in_array( 'dokan_table_rate_shipping', $methods_id, true ) && dokan_pro()->module->is_active( 'table_rate_shipping' ) )
-        ) {
+                in_array( 'dokan_vendor_shipping', $methods_ids, true ) ||
+                ( dokan_pro()->module->is_active( 'table_rate_shipping' ) &&
+                    array_intersect( [ 'dokan_table_rate_shipping', 'dokan_distance_rate_shipping' ], $methods_ids )
+                )
+            ) {
             $zones[ $overall_zone->get_id() ]                            = $overall_zone->get_data();
             $zones[ $overall_zone->get_id() ]['zone_id']                 = $overall_zone->get_id();
             $zones[ $overall_zone->get_id() ]['formatted_zone_location'] = $overall_zone->get_formatted_location();
@@ -84,8 +89,8 @@ class ShippingZone {
     public static function get_zone( $zone_id ) {
         $zone      = array();
         $seller_id = dokan_get_current_user_id();
+        $zone_obj  = \WC_Shipping_Zones::get_zone_by( 'zone_id', $zone_id );
 
-        $zone_obj = \WC_Shipping_Zones::get_zone_by( 'zone_id', $zone_id );
         $zone['data']                    = $zone_obj->get_data();
         $zone['formatted_zone_location'] = $zone_obj->get_formatted_location();
         $zone['shipping_methods']        = self::get_shipping_methods( $zone_id, $seller_id );
@@ -369,6 +374,8 @@ class ShippingZone {
             return __( 'Free Shipping', 'dokan' );
         } elseif ( 'dokan_table_rate_shipping' === $method_id ) {
             return apply_filters( 'dokan_table_rate_shipping_label', __( 'Table Rate', 'dokan' ) );
+        } elseif ( 'dokan_distance_rate_shipping' === $method_id ) {
+            return apply_filters( 'dokan_distance_rate_shipping_label', __( 'Distance Rate', 'dokan' ) );
         } else {
             return __( 'Custom Shipping', 'dokan' );
         }
@@ -386,7 +393,7 @@ class ShippingZone {
         $state            = strtoupper( wc_clean( $package['destination']['state'] ) );
         $postcode         = wc_normalize_postcode( wc_clean( $package['destination']['postcode'] ) );
         $cache_key        = \WC_Cache_Helper::get_cache_prefix( 'shipping_zones' ) . 'dokan_shipping_zone_' . md5( sprintf( '%s+%s+%s+%d', $country, $state, $postcode, $package['seller_id'] ) );
-        $matching_zone_id = wp_cache_get( $cache_key, 'shipping_zones' );
+        $matching_zone_id = wp_cache_get( $cache_key, 'shipping_zones' ); // As this comes from WooCommerce
 
         if ( false === $matching_zone_id ) {
             $matching_zone_id = self::get_zone_id_from_package( $package );

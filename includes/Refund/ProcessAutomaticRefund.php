@@ -38,17 +38,22 @@ class ProcessAutomaticRefund {
      * If the refund auto process settings is `true` means it is a refund request for
      * API processing if the gateway allow it.
      *
+     * @since 3.3.7
+     * @since 3.4.2 Manual refund button support added. We are no longer automatically approving the refund request.
+     *
      * @param Refund $refund Created refund request.
      *
      * @return void|WP_Error
      */
     public function auto_approve_api_refund_request( $refund ) {
-        // Check if allowed from admin settings.
+        if ( $refund->is_manual() ) {
+            return;
+        }
+
         if ( ! $this->is_auto_refund_process_enabled() ) {
             return;
         }
 
-        // Check if the gateway can process refund automatically.
         if ( ! $this->is_auto_refundable_gateway( $refund ) ) {
             return;
         }
@@ -61,7 +66,7 @@ class ProcessAutomaticRefund {
          * @param bool $approve_allowed
          * @param Refund $refund
          */
-        $approve_api_refund = apply_filters( 'dokan_pro_auto_approve_api_refund_request', true, $refund );
+        $approve_api_refund = apply_filters( 'dokan_pro_auto_approve_api_refund_request', false, $refund );
         if ( $approve_api_refund ) {
             try {
                 $refund->approve();
@@ -83,10 +88,10 @@ class ProcessAutomaticRefund {
      * @return array
      */
     public function add_automatic_process_refund_request_settings_field( $settings_fields ) {
-        $settings_fields['automatic_process_refund_request'] = array(
-            'name'    => 'automatic_process_refund_request',
-            'label'   => __( 'Auto Process Refund Request (non-Dokan)', 'dokan' ),
-            'desc'    => __( 'Automatically process Refund Request for non Dokan Payment Gateway if payment gateway supports it.', 'dokan' ),
+        $settings_fields['automatic_process_api_refund'] = array(
+            'name'    => 'automatic_process_api_refund',
+            'label'   => __( 'Process Refund via API', 'dokan' ),
+            'desc'    => __( 'Automatically process refund from payment gateways if payment gateway supports it when admin approve refund request. This settings does not interfere with Dokan PayPal Marketplace, Dokan Paypal Adaptive Payment, Dokan Wirecard Connect or Dokan Stripe Connect operation.', 'dokan' ),
             'type'    => 'checkbox',
             'default' => 'off',
         );
@@ -102,7 +107,7 @@ class ProcessAutomaticRefund {
      */
     public function is_auto_refund_process_enabled() {
         $process_auto_refund = dokan_get_option(
-            'automatic_process_refund_request',
+            'automatic_process_api_refund',
             'dokan_selling',
             'off'
         );
@@ -165,6 +170,7 @@ class ProcessAutomaticRefund {
      * Set api_refund in refund.
      *
      * @since 3.3.7
+     * @since 3.4.2 Manual refund button support added.
      *
      * @param bool $api_refund
      * @param Refund $refund
@@ -172,6 +178,6 @@ class ProcessAutomaticRefund {
      * @return bool
      */
     public function set_auto_process_api_refund( $api_refund, $refund ) {
-        return $this->is_auto_refund_process_enabled() && $this->is_auto_refundable_gateway( $refund );
+        return $api_refund && $this->is_auto_refund_process_enabled() && $this->is_auto_refundable_gateway( $refund );
     }
 }

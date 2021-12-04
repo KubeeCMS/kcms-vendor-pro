@@ -1,4 +1,7 @@
 <?php
+
+use WeDevs\Dokan\Cache;
+
 global $post;
 
 // @codingStandardsIgnoreStart
@@ -102,7 +105,15 @@ do_action( 'dokan_before_listing_product' );
                 }
 
                 $original_post = $post;
-                $product_query = new WP_Query( apply_filters( 'dokan_product_listing_query', $args ) );
+
+                $cache_group   = "booking_products_{$args['author']}";
+                $cache_key     = 'products_' . md5( wp_json_encode( $args ) );
+                $product_query = Cache::get( $cache_key, $cache_group );
+
+                if ( false === $product_query ) {
+                    $product_query = new WP_Query( apply_filters( 'dokan_product_listing_query', $args ) );
+                    Cache::set( $cache_key, $product_query, $cache_group );
+                }
 
                 if ( $product_query->have_posts() ) {
                     while ( $product_query->have_posts() ) {

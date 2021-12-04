@@ -47,7 +47,7 @@ if ( 'heading' === $addon_type ) {
 <div class="wc-pao-addon closed">
 	<div class="wc-pao-addon-header">
 		<div class="wc-pao-col1">
-			<span class="wc-pao-addon-sort-handle dashicons dashicons-menu"></span>
+			<span class="wc-pao-addon-sort-handle fa fa-bars"></span>
 			<h3 class="wc-pao-addon-name"><?php echo esc_html( $addon_title ); ?></h3>
 			<small class="wc-pao-addon-type"><?php echo esc_html( $addon_type_formatted ); ?></small>
 		</div>

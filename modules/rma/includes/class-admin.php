@@ -45,9 +45,10 @@ class Dokan_RMA_Admin {
                 'name'    => 'rma_order_status',
                 'label'   => __( 'Order Status', 'dokan' ),
                 'type'    => 'select',
-                'desc'  => __( 'Which order status you want to give return and warranty facility', 'dokan' ),
+                'desc'    => __( 'On what order status customer can avail the Return or Warranty facility.', 'dokan' ),
                 'default' => 'seller',
                 'options' => wc_get_order_statuses(),
+                'tooltip' => __( 'On what order status customer can avail the Return or Warranty facility.', 'dokan' ),
             ),
             'rma_enable_refund_request' => array(
                 'name'    => 'rma_enable_refund_request',
@@ -76,14 +77,16 @@ class Dokan_RMA_Admin {
                 'name'    => 'rma_reasons',
                 'label'   => __( 'Reasons for RMA', 'dokan' ),
                 'type'    => 'repeatable',
-                'desc'  => __( 'Add your reasons whatever you want', 'dokan' )
+                'desc'    => __( 'You can add one or more custom reasons from here.', 'dokan' ),
+                'tooltip' => __( 'You can add one or more custom reasons from here.', 'dokan' ),
             ),
 
             'rma_policy' => array(
                 'name'    => 'rma_policy',
                 'label'   => __( 'Refund Policy', 'dokan' ),
                 'type'    => 'wpeditor',
-                'desc'  => __( 'Refund policy for all stores. Vendor can overwride this policy', 'dokan' )
+                'desc'    => __( 'Refund policy for all stores. Vendor can overwrite this policy.', 'dokan' ),
+                'tooltip' => __( 'Refund policy for all stores. Vendor can overwrite this policy.', 'dokan' ),
             )
         );
 

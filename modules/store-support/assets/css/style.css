@@ -105,3 +105,17 @@
 .dokan-single-store .dokan-store-tabs ul li.dokan-store-support-btn-wrap{
     margin-right: 5px;
 }
+
+.dokan-store-support-ticket-search-form #dokan-search-support-customers {
+    width:220px;
+}
+
+.dokan-store-support-ticket-search-form #support_ticket_date_filter {
+    width: 150px;
+    padding: 4px 10px;
+}
+
+.dokan-store-support-ticket-search-form #dokan-support-ticket-search-input {
+    width: 150px;
+    padding: 4px 10px;
+}

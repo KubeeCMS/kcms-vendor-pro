@@ -281,6 +281,17 @@ class Dokan_Staffs {
         update_user_meta( $user, 'dokan_enable_selling', 'yes' );
         update_user_meta( $user, '_vendor_id', sanitize_text_field( $post_data['vendor_id'] ) );
         update_user_meta( $user, '_staff_phone', sanitize_text_field( $post_data['phone'] ) );
+
+        /**
+         * Dokan After Insert / Update Staff Hook
+         *
+         * @since 3.4.2
+         *
+         * @param int $vendor_id
+         * @param int $user_id
+         */
+        do_action( 'dokan_after_save_staff', $post_data['vendor_id'], $staff->id );
+
         wp_safe_redirect( dokan_get_navigation_url( 'staffs' ) );
         exit();
     }
@@ -302,6 +313,16 @@ class Dokan_Staffs {
 
                 if ( $vendor_id === get_current_user_id() ) {
                     if ( $user_id ) {
+                        /**
+                         * Action: Dokan Before Delete Staff Hook.
+                         *
+                         * @since 3.4.2
+                         *
+                         * @param int $vendor_id
+                         * @param int $user_id
+                         */
+                        do_action( 'dokan_before_delete_staff', $vendor_id, $user_id );
+
                         require_once ABSPATH . 'wp-admin/includes/user.php';
                         wp_delete_user( $user_id );
 

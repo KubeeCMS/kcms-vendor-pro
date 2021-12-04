@@ -3,24 +3,24 @@
  * Plugin Name: KCMS Vendor Pro
  * Plugin URI: https://github.com/KubeeCMS/kcms-vendor/
  * Description: E-commerce marketplace pro.
- * Version: 3.4.1
+ * Version: 3.4.2
  * Author: Kubee
  * Author URI: https://github.com/KubeeCMS/
  * WC requires at least: 5.0
- * WC tested up to: 5.9
+ * WC tested up to: 5.9.0
  * License: GPL2
  * TextDomain: dokan
  */
 
 /**
- * Pro Feature Loader
+ * Dokan Pro Feature Loader
  *
  * Load all pro functionality in this class
  * if pro folder exist then automatically load this class file
  *
  * @since 2.4
  *
- * @author weDevs <info@kubee.com>
+ * @author weDevs <info@wedevs.com>
  */
 class Dokan_Pro {
 
@@ -36,7 +36,7 @@ class Dokan_Pro {
      *
      * @var string
      */
-    public $version = '3.4.1';
+    public $version = '3.4.2';
 
     /**
      * Database version key
@@ -404,7 +404,7 @@ class Dokan_Pro {
             new \WeDevs\DokanPro\Admin\ShortcodesButton();
         }
 
-        new \WeDevs\DokanPro\Admin\Announcement();
+        $this->container['announcement'] = new \WeDevs\DokanPro\Admin\Announcement();
         new \WeDevs\DokanPro\EmailVerification();
 
         // fix rewrite rules for dokan pro

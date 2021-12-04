@@ -1,6 +1,7 @@
 <?php
 
 use WeDevs\Dokan\Abstracts\DokanRESTController;
+use WeDevs\Dokan\Cache;
 
 /**
  * Wholesale related API's
@@ -181,11 +182,20 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
 
         unset( $args['status'] );
 
-        $user_query  = new WP_User_Query( $args );
+        $cache_group = 'wholesale_customers';
+        $cache_key   = 'wholesale_customers_data_' . md5( wp_json_encode( $args ) );
+        $user_query  = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $user_query ) {
+            $user_query = new WP_User_Query( $args );
+
+            Cache::set( $cache_key, $user_query, $cache_group );
+        }
+
         $results     = $user_query->get_results();
         $total_users = $user_query->total_users;
 
-        foreach ( $results as $key => $customer ) {
+        foreach ( $results as $customer ) {
             $formatted_customer = $this->prepare_item_for_response( $customer, $request );
             $customers[]        = $this->prepare_response_for_collection( $formatted_customer );
         }
@@ -283,6 +293,8 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
             $user->remove_cap( 'dokan_wholesale_customer' );
         }
 
+        do_action('dokan_wholesale_customer_status_changed', $user, $request);
+
         return $this->prepare_item_for_response( $user, $request );
     }
 
@@ -339,6 +351,8 @@ class Dokan_REST_Wholesale_Controller extends DokanRESTController {
                 }
             }
         }
+
+        do_action('dokan_wholesale_customer_batch_status_changed', null, $request);
 
         return $response;
     }

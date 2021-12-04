@@ -74,8 +74,14 @@
                             $args['post_status'] = $_GET['post_status'];
                         }
 
-                        // $original_post = $post;
-                        $product_query = new WP_Query( $args );
+                        $cache_group   = "auction_products_{$args['author']}";
+                        $cache_key     = 'products_' . md5( wp_json_encode( $args ) );
+                        $product_query = WeDevs\Dokan\Cache::get( $cache_key, $cache_group );
+
+                        if ( false === $product_query ) {
+                            $product_query = new WP_Query( $args );
+                            WeDevs\Dokan\Cache::set( $cache_key, $product_query, $cache_group );
+                        }
 
                         if ( $product_query->have_posts() ) {
                             while ( $product_query->have_posts() ) {
@@ -157,7 +163,7 @@
                                         <?php
                                         $class = '';
 
-                                        if ( $product->get_type() == 'auction' ) {
+                                        if ( 'auction' === $product->get_type() ) {
                                             if ( $product->is_closed() ) {
                                                 $class .= ' finished ';
                                             }

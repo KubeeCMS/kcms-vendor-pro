@@ -3,6 +3,7 @@
 namespace WeDevs\DokanPro\Shipping;
 
 use WC_Order_Item_Product;
+use WeDevs\Dokan\Cache;
 
 /**
  * Shipping Status Class
@@ -129,6 +130,7 @@ class ShippingStatus {
                 'type'    => 'multicheck',
                 'default' => dokan_get_shipping_tracking_default_providers_list(),
                 'options' => dokan_get_shipping_tracking_providers_list(),
+                'tooltip' => __( 'Choose the 3rd party shipping providers.', 'dokan' ),
             ),
             'shipping_status_list' => array(
                 'name'    => 'shipping_status_list',
@@ -655,9 +657,9 @@ class ShippingStatus {
      */
     public function get_shipping_tracking_data( $order_id ) {
         // getting result from cache
-        $cache_group = 'dokan_cache_seller_shipment_tracking_data_' . $order_id;
-        $cache_key   = 'dokan_get_shipping_tracking_data_' . $order_id;
-        $results     = wp_cache_get( $cache_key, $cache_group );
+        $cache_group = 'seller_shipment_tracking_data_' . $order_id;
+        $cache_key   = 'shipping_tracking_data_' . $order_id;
+        $results     = Cache::get( $cache_key, $cache_group );
 
         if ( false !== $results ) {
             return $results;
@@ -668,7 +670,7 @@ class ShippingStatus {
 
         if ( empty( $tracking_info ) ) {
             // no shipment is added, so set cache and return empty array
-            wp_cache_set( $cache_key, [], $cache_group );
+            Cache::set( $cache_key, [], $cache_group );
             return [];
         }
 
@@ -709,7 +711,7 @@ class ShippingStatus {
         ];
 
         // set cache
-        wp_cache_set( $cache_key, $results, $cache_group );
+        Cache::set( $cache_key, $results, $cache_group );
 
         return $results;
     }

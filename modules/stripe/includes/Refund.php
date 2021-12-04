@@ -83,6 +83,22 @@ class Refund {
             return;
         }
 
+        /*
+         * Handle manual refund.
+         * Here, if method returns `string true`, that means this refund is for API Refund.
+         * Otherwise handle manual refund.
+         *
+         * Here, we are just approving if it is Manual refund.
+         */
+        if ( $refund->is_manual() ) {
+            $refund = $refund->approve();
+
+            if ( is_wp_error( $refund ) ) {
+                dokan_log( $refund->get_error_message(), 'error' );
+            }
+            return;
+        }
+
         $seller_id        = $refund->get_seller_id();
         $vendor_token     = get_user_meta( $seller_id, '_stripe_connect_access_key', true );
         $vendor_charge_id = $order->get_meta( "_dokan_stripe_charge_id_{$seller_id}" );
@@ -303,6 +319,22 @@ class Refund {
         // check if refund is approvable
         if ( ! dokan_pro()->refund->is_approvable( $refund->get_order_id() ) ) {
             dokan_log( sprintf( 'Stripe 3ds Refund: This refund is not allowed to approve, Refund ID: %1$s, Order ID: %2$s', $refund->get_id(), $refund->get_order_id() ) );
+            return;
+        }
+
+        /*
+         * Handle manual refund.
+         * Here, if method returns `string true`, that means this refund is for API Refund.
+         * Otherwise handle manual refund.
+         *
+         * Here, we are just approving if it is Manual refund.
+         */
+        if ( $refund->is_manual() ) {
+            $refund = $refund->approve();
+
+            if ( is_wp_error( $refund ) ) {
+                dokan_log( $refund->get_error_message(), 'error' );
+            }
             return;
         }
 

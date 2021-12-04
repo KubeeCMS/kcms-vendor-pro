@@ -2,6 +2,8 @@
 
 namespace WeDevs\DokanPro;
 
+use WeDevs\Dokan\Cache;
+
 class Review {
 
     private $limit = 15;
@@ -33,6 +35,10 @@ class Review {
 
         add_action( 'wp_ajax_dokan_comment_status', array( $this, 'ajax_comment_status' ) );
         add_action( 'wp_ajax_dokan_update_comment', array( $this, 'ajax_update_comment' ) );
+
+        // We need to clear cache after comment is created.
+        // No need to check for update status or comment, those are handled by other hooks.
+        add_action( 'comment_post', [ $this, 'clear_review_cache' ], 10, 3 );
     }
 
     /**
@@ -159,7 +165,16 @@ class Review {
         $comment_id  = $_POST['comment_id'];
         $action      = $_POST['comment_status'];
         $post_type   = $_POST['post_type'];
-        $page_status = $_POST['curr_page'];
+
+        $comment = get_comment( $comment_id );
+        if ( empty( $comment ) ) {
+            return;
+        }
+
+        // invalidate reviews
+        $post_id   = $comment->comment_post_ID;
+        $seller_id = get_post_field( 'post_author', $post_id );
+        Cache::invalidate_group( "product_reviews_{$seller_id}" );
 
         if ( $action == 'delete' && isset( $comment_id ) ) {
             wp_delete_comment( $comment_id );
@@ -168,11 +183,6 @@ class Review {
         if ( isset( $comment_id ) && isset( $action ) ) {
             wp_set_comment_status( $comment_id, $action );
         }
-
-        $comment = get_comment( $comment_id );
-
-        $cache_key = 'dokan-count-comments-' . $post_type . '-' . dokan_get_current_user_id();
-        wp_cache_delete( $cache_key, 'dokan' );
 
         $counts = dokan_count_comments( $post_type, dokan_get_current_user_id() );
 
@@ -509,13 +519,23 @@ class Review {
      * @return string
      */
     public function dokan_render_listing_table_body( $post_type ) {
-        $status   = $this->page_status();
-        $limit    = $this->limit;
-        $comments = $this->comment_query( dokan_get_current_user_id(), $post_type, $limit, $status );
+        $status    = $this->page_status();
+        $limit     = $this->limit;
+        $seller_id = dokan_get_current_user_id();
+
+        $cache_group = "product_reviews_{$seller_id}";
+        $cache_key   = "get_product_reviews_{$post_type}_{$limit}_{$status}";
+        $comments    = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $comments ) {
+            $comments = $this->comment_query( $seller_id, $post_type, $limit, $status );
+
+            Cache::set( $cache_key, $comments, $cache_group );
+        }
 
         dokan_get_template_part( 'review/listing-table-body', '', array(
-            'pro' => true,
-            'comments' => $comments,
+            'pro'       => true,
+            'comments'  => $comments,
             'post_type' => $post_type
         ) );
     }
@@ -616,7 +636,13 @@ class Review {
         );
 
         wp_update_comment( $commentarr );
+
         $comment = get_comment( $comment_id );
+
+        //invalidate reviews
+        $post_id   = $comment->comment_post_ID;
+        $seller_id = get_post_field( 'post_author', $post_id );
+        Cache::invalidate_group( "product_reviews_{$seller_id}" );
 
         ob_start();
         $this->render_row( $comment, $_POST['post_type'] );
@@ -630,11 +656,11 @@ class Review {
      * @since 2.4
      */
     public function handle_status() {
-        if ( !isset( $_POST['comt_stat_sub'] ) ) {
+        if ( ! isset( $_POST['comt_stat_sub'] ) ) {
             return;
         }
 
-        if ( !wp_verify_nonce( $_POST['dokan_comment_nonce'], 'dokan_comment_nonce_action' ) && !is_user_logged_in() ) {
+        if ( ! wp_verify_nonce( $_POST['dokan_comment_nonce'], 'dokan_comment_nonce_action' ) || ! is_user_logged_in() ) {
             return;
         }
 
@@ -649,6 +675,16 @@ class Review {
         }
 
         foreach ( $_POST['commentid'] as $commentid ) {
+            $comment = get_comment( $commentid );
+            if ( ! $comment ) {
+                continue;
+            }
+
+            //invalidate reviews
+            $post_id   = $comment->comment_post_ID;
+            $seller_id = get_post_field( 'post_author', $post_id );
+            Cache::invalidate_group( "product_reviews_{$seller_id}" );
+
             if ( $action == 'delete' ) {
                 wp_delete_comment( $commentid );
             } else {
@@ -766,5 +802,30 @@ class Review {
         $review_list = ob_get_clean();
 
         return apply_filters( 'dokan_seller_tab_reviews_list', $review_list, $store_id );
+    }
+
+    /**
+     * Clear review cache, on create new review.
+     *
+     * @since 3.4.2
+     *
+     * @param int        $comment_id
+     * @param int|string $comment_approved
+     * @param array      $comment_data
+     *
+     * @return void
+     */
+    public function clear_review_cache( $comment_id, $comment_approved, $comment_data ) {
+        // Check post type
+        $post_type = get_post_type( $comment_data['comment_post_ID'] );
+
+        // clear cache if it is a product
+        if ( 'product' !== $post_type ) {
+            return;
+        }
+
+        $seller_id = get_post_field( 'post_author', $comment_data['comment_post_ID'] );
+
+        Cache::invalidate_group( "product_reviews_{$seller_id}" );
     }
 }

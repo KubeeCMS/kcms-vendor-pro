@@ -14,8 +14,28 @@ class Module {
      * @uses add_action()
      */
     public function __construct() {
+        add_action( 'admin_notices', [ $this, 'admin_notices' ] );
         add_action( 'dokan_activated_module_table_rate_shipping', [ $this, 'activate' ] );
         add_action( 'plugins_loaded', [ $this, 'init' ] );
+    }
+
+    /**
+     * Show admin notices
+     *
+     * @since 3.4.2
+     *
+     * @return void
+     */
+    public function admin_notices() {
+        $dokan_appearance = get_option( 'dokan_appearance', [] );
+
+        if ( ! empty( $dokan_appearance['gmap_api_key'] ) ) {
+            return;
+        }
+
+		// translators: %1$s: Distance rate label, %2$s: Google map api label, %3$s: Setting url
+		$notice = sprintf( __( '%1$s shipping requires %2$s key. Please set your API Key in %3$s.', 'dokan' ), '<strong>Dokan Distance Rate</strong>', '<strong>Google Map API</strong>', '<strong>Dokan Admin Settings >Appearance</strong>' );
+		printf( '<div class="error"><p>' . $notice . '</p></div>' );
     }
 
     /**
@@ -53,8 +73,10 @@ class Module {
      */
     public function initiate() {
         new \WeDevs\DokanPro\Modules\TableRate\Method();
+        new \WeDevs\DokanPro\Modules\TableRate\DistanceRateMethod();
         new \WeDevs\DokanPro\Modules\TableRate\Hooks();
         new \WeDevs\DokanPro\Modules\TableRate\TemplateHooks();
+        new \WeDevs\DokanPro\Modules\TableRate\DistanceTemplateHooks();
     }
 
     /**
@@ -69,6 +91,7 @@ class Module {
         add_filter( 'dokan_set_template_path', [ $this, 'load_product_trs_templates' ], 10, 3 );
         add_action( 'woocommerce_shipping_methods', [ $this, 'register_shipping' ] );
         add_action( 'wp_ajax_dokan_table_rate_delete', [ $this, 'table_rate_delete' ] );
+        add_action( 'wp_ajax_dokan_distance_rate_delete', [ $this, 'distance_rate_delete' ] );
     }
 
     /**
@@ -96,7 +119,8 @@ class Module {
             return $methods;
         }
 
-        $methods['dokan_table_rate_shipping'] = \WeDevs\DokanPro\Modules\TableRate\Method::class;
+        $methods['dokan_table_rate_shipping']    = \WeDevs\DokanPro\Modules\TableRate\Method::class;
+        $methods['dokan_distance_rate_shipping'] = \WeDevs\DokanPro\Modules\TableRate\DistanceRateMethod::class;
 
         return $methods;
     }
@@ -219,6 +243,29 @@ class Module {
     }
 
     /**
+     * Get distance rate shipping info
+     *
+     * @since 3.4.2
+     *
+     * @param int $id
+     * @param int $seller_id
+     *
+     * @return array $results
+     */
+    public function get_distance_rate_info( $id = 0, $seller_id = 0 ) {
+        global $wpdb;
+
+        $seller_id = empty( $seller_id ) ? dokan_get_current_user_id() : $seller_id;
+        $query     = $wpdb->prepare( "SELECT * from {$wpdb->prefix}dokan_distance_rate_shipping WHERE seller_id = %d", $seller_id );
+
+        if ( $id ) {
+            $query .= $wpdb->prepare( ' AND id = %d', $id );
+        }
+
+        return $wpdb->get_results( $query ); //phpcs:ignore
+    }
+
+    /**
      * Get Shipping Method for a method
      *
      * @since 3.4.0
@@ -316,6 +363,58 @@ class Module {
     }
 
     /**
+     * Get Shipping Method for a method
+     *
+     * @since 3.4.2
+     *
+     * @return void
+     */
+    public function get_normalized_shipping_distance_rates() {
+        $instance_id = isset( $_GET['instance_id'] ) ? intval( wp_unslash( $_GET['instance_id'] ) ) : 0; // phpcs:ignore
+
+        if ( ! $instance_id ) {
+            return;
+        }
+
+        $shipping_rates    = $this->get_shipping_distance_rates( ARRAY_A, $instance_id );
+        $decimal_separator = wc_get_price_decimal_separator();
+
+        $normalize_keys = array(
+            'rate_cost',
+            'rate_cost_unit',
+            'rate_fee',
+            'rate_max',
+            'rate_min',
+        );
+
+        foreach ( $shipping_rates as $index => $shipping_rate ) {
+            foreach ( $normalize_keys as $key ) {
+                if ( isset( $shipping_rate[ $key ] ) ) {
+                    $shipping_rates[ $index ][ $key ] = str_replace( '.', $decimal_separator, $shipping_rates[ $index ][ $key ] );
+                }
+            }
+        }
+
+        return $shipping_rates;
+    }
+
+    /**
+     * Get raw shipping distance rates from the DB.
+     *
+     * Optional filter helper for integration with other plugins.
+     *
+     * @param string $output Output format.
+     * @return mixed
+     */
+    public function get_shipping_distance_rates( $output = OBJECT, $instance_id ) {
+        global $wpdb;
+
+        $rates = $wpdb->get_results( $wpdb->prepare( "SELECT * from {$wpdb->prefix}dokan_distance_rate_shipping WHERE instance_id = %d ORDER BY rate_id ASC", $instance_id ), $output );
+
+        return apply_filters( 'dokan_distance_rate_get_shipping_rates', $rates );
+    }
+
+    /**
      * Delete table rate
      *
      * @since 3.4.0
@@ -334,6 +433,30 @@ class Module {
         if ( ! empty( $rate_ids ) ) {
             global $wpdb;
             $wpdb->query( "DELETE FROM {$wpdb->prefix}dokan_table_rate_shipping WHERE rate_id IN (" . implode( ',', $rate_ids ) . ')' );
+        }
+
+        die();
+    }
+
+    /**
+     * Delete distance rate
+     *
+     * @since 3.4.2
+     *
+     * @return void
+     */
+    public function distance_rate_delete() {
+        check_ajax_referer( 'dokan-delete-table-rate', 'security' );
+
+        $rate_ids = array();
+
+        if ( isset( $_POST['rate_id'] ) ) {
+            $rate_ids = is_array( $_POST['rate_id'] ) ? array_map( 'intval', wp_unslash( $_POST['rate_id'] ) ) : array( intval( wp_unslash( $_POST['rate_id'] ) ) );
+        }
+
+        if ( ! empty( $rate_ids ) ) {
+            global $wpdb;
+            $wpdb->query( "DELETE FROM {$wpdb->prefix}dokan_distance_rate_shipping WHERE rate_id IN (" . implode( ',', $rate_ids ) . ')' );
         }
 
         die();
@@ -397,7 +520,7 @@ class Module {
 
         $collate = $wpdb->get_charset_collate();
 
-        $table = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}dokan_table_rate_shipping` (
+        $table_rate = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}dokan_table_rate_shipping` (
                   `rate_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
                   `vendor_id` int(11) NOT NULL,
                   `zone_id` int(11) NOT NULL,
@@ -415,12 +538,33 @@ class Module {
                   `rate_order` int(11) NOT NULL,
                   `rate_abort` int(5) NOT NULL,
                   `rate_abort_reason` longtext NOT NULL,
-                  PRIMARY KEY (`rate_id`),
+                  PRIMARY KEY  (`rate_id`),
                   KEY `key_vendor_id` (`vendor_id`),
                   KEY `key_zone_id` (`zone_id`),
                   KEY `key_instance_id` (`instance_id`)
                 ) ENGINE=InnoDB {$collate}";
 
-        dbDelta( $table );
+        dbDelta( $table_rate );
+
+        $distance_rate = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}dokan_distance_rate_shipping` (
+                  `rate_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                  `vendor_id` int(11) NOT NULL,
+                  `zone_id` int(11) NOT NULL,
+                  `instance_id` int(11) NOT NULL,
+                  `rate_condition` varchar(150) NOT NULL,
+                  `rate_min` varchar(50) NOT NULL,
+                  `rate_max` varchar(50) NOT NULL,
+                  `rate_cost` varchar(50) NOT NULL,
+                  `rate_cost_unit` varchar(50) NOT NULL,
+                  `rate_fee` varchar(50) NOT NULL,
+                  `rate_break` int(5) NOT NULL,
+                  `rate_abort` int(5) NOT NULL,
+                  PRIMARY KEY  (`rate_id`),
+                  KEY `key_vendor_id` (`vendor_id`),
+                  KEY `key_zone_id` (`zone_id`),
+                  KEY `key_instance_id` (`instance_id`)
+                ) ENGINE=InnoDB {$collate}";
+
+        dbDelta( $distance_rate );
     }
 }

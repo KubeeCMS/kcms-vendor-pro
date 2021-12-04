@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Module class object
  *
@@ -295,61 +297,71 @@ function dokan_report_abuse_get_reports( $args = [] ) {
         );
     }
 
-    if ( $args['count'] ) {
-        return $wpdb->get_var($sql);
-    }
+    $cache_group = 'abuse_reports';
+    $cache_key   = 'get_abuse_reports_' . md5( $sql );
+    $reports     = Cache::get( $cache_key, $cache_group );
 
-    $results = $wpdb->get_results( $sql );
+    if ( $args['count'] && false === $reports  ) {
+        $reports = $wpdb->get_var( $sql );
 
-    $reports = [];
+        Cache::set( $cache_key, $reports, $cache_group );
+    } elseif ( false === $reports ) {
 
-    foreach ( $results as $i => $result ) {
-        $product = wc_get_product( $result->product_id );
+        $results = $wpdb->get_results( $sql );
 
-        if ( ! $product ) {
-            continue;
+        $reports = [];
+
+        foreach ( $results as $i => $result ) {
+            $product = wc_get_product( $result->product_id );
+
+            if ( ! $product ) {
+                continue;
+            }
+
+            $reports[ $i ]['id']     = absint( $result->id );
+            $reports[ $i ]['reason'] = $result->reason;
+
+            $reports[ $i ]['product'] = [
+                'id'        => $product->get_id(),
+                'title'     => $product->get_title(),
+                'admin_url' => admin_url( sprintf( 'post.php?post=%d&action=edit', $product->get_id() ) ),
+            ];
+
+            $vendor = dokan_get_vendor( $result->vendor_id );
+            $reports[ $i ]['vendor'] = [
+                'id'        => $vendor->get_id(),
+                'name'      => $vendor->get_shop_name(),
+                'admin_url' => admin_url( sprintf( 'user-edit.php?user_id=%d', $vendor->get_id() ) ),
+            ];
+
+            if ( $result->customer_id ) {
+                $customer       = new WC_Customer( $result->customer_id );
+                $customer_name  = $customer->get_username();
+                $customer_email = $customer->get_email();
+                $admin_url      = admin_url( sprintf( 'user-edit.php?user_id=%d', $customer->get_id() ) );
+            } else {
+                $customer_name  = $result->customer_name;
+                $customer_email = $result->customer_email;
+                $admin_url      = null;
+            }
+
+            $reports[ $i ]['reported_by'] = [
+                'id'        => absint( $result->customer_id ),
+                'name'      => $customer_name,
+                'email'     => $customer_email,
+                'admin_url' => $admin_url,
+            ];
+
+            $reports[ $i ]['description'] = $result->description;
+            $reports[ $i ]['reported_at'] = mysql_to_rfc3339( $result->reported_at );
         }
 
-        $reports[ $i ]['id']     = absint( $result->id );
-        $reports[ $i ]['reason'] = $result->reason;
-
-        $reports[ $i ]['product'] = [
-            'id'        => $product->get_id(),
-            'title'     => $product->get_title(),
-            'admin_url' => admin_url( sprintf( 'post.php?post=%d&action=edit', $product->get_id() ) ),
-        ];
-
-        $vendor = dokan_get_vendor( $result->vendor_id );
-        $reports[ $i ]['vendor'] = [
-            'id'        => $vendor->get_id(),
-            'name'      => $vendor->get_shop_name(),
-            'admin_url' => admin_url( sprintf( 'user-edit.php?user_id=%d', $vendor->get_id() ) ),
-        ];
-
-        if ( $result->customer_id ) {
-            $customer       = new WC_Customer( $result->customer_id );
-            $customer_name  = $customer->get_username();
-            $customer_email = $customer->get_email();
-            $admin_url      = admin_url( sprintf( 'user-edit.php?user_id=%d', $customer->get_id() ) );
-        } else {
-            $customer_name  = $result->customer_name;
-            $customer_email = $result->customer_email;
-            $admin_url      = null;
+        // If single abuse report is fetched
+        if ( ! empty( $args['id'] ) && ! empty( $reports ) ) {
+            $reports = $reports[0];
         }
 
-        $reports[ $i ]['reported_by'] = [
-            'id'        => absint( $result->customer_id ),
-            'name'      => $customer_name,
-            'email'     => $customer_email,
-            'admin_url' => $admin_url,
-        ];
-
-        $reports[ $i ]['description'] = $result->description;
-        $reports[ $i ]['reported_at'] = mysql_to_rfc3339( $result->reported_at );
-    }
-
-    if ( ! empty( $args['id'] ) && ! empty( $reports ) ) {
-        $reports = $reports[0];
+        Cache::set( $cache_key, $reports, $cache_group );
     }
 
     return $reports;
@@ -369,7 +381,16 @@ function dokan_report_abuse_delete_reports( $ids ) {
 
     $ids = implode( ',', $ids );
 
-    return $wpdb->query(
+    $result = $wpdb->query(
         "delete from {$wpdb->prefix}dokan_report_abuse_reports where id in ({$ids})"
     );
+
+    /**
+     * Fires after deleted of bulk abuse reports
+     *
+     * @since 3.4.2
+     */
+    do_action( 'dokan_report_abuse_deleted_report' );
+
+    return $result;
 }

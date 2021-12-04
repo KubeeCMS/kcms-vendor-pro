@@ -1,6 +1,7 @@
 <?php
 
 use WeDevs\Dokan\Abstracts\DokanRESTController;
+use WeDevs\Dokan\Cache;
 
 /**
 * Announcement Controller class
@@ -151,11 +152,19 @@ class Dokan_REST_Store_Review_Controller extends DokanRESTController {
             ];
         }
 
-        $query = new WP_Query( $args );
+        $cache_group = 'store_reviews';
+        $cache_key   = 'store_reviews_' . md5( wp_json_encode( $args ) );;
+        $query       = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $query ) {
+            $query = new WP_Query( $args );
+
+            Cache::set( $cache_key, $query, $cache_group );
+        }
 
         $data = array();
         if ( $query->posts ) {
-            foreach ( $query->posts as $key => $value ) {
+            foreach ( $query->posts as $value ) {
                 $resp   = $this->prepare_response_for_object( $value, $request );
                 $data[] = $this->prepare_response_for_collection( $resp );
             }
@@ -238,6 +247,8 @@ class Dokan_REST_Store_Review_Controller extends DokanRESTController {
 
         $data = $this->prepare_response_for_object( $this->get_object( $post_id ), $request );
 
+        Cache::invalidate_group( 'store_reviews' );
+
         return rest_ensure_response( $data );
     }
 
@@ -291,6 +302,8 @@ class Dokan_REST_Store_Review_Controller extends DokanRESTController {
             return new WP_Error( 'dokan_rest_cannot_delete', __( 'The review cannot be deleted.', 'dokan' ), array( 'status' => 500 ) );
         }
 
+        Cache::invalidate_group( 'store_reviews' );
+
         return $response;
     }
 
@@ -309,7 +322,17 @@ class Dokan_REST_Store_Review_Controller extends DokanRESTController {
         }
 
         $post = wp_untrash_post( $post->ID );
+
+        // Update the post status from `draft` to `publish` as by default `wp_untrash_post` makes post `draft`
+        wp_update_post( [
+            'ID'          => $post->ID,
+            'post_status' => 'publish'
+        ] );
+
         $response = $this->prepare_response_for_object( $post, $request );
+
+        Cache::invalidate_group( 'store_reviews' );
+
         return $response;
     }
 
@@ -361,6 +384,8 @@ class Dokan_REST_Store_Review_Controller extends DokanRESTController {
                 }
             }
         }
+
+        Cache::invalidate_group( 'store_reviews' );
 
         return true;
     }

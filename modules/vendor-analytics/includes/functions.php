@@ -1,19 +1,5 @@
 <?php
 /**
- * Include Dokan Vendor Analytics template
- *
- * @since 1.0.0
- *
- * @param string $name
- * @param array  $args
- *
- * @return void
- */
-function dokan_vendor_analytics_get_template( $name, $args = [] ) {
-    dokan_get_template( "$name.php", $args, DOKAN_VENDOR_ANALYTICS_VIEWS, trailingslashit( DOKAN_VENDOR_ANALYTICS_VIEWS ) );
-}
-
-/**
  * Returns the tabs for the analytics
  *
  * @since 1.0
@@ -384,9 +370,10 @@ function dokan_geographic_analytics() {
     }
 
     $args = array(
-        'results' => $results,
-        'headers' => $headers,
-        'rows'    => ( isset( $results->rows ) && ! empty( $results->rows ) ) ? $results->rows : array(),
+        'is_vendor_analytics_views' => true,
+        'results'                   => $results,
+        'headers'                   => $headers,
+        'rows'                      => ( isset( $results->rows ) && ! empty( $results->rows ) ) ? $results->rows : array(),
     );
 
     wp_enqueue_script( 'echarts-js', DOKAN_VENDOR_ANALYTICS_ASSETS . '/js/echarts.min.js', array(), false, true );
@@ -396,7 +383,7 @@ function dokan_geographic_analytics() {
         'chart_data' => $chart_data,
     ) );
 
-    dokan_vendor_analytics_get_template( 'location-map', $args );
+    dokan_get_template_part( 'location-map', '', $args );
 }
 
 /**

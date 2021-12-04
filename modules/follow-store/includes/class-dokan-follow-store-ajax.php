@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 class Dokan_Follow_Store_Ajax {
 
     /**

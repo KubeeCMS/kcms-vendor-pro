@@ -1,12 +1,12 @@
 <?php
 
 /**
- *  Common function for dokan auction
- *  pluigin.
+ * Common functions for dokan auction module.
  *
- *  Loaded all all function in whole plugins
- *  @author Sabbir <sabbir.081070@gmail.com>
+ * Loaded all functions related to auction
  */
+
+use WeDevs\Dokan\Cache;
 
 /**
  * Check if the seller is enabled
@@ -20,15 +20,11 @@
 function dokan_is_seller_auction_disabled( $user_id ) {
     $auction = get_user_meta( $user_id, 'dokan_disable_auction', true );
 
-    if ( $auction == 'yes' ) {
-        return true;
-    }
-
-    return false;
+    return 'yes' === $auction ? true : false;
 }
 
 /**
- * Auction post status counting
+ * Auction post status counting.
  *
  * @since  1.0.0
  *
@@ -40,25 +36,30 @@ function dokan_is_seller_auction_disabled( $user_id ) {
 function dokan_count_auction_posts( $post_type, $user_id ) {
     global $wpdb;
 
-    $cache_key = 'dokan-count-auction' . $post_type . '-' . $user_id;
-    $counts = wp_cache_get( $cache_key, 'dokan' );
-    $term = get_term_by( 'slug', 'auction', 'product_type' );
-    if ( false === $counts ) {
-        // $query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s AND post_author = %d GROUP BY post_status";
-        $query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} INNER JOIN {$wpdb->prefix}term_relationships ON ({$wpdb->prefix}posts.ID = {$wpdb->prefix}term_relationships.object_id) AND ( {$wpdb->prefix}term_relationships.term_taxonomy_id IN ( %s ) ) AND {$wpdb->prefix}posts.post_author = %s AND {$wpdb->prefix}posts.post_type = %s GROUP BY post_status";
-        $results = $wpdb->get_results( $wpdb->prepare( $query, $term->term_id, $user_id, $post_type ), ARRAY_A );
-        $counts = array_fill_keys( get_post_stati(), 0 );
+    $cache_group = "auction_products_{$user_id}";
+    $cache_key   = "count_auction_{$post_type}";
+    $counts      = Cache::get( $cache_key, $cache_group );
 
-        $total = 0;
-        foreach ( $results as $row ) {
-            $counts[ $row['post_status'] ] = (int) $row['num_posts'];
-            $total += (int) $row['num_posts'];
-        }
-
-        $counts['total'] = $total;
-        $counts = (object) $counts;
-        wp_cache_set( $cache_key, $counts, 'dokan' );
+    if ( false !== $counts ) {
+        return $counts;
     }
+
+    $term = get_term_by( 'slug', 'auction', 'product_type' );
+
+    $query   = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} INNER JOIN {$wpdb->prefix}term_relationships ON ({$wpdb->prefix}posts.ID = {$wpdb->prefix}term_relationships.object_id) AND ( {$wpdb->prefix}term_relationships.term_taxonomy_id IN ( %s ) ) AND {$wpdb->prefix}posts.post_author = %s AND {$wpdb->prefix}posts.post_type = %s GROUP BY post_status";
+    $results = $wpdb->get_results( $wpdb->prepare( $query, $term->term_id, $user_id, $post_type ), ARRAY_A );
+    $counts  = array_fill_keys( get_post_stati(), 0 );
+
+    $total = 0;
+    foreach ( $results as $row ) {
+        $counts[ $row['post_status'] ] = (int) $row['num_posts'];
+        $total += (int) $row['num_posts'];
+    }
+
+    $counts['total'] = $total;
+    $counts          = (object) $counts;
+
+    Cache::set( $cache_key, $counts, $cache_group );
 
     return $counts;
 }
@@ -71,21 +72,21 @@ function dokan_count_auction_posts( $post_type, $user_id ) {
  * @return void
  */
 function dokan_auction_product_listing_status_filter() {
-    $permalink = dokan_get_navigation_url( 'auction' );
-    $status_class = isset( $_GET['post_status'] ) ? $_GET['post_status'] : 'all';
-    $post_counts = dokan_count_auction_posts( 'product', dokan_get_current_user_id() );
+    $permalink    = dokan_get_navigation_url( 'auction' );
+    $status_class = isset( $_GET['post_status'] ) ? sanitize_text_field( wp_unslash( $_GET['post_status'] ) ) : 'all';
+    $post_counts  = dokan_count_auction_posts( 'product', dokan_get_current_user_id() );
     ?>
     <ul class="dokan-listing-filter dokan-left subsubsub">
-        <li<?php echo $status_class == 'all' ? ' class="active"' : ''; ?>>
-            <a href="<?php echo $permalink; ?>"><?php printf( __( 'All (%d)', 'dokan' ), $post_counts->total-$post_counts->trash ); ?></a>
+        <li<?php echo 'all' === $status_class ? ' class="active"' : ''; ?>>
+            <a href="<?php echo esc_url( $permalink ); ?>"><?php printf( __( 'All (%d)', 'dokan' ), $post_counts->total - $post_counts->trash ); ?></a>
         </li>
-        <li<?php echo $status_class == 'publish' ? ' class="active"' : ''; ?>>
+        <li<?php echo 'publish' === $status_class ? ' class="active"' : ''; ?>>
             <a href="<?php echo add_query_arg( array( 'post_status' => 'publish' ), $permalink ); ?>"><?php printf( __( 'Online (%d)', 'dokan' ), $post_counts->publish ); ?></a>
         </li>
-        <li<?php echo $status_class == 'pending' ? ' class="active"' : ''; ?>>
+        <li<?php echo 'pending' === $status_class ? ' class="active"' : ''; ?>>
             <a href="<?php echo add_query_arg( array( 'post_status' => 'pending' ), $permalink ); ?>"><?php printf( __( 'Pending Review (%d)', 'dokan' ), $post_counts->pending ); ?></a>
         </li>
-        <li<?php echo $status_class == 'draft' ? ' class="active"' : ''; ?>>
+        <li<?php echo 'draft' === $status_class ? ' class="active"' : ''; ?>>
             <a href="<?php echo add_query_arg( array( 'post_status' => 'draft' ), $permalink ); ?>"><?php printf( __( 'Draft (%d)', 'dokan' ), $post_counts->draft ); ?></a>
         </li>
     </ul> <!-- .post-statuses-filter -->
@@ -148,6 +149,8 @@ function dokan_auction_get_activity( $count = false ) {
         $search_query = $wpdb->prepare( "AND ( `{$wpdb->users}`.user_nicename LIKE %s OR `{$wpdb->posts}`.post_title LIKE %s )", $like, $like );
     }
 
+    $cache_group = "auction_activities_{$vendor_id}";
+
     if ( $count ) {
         $query = $wpdb->prepare(
             "SELECT COUNT(*)
@@ -161,7 +164,15 @@ function dokan_auction_get_activity( $count = false ) {
             $vendor_id
         );
 
-        return absint( $wpdb->get_var( $query ) );
+        $cache_key = 'activities_count_' . md5( $query );
+        $count     = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $count ) {
+            $count = absint( $wpdb->get_var( $query ) );
+            Cache::set( $cache_key, $count, $cache_group );
+        }
+
+        return $count;
     }
 
     $query = $wpdb->prepare(
@@ -172,10 +183,17 @@ function dokan_auction_get_activity( $count = false ) {
             {$search_query}
             {$date_from_filter}
         ORDER BY date DESC
-            {$limit_query}
-            ;",
-            $vendor_id
+            {$limit_query};",
+        $vendor_id
     );
 
-    return $wpdb->get_results( $query, ARRAY_A );
+    $cache_key  = 'activities_' . md5( $query );
+    $activities = Cache::get( $cache_key, $cache_group );
+
+    if ( false === $activities ) {
+        $activities = $wpdb->get_results( $query, ARRAY_A );
+        Cache::set( $cache_key, $activities, $cache_group );
+    }
+
+    return $activities;
 }

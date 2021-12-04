@@ -2,6 +2,7 @@
 
 namespace WeDevs\DokanPro;
 
+use WeDevs\Dokan\Cache;
 use WP_Query;
 
 /**
@@ -131,19 +132,31 @@ class Notice {
 
         $this->add_query_filter();
 
-        $seller_posts = new WP_Query( $args );
+        $seller_id   = dokan_get_current_user_id();
+        $cache_group = "seller_announcement_{$seller_id}";
+        $cache_key   = 'get_announcement_' . md5( wp_json_encode( array_merge( $args, [ 'author' => $seller_id ] ) ) );
+
+        $seller_posts_response = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $seller_posts_response ) {
+            $seller_posts_response = new WP_Query( $args );
+
+            Cache::set( $cache_key, $seller_posts_response, $cache_group );
+        }
+
+        $seller_posts = $seller_posts_response->posts;
 
         $this->remove_query_filter();
 
         dokan_get_template_part(
             'announcement/listing-announcement', '', array(
-                'pro' => true,
-                'notices' => $seller_posts->posts,
+                'pro'     => true,
+                'notices' => $seller_posts,
             )
         );
 
         wp_reset_postdata();
-        $this->get_pagination( $seller_posts );
+        $this->get_pagination( $seller_posts_response );
     }
 
     /**

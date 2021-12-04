@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Description of DSR_View
  *
@@ -100,7 +102,7 @@ class DSR_View {
         $seller_id = get_userdata( get_query_var( 'author' ) )->ID;
 
         //check if valid customer to proceed
-        if ( !$this->check_if_valid_customer( $seller_id, get_current_user_id() ) ) {
+        if ( ! $this->check_if_valid_customer( $seller_id, get_current_user_id() ) ) {
             return;
         }
         //show add review or edit review
@@ -114,6 +116,7 @@ class DSR_View {
         );
 
         $query = new WP_Query( $args );
+
         ob_start();
 
         if ( $query->posts ) {
@@ -239,6 +242,8 @@ class DSR_View {
         if ( $post_id ) {
             update_post_meta( $post_id, 'store_id', $postdata['store_id'] );
             update_post_meta( $post_id, 'rating', $rating );
+
+            Cache::invalidate_group( 'store_reviews' );
 
             wp_send_json( array(
                 'success' => true,

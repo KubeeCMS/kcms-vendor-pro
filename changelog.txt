@@ -1,3 +1,27 @@
+v3.4.2 Nov 30, 2021
+----------------------------------
+- **new:** [Booking] Added accommodation booking for Booking module
+- **new:** [Table Rate Shipping] Added distance rate shipping under table rate shipping module
+- **new:** [Auction] Added downloadable and virtual product support for auction module
+- **new:** [Store Support] Added searching and filtering for support tickets from vendor dashboard
+- **new:** Added manual refund button for both admin and vendors. Admin and seller can use this feature to record manual refund.
+- **new:** Added a new order note for payment gateways other than Dokan payment gateways.
+- **new:** Added API refund support for payment gateways other than Dokan payment gateways. Based on admin settings, if admin approves a refund request, this will be also processed from corresponding payment gateway.
+- **new:** [Delivery Time] Made delivery time fields required under checkout page, also added a settings page to make these fields required.
+- **update:** Caching Enhancement and Fixes
+- **update:** [Store Support] Display user display name instead of username under Get Support popup form.
+- **update:** [Store Review] Display user display name instead of username under Store Review popup form.
+- **update:** Added necessary tooltip for various Dokan settings.
+- **update:** Replaced vendor dashboard dash icons with fontAwesome icons, this was causing conflict with some third party plugins
+- **fix:** Disabled bulk action product edit/delete, inline product edit/delete if vendor is not enabled for selling
+- **fix:** [Elementor] Fix a conflict with Elementor module and Vendor Analytics module. (Single store page layout was broken)
+- **fix:** [Import/Export] Existing categories wasn’t importing while importing products
+- **fix:** [Store Support] Fixed WPML conflict for various links (some links wasn’t working if site language is other than English)
+- **fix:** Store category search option was throwing error on console
+- **fix:** CSV import form is not working when multisite is enabled
+- **fix:** Saving announcement as draft wasn’t working
+- **fix:** Vendor coupon wasn’t working for variation products
+
 v3.4.1 Nov 12, 2021
 ----------------------------------
 - **new:** [Vendor Verification] No email sent to vendors after vendor verification status has been changed #1569

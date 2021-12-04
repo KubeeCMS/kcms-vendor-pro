@@ -2,6 +2,7 @@
 
 namespace WeDevs\DokanPro\Modules\PayPalMarketplace\WithdrawMethods;
 
+use WeDevs\DokanPro\Admin\Announcement;
 use WeDevs\DokanPro\Modules\PayPalMarketplace\Helper;
 use WeDevs\DokanPro\Modules\PayPalMarketplace\Utilities\Processor;
 
@@ -407,7 +408,10 @@ class RegisterWithdrawMethods {
         }
 
         if ( false === get_transient( "dokan_paypal_mp_notice_intervals_$seller_id" ) ) {
-            $announcement = new \WeDevs\DokanPro\Admin\Announcement();
+            /**
+             * @var $announcement Announcement
+             */
+            $announcement = dokan_pro()->announcement;
             // sent announcement message
             $args = [
                 'title'         => $this->connect_messsage(),

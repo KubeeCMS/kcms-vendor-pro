@@ -1552,7 +1552,7 @@ class Module {
      * @return array|WP_Error
      */
     public function protect_vendor_create_category( $term, $taxonomy ) {
-        if ( ! current_user_can( 'manage_options' ) && $taxonomy === 'product_cat' ) {
+        if ( ! current_user_can( 'manage_options' ) && $taxonomy === 'product_cat' && ! get_term_by( 'name', $term, 'product_cat' ) ) {
             return new \WP_Error( 'invalid_vendor_cat', __( 'You do not have permission to create product category.', 'dokan' ) );
         }
 

@@ -26,6 +26,7 @@ class Module {
         add_filter( 'dokan_set_template_path', array( $this, 'load_vendor_analytics_templates' ), 11, 3 );
         add_action( 'dokan_analytics_content_area_header', array( $this, 'analytics_header_render' ) );
         add_action( 'dokan_analytics_content', array( $this, 'render_analytics_content' ) );
+        add_filter( 'dokan_set_template_path', [ $this, 'load_view_templates' ], 10, 3 );
         // flush rewrite rules
         add_action( 'woocommerce_flush_rewrite_rules', [ $this, 'flush_rewrite_rules' ] );
     }
@@ -127,12 +128,27 @@ class Module {
     }
 
     /**
-    * Load Dokan vendor_staff templates
-    *
-    * @since 2.8
-    *
-    * @return void
-    **/
+     * Load vendor analytics views templates
+     *
+     * @since 3.4.2
+     *
+     * @return void
+     */
+    public function load_view_templates( $template_path, $template, $args ) {
+        if ( isset( $args['is_vendor_analytics_views'] ) && $args['is_vendor_analytics_views'] ) {
+            return $this->plugin_path() . '/views';
+        }
+
+        return $template_path;
+    }
+
+    /**
+     * Load Dokan vendor analytics templates
+     *
+     * @since 2.8
+     *
+     * @return void
+     */
     public function load_vendor_analytics_templates( $template_path, $template, $args ) {
         if ( isset( $args['is_vendor_analytics'] ) && $args['is_vendor_analytics'] ) {
             return $this->plugin_path() . '/templates';

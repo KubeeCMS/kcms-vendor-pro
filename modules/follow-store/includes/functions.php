@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Include Dokan Follow Store template
  *
@@ -158,14 +160,20 @@ function dokan_follow_store_toggle_status( $vendor_id, $follower_id ) {
 function dokan_follow_store_is_following_store( $vendor_id, $follower_id ) {
     global $wpdb;
 
+    // check follower exists in cache but we are not regenerating cache
+    $cache_group = "followers_$vendor_id";
+    $cache_key   = "get_followers";
+    $followers   = Cache::get( $cache_key, $cache_group );
+
+    if ( false !== $followers && array_key_exists( $follower_id, $followers['followers'] ) ) {
+        return true;
+    }
+
+    // check following from database
     $following = $wpdb->get_var(
         $wpdb->prepare(
-              "select count(*)"
-            . " from {$wpdb->prefix}dokan_follow_store_followers"
-            . " where vendor_id = %d"
-            . "     and follower_id = %d"
-            . "     and unfollowed_at is null"
-            . " limit 1",
+            "select id from {$wpdb->prefix}dokan_follow_store_followers
+            where vendor_id = %d and follower_id = %d and unfollowed_at is null limit 1",
             $vendor_id,
             $follower_id
         )
@@ -239,4 +247,51 @@ function dokan_follow_store_get_button_args( $vendor, $button_classes = array() 
     );
 
     return $args;
+}
+
+/**
+ * Get all followers of a vendor
+ *
+ * @since 3.4.2
+ *
+ * @param $vendor_id
+ *
+ * @return array
+ */
+function dokan_follow_store_get_vendor_followers( $vendor_id ) {
+    global $wpdb;
+    $cache_group = "followers_$vendor_id";
+    $cache_key   = "get_followers";
+    $followers   = Cache::get( $cache_key, $cache_group );
+
+    if ( false === $followers ) {
+        $dokan_followers = $wpdb->get_results(
+            $wpdb->prepare(
+                "select follower_id, followed_at from {$wpdb->prefix}dokan_follow_store_followers
+                where vendor_id = %d and unfollowed_at is null",
+                $vendor_id
+            ),
+            OBJECT_K
+        );
+
+        $customers = [];
+        if ( ! empty( $dokan_followers ) ) {
+            $query = new WP_User_Query(
+                [
+                    'include' => array_keys( $dokan_followers ),
+                    'number'  => -1,
+                    'fields'  => 'ID',
+                ]
+            );
+
+            $customers = $query->get_results();
+        }
+
+        $followers[ 'followers' ] = (array) $dokan_followers;
+        $followers[ 'customers' ] = (array) $customers;
+
+        Cache::set( $cache_key, $followers, $cache_group );
+    }
+
+    return $followers;
 }

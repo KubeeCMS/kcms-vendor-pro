@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 $counts = dokan_get_verification_status_count();
 
 $status = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : 'pending';
@@ -54,17 +56,28 @@ $states      = $country_obj->states;
             <?php
         }
     }
+    ?>
+    <?php
 
-    $query = new WP_User_Query( array(
+    $args = array(
         //'role'    => 'seller',
         'meta_key'     => 'dokan_verification_status',
         'meta_compare' => 'LIKE',
         'meta_value'   => $status,
-    ) );
+    );
+
+    $cache_group = 'verifications';
+    $cache_key   = 'verification_data_' . md5( wp_json_encode( $args ) );
+    $query       = Cache::get( $cache_key, $cache_group );
+
+    if ( false === $query ) {
+        $query = new WP_User_Query( $args );
+
+        Cache::set( $cache_key, $query, $cache_group );
+    }
 
     $sellers = $query->get_results();
-
-    $result = null;
+    $result  = null;
 
     foreach ( $sellers as $seller ) {
         $seller_profile = dokan_get_store_info( $seller->ID );
@@ -74,6 +87,7 @@ $states      = $country_obj->states;
                 'store_name' => $seller_profile['store_name'],
                 'seller_id'  => $seller->ID,
             );
+
             if ( isset( $seller_profile['dokan_verification']['info']['dokan_v_id_status'] ) && $seller_profile['dokan_verification']['info']['dokan_v_id_status'] === $status ) {
                 $seller_v['id_info'] = array(
                     'photo_id' => $seller_profile['dokan_verification']['info']['photo_id'],
@@ -413,7 +427,7 @@ $states      = $country_obj->states;
                                 location.reload();
                             } else {
                                 self.closest( 'tr' ).removeClass('custom-spinner');
-                                dokan_sweetalert( dokan.i18n_invalid, { 
+                                dokan_sweetalert( dokan.i18n_invalid, {
                                     icon: 'error',
                                 } );
                             }

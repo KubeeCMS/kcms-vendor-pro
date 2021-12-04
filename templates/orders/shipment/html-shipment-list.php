@@ -7,15 +7,15 @@
             <strong class="<?php echo esc_attr( $shipping_status ); ?> status_label_<?php echo esc_attr( $shipment_id ); ?>"><?php echo esc_html( $status ); ?> </strong>
 
             <span class="shipment-item-details-tab-toggle" data-shipment_id="<?php echo esc_attr( $shipment_id ); ?>">
-                <span class="dashicons dashicons-arrow-down-alt2 details-tab-toggle-sort-desc"></span>
+                <span class="fa fa-chevron-down details-tab-toggle-sort-desc"></span>
             </span>
         </p>
         <div class="clear"></div>
         <p class="shippments-tracking-via">
-            <?php esc_html_e( 'via', 'dokan' ); ?> 
+            <?php esc_html_e( 'via', 'dokan' ); ?>
             <strong><?php echo esc_html( $provider ); ?></strong>
             <a href="<?php echo esc_attr( $provider_url ); ?>" target="_blank">
-                <span class="dashicons dashicons-external"></span>
+                <span class="fa fa-external-link"></span>
             </a>
             <a href="<?php echo esc_attr( $provider_url ); ?>" target="_blank">
                 <?php echo esc_html( $number ); ?>
@@ -35,7 +35,7 @@
             <div class="dokan-customer-shipment-notes-list-area">
                 <h5><strong><?php esc_html_e( 'Shipment Updates Timeline', 'dokan' ); ?></strong></h5>
                 <span class="shipment-notes-details-tab-toggle" data-shipment_id="<?php echo esc_attr( $shipment_id ); ?>">
-                    <span class="dashicons dashicons-arrow-down-alt2 details-tab-toggle-sort-desc"></span>
+                    <span class="fa fa-chevron-down details-tab-toggle-sort-desc"></span>
                 </span>
                 <div class="customer-shipment-list-notes-inner-area dokan-hide shipment-list-notes-inner-area<?php echo esc_attr( $shipment_id ); ?>">
                     <?php

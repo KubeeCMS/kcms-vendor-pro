@@ -195,6 +195,7 @@ class Module {
             'desc'    => __( 'Enable/Disable product enquiry for guest user', 'dokan' ),
             'type'    => 'checkbox',
             'default' => 'on',
+            'tooltip' => __( 'When checked, user can inquire about products from the product page without signing in.', 'dokan' ),
         );
 
         return $settings_fields;

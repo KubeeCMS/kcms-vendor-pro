@@ -1,6 +1,117 @@
 <?php
 $changelog = array(
     array(
+        'version'  => 'Version 3.4.2',
+        'released' => '2021-11-30',
+        'changes'  => array(
+            array(
+                'title'       => '[Booking] Added accommodation booking for Booking module',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Table Rate Shipping] Added distance rate shipping under table rate shipping module',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Auction] Added downloadable and virtual product support for auction module',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Store Support] Added searching and filtering for support tickets from vendor dashboard',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Added manual refund button for both admin and vendors. Admin and seller can use this feature to record manual refund.',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Added a new order note for payment gateways other than Dokan payment gateways.',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Added API refund support for payment gateways other than Dokan payment gateways. Based on admin settings, if admin approves a refund request, this will be also processed from corresponding payment gateway.',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Delivery Time] Made delivery time fields required under checkout page, also added a settings page to make these fields required.',
+                'type'        => 'New',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Caching Enhancement and Fixes',
+                'type'        => 'Update',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Store Support] Display user display name instead of username under Get Support popup form',
+                'type'        => 'Update',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Store Review] Display user display name instead of username under Store Review popup form',
+                'type'        => 'Update',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Added necessary tooltip for various Dokan settings',
+                'type'        => 'Update',
+                'description' => '',
+            ),
+            array(
+                'title'       => ' Replaced vendor dashboard dash icons with fontAwesome icons, this was causing conflict with some third party plugins',
+                'type'        => 'Update',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Disabled bulk action product edit/delete, inline product edit/delete if vendor is not enabled for selling',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Elementor] Fix a conflict with Elementor module and Vendor Analytics module. (Single store page layout was broken)',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Import/Export] Existing categories wasn’t importing while importing products',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => '[Store Support] Fixed WPML conflict for various links (some links wasn’t working if site language is other than English)',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Store category search option was throwing error on console',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'CSV import form is not working when multisite is enabled',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Saving announcement as draft wasn’t working',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+            array(
+                'title'       => 'Vendor coupon wasn’t working for variation products',
+                'type'        => 'Fix',
+                'description' => '',
+            ),
+        ),
+    ),
+    array(
         'version'  => 'Version 3.4.1',
         'released' => '2021-11-12',
         'changes'  => array(

@@ -64,6 +64,7 @@ class Settings {
                 'desc'    => __( 'Allow vendor to override settings', 'dokan' ),
                 'type'    => 'checkbox',
                 'default' => 'off',
+                'tooltip' => __( 'Check this to allow vendors to override & customize the delivery settings. Otherwise, admin configured settings will be applied.', 'dokan' ),
             ],
             'delivery_date_label' => [
                 'name'    => 'delivery_date_label',
@@ -88,6 +89,13 @@ class Settings {
                 /* translators: %s: day */
                 'default' => sprintf( __( 'This store needs %s day(s) to process your delivery request', 'dokan' ), '%DAY%' ),
                 'type'    => 'text',
+            ],
+            'select_required' => [
+                'name'    => 'selection_required',
+                'label'   => __( 'Require Delivery Date and Time', 'dokan' ),
+                'desc'    => __( 'Make choosing a delivery date and time mandatory for customers.', 'dokan' ),
+                'default' => 'on',
+                'type'    => 'checkbox',
             ],
             'delivery_day' => [
                 'name'    => 'delivery_day',

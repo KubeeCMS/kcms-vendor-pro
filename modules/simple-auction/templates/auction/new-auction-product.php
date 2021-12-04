@@ -1,5 +1,7 @@
-<?php do_action( 'dokan_dashboard_wrap_start' );
+<?php
+do_action( 'dokan_dashboard_wrap_start' );
 
+use WeDevs\DokanPro\Products;
 use WeDevs\Dokan\Walkers\TaxonomyDropdown;
 
 ?>
@@ -7,6 +9,21 @@ use WeDevs\Dokan\Walkers\TaxonomyDropdown;
     <?php
     do_action( 'dokan_dashboard_content_before' );
     do_action( 'dokan_new_auction_product_content_before' );
+
+    global $post;
+    $auction_id              = $post->ID;
+    $_downloadable           = get_post_meta( $auction_id, '_downloadable', true );
+    $_virtual                = get_post_meta( $auction_id, '_virtual', true );
+    $is_downloadable         = 'yes' === $_downloadable;
+    $is_virtual              = 'yes' === $_virtual;
+    $digital_mode            = dokan_get_option( 'global_digital_mode', 'dokan_general', 'sell_both' );
+    $user_id                 = dokan_get_current_user_id();
+    $processing_time         = dokan_get_shipping_processing_times();
+    $_required_tax           = get_post_meta( $auction_id, '_required_tax', true );
+    $_disable_shipping       = ( get_post_meta( $auction_id, '_disable_shipping', 'yes' ) ) ? get_post_meta( $auction_id, '_disable_shipping', 'yes' ) : 'no';
+    $_additional_price       = get_post_meta( $auction_id, '_additional_price', true );
+    $_additional_qty         = get_post_meta( $auction_id, '_additional_qty', true );
+    $classes_options         = wc_get_product_tax_class_options();
     ?>
 
     <div class="dokan-dashboard-content">
@@ -152,6 +169,23 @@ use WeDevs\Dokan\Walkers\TaxonomyDropdown;
                                     ?>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="product-edit-new-container">
+                            <?php
+                            dokan_get_template_part(
+                                'products/download-virtual',
+                                '',
+                                [
+                                    'post_id'         => $auction_id,
+                                    'post'            => $post,
+                                    'is_downloadable' => $is_downloadable,
+                                    'is_virtual'      => $is_virtual,
+                                    'digital_mode'    => $digital_mode,
+                                    'class'           => 'show_if_subscription show_if_variable-subscription show_if_simple',
+                                ]
+                            );
+                            ?>
                         </div>
 
                         <div class="product-edit-new-container">
@@ -303,6 +337,44 @@ use WeDevs\Dokan\Walkers\TaxonomyDropdown;
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="product-edit-new-container auction-product-downloadable product-edit-container dokan-hide">
+                            <?php
+                            dokan_get_template_part(
+                                'products/downloadable',
+                                '',
+                                [
+                                    'post_id' => $auction_id,
+                                    'post'    => $post,
+                                    'class'   => 'show_if_downloadable',
+                                ]
+                            );
+                            ?>
+                        </div>
+
+                        <div class="product-edit-new-container dokan-product-shipping-tax" data-togglehandler="dokan_product_shipping_tax">
+                            <?php
+                            $is_shipping_disabled = 'sell_digital' === dokan_pro()->digital_product->get_selling_product_type();
+
+                            dokan_get_template_part(
+                                'products/product-shipping-content',
+                                '',
+                                [
+                                    'pro'                     => true,
+                                    'post'                    => $post,
+                                    'post_id'                 => $auction_id,
+                                    'user_id'                 => $user_id,
+                                    'processing_time'         => $processing_time,
+                                    '_required_tax'           => $_required_tax,
+                                    '_disable_shipping'       => $_disable_shipping,
+                                    '_additional_price'       => $_additional_price,
+                                    '_additional_qty'         => $_additional_qty,
+                                    'classes_options'         => $classes_options,
+                                    'is_shipping_disabled'    => $is_shipping_disabled,
+                                ]
+                            );
+                            ?>
                         </div>
 
                         <div class="dokan-form-group dokan-auction-post-content">

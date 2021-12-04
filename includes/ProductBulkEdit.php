@@ -75,6 +75,10 @@ class ProductBulkEdit {
      * @return void
      */
     public function bulk_edit_form() {
+        if ( ! dokan_is_seller_enabled( dokan_get_current_user_id() ) ) {
+            return;
+        }
+
         $shipping_class     = get_terms( 'product_shipping_class', [ 'hide_empty' => false ] );
         $post_statuses      = [
             ''        => __( '— No change —', 'dokan' ),
@@ -194,7 +198,7 @@ class ProductBulkEdit {
         $is_single_category = 'single' === dokan_get_option( 'product_category_style', 'dokan_selling', 'single' );
 
         if ( $is_single_category ) {
-            $request_data['product_cat'] = isset( $request_data['product_cat'] ) ? absint( $request_data['product_cat'] ) : '';
+            $request_data['product_cat'] = isset( $request_data['product_cat'] ) ? (array) absint( $request_data['product_cat'] ) : '';
         } else {
             $request_data['product_cat'] = isset( $request_data['product_cat'] ) ? array_map( 'absint', $request_data['product_cat'] ) : '';
         }

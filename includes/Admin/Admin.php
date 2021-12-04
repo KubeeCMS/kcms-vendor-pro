@@ -176,6 +176,7 @@ class Admin {
             'desc'    => __( 'Enable single seller mode', 'dokan' ),
             'type'    => 'checkbox',
             'default' => 'off',
+            'tooltip' => __( 'Enable this to restrict customer from adding more than one vendor\'s product in the cart.', 'dokan' ),
         ];
 
         return $settings_fields;
@@ -201,6 +202,7 @@ class Admin {
                 'publish' => __( 'Published', 'dokan' ),
                 'pending' => __( 'Pending Review', 'dokan' ),
             ),
+            'tooltip' => __( 'Default product status for newly added products by vendor.', 'dokan' ),
         );
 
         $settings_fields['vendor_duplicate_product'] = array(
@@ -217,6 +219,7 @@ class Admin {
             'desc'    => __( 'Set Product status as pending review when a vendor edits or updates a product', 'dokan' ),
             'type'    => 'checkbox',
             'default' => 'off',
+            'tooltip' => __( 'If checked admin will review, edited or updated products by vendor before publishing.', 'dokan' ),
         );
 
         $settings_fields['product_add_mail'] = array(
@@ -268,6 +271,7 @@ class Admin {
             'desc'    => __( 'Hide customer information from order details of vendors', 'dokan' ),
             'type'    => 'checkbox',
             'default' => 'off',
+            'tooltip' => __( 'It will hide customer information from the "General Details" section of the single order details page.', 'dokan' ),
         );
 
         $settings_fields['seller_review_manage'] = array(
@@ -316,12 +320,14 @@ class Admin {
                 'label'   => __( 'Store Banner width', 'dokan' ),
                 'type'    => 'text',
                 'default' => 625,
+                'tooltip' => __( 'Choose the width for your Vendor\'s banner image to be displayed on Vendor store page.', 'dokan' ),
             ),
             'store_banner_height' => array(
                 'name'    => 'store_banner_height',
                 'label'   => __( 'Store Banner height', 'dokan' ),
                 'type'    => 'text',
                 'default' => 300,
+                'tooltip' => __( 'Choose the height for your Vendor\'s banner image which is displayed on Vendor store page', 'dokan' ),
             ),
         );
 
@@ -339,6 +345,7 @@ class Admin {
                 'desc'    => __( 'Days, ( Make order matured to make a withdraw request) <br> Value "0" will inactive this option', 'dokan' ),
                 'default' => '0',
                 'type'    => 'number',
+                'tooltip' => __( 'If enabled, sales earning will add to vendor balance after mentioned number of days.', 'dokan' ),
             ),
             'hide_withdraw_option' => array(
                 'name'    => 'hide_withdraw_option',

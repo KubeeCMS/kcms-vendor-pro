@@ -58,7 +58,9 @@ class Controller extends \WC_Product_CSV_Importer_Controller {
      * @return void
      */
     protected function upload_form() {
-        $bytes      = apply_filters( 'import_upload_size_limit', wp_max_upload_size() );
+        remove_filter( 'import_upload_size_limit', 'fix_import_form_size' );
+        $bytes = apply_filters( 'import_upload_size_limit', wp_max_upload_size() );
+        add_filter( 'import_upload_size_limit', 'fix_import_form_size' );
         $size       = size_format( $bytes );
         $upload_dir = wp_upload_dir();
         $has_file   = file_exists( plugin_dir_path( WC_PLUGIN_FILE ) . 'sample-data/sample_products.csv' );

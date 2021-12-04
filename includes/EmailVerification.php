@@ -327,10 +327,11 @@ class EmailVerification {
     public function dokan_email_settings_fields( $settings_fields ) {
         $settings_fields['dokan_email_verification'] = array(
             'enabled' => array(
-                'name'  => 'enabled',
-                'label' => __( 'Enable Email Verification', 'dokan' ),
-                'type'  => 'checkbox',
-                'desc'  => __( 'Enabling this will add email verification after registration form to allow users to verify their emails', 'dokan' ),
+                'name'    => 'enabled',
+                'label'   => __( 'Enable Email Verification', 'dokan' ),
+                'type'    => 'checkbox',
+                'desc'    => __( 'Enabling this will send a verification email to allow users to verify their email address after the registration form is submitted.', 'dokan' ),
+                'tooltip' => __( 'Check this if you want user to verify their email address upon registration.', 'dokan' ),
             ),
             'registration_notice' => array(
                 'name'  => 'registration_notice',

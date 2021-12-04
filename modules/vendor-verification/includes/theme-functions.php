@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  *
  * @param int $user optional
@@ -157,11 +159,11 @@ function dokan_verification_request_changed_by_admin_email( $seller_profile, $po
 function dokan_get_verification_status_count(){
     global $wpdb;
 
-    $cache_key = 'dokan_verification_count';
-    $counts = wp_cache_get( $cache_key );
+    $cache_group = 'verifications';
+    $cache_key   = 'verifications_count';
+    $counts      = Cache::get( $cache_key, $cache_group );
 
     if ( false === $counts ) {
-
         $counts = array( 'pending' => 0, 'approved' => 0, 'rejected' => 0 );
 
         $sql = "SELECT count('user_id') as 'approved' FROM {$wpdb->usermeta} WHERE `meta_key` = 'dokan_verification_status' and `meta_value` LIKE '%approved%'";
@@ -173,13 +175,12 @@ function dokan_get_verification_status_count(){
         $sql = "SELECT count('user_id') as 'rejected' FROM {$wpdb->usermeta} WHERE `meta_key` = 'dokan_verification_status' and `meta_value` LIKE '%rejected%'";
         $rejected = $wpdb->get_results( $sql );
 
-        $counts['pending'] = $pending[0]->pending;
+        $counts['pending']  = $pending[0]->pending;
         $counts['approved'] = $approved[0]->approved;
         $counts['rejected'] = $rejected[0]->rejected;
 
+        Cache::set( $cache_key, $counts, $cache_group );
     }
 
     return $counts;
-
-
 }

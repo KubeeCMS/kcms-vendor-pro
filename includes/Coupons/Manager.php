@@ -4,6 +4,7 @@ namespace WeDevs\DokanPro\Coupons;
 
 use WP_Query;
 use WC_Coupon;
+use WeDevs\Dokan\Cache;
 use WeDevs\Dokan\Exceptions\DokanException;
 
 /**
@@ -30,21 +31,27 @@ class Manager {
 
         $args = wp_parse_args( $args, $default );
 
-        $coupon_query = new WP_Query(
-            apply_filters(
-                'dokan_get_vendor_coupons_args', [
-                    'post_type'              => 'shop_coupon',
-                    'post_status'            => [ 'publish' ],
-                    'posts_per_page'         => $args['limit'],
-                    'author'                 => $args['seller_id'],
-                    'paged'                  => $args['paged'],
-                    'fields'                 => 'ids',
-                    'cache_results'          => false,
-                    'update_post_meta_cache' => false,
-                    'update_post_term_cache' => false,
-                ], $args
-            )
-        );
+        $query_args = apply_filters( 'dokan_get_vendor_coupons_args', [
+            'post_type'              => 'shop_coupon',
+            'post_status'            => [ 'publish' ],
+            'posts_per_page'         => $args['limit'],
+            'author'                 => $args['seller_id'],
+            'paged'                  => $args['paged'],
+            'fields'                 => 'ids',
+            'cache_results'          => false,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ], $args );
+
+        $cache_group  = "seller_coupons_{$args['seller_id']}";
+        $cache_key    = 'coupons_' . md5( wp_json_encode( $args ) );
+        $coupon_query = Cache::get( $cache_key, $cache_group );
+
+        if ( false === $coupon_query ) {
+            $coupon_query = new WP_Query( $query_args );
+
+            Cache::set( $cache_key, $coupon_query, $cache_group );
+        }
 
         $coupons = $coupon_query->get_posts();
 
@@ -309,7 +316,7 @@ class Manager {
 
         if ( $admin_earning < $discount_price ) {
             $vendor_earning -= abs( $admin_earning - $discount_price );
-            $vendor_earning  = $vendor_earning < 0 ? 0 : $vendor_earning; 
+            $vendor_earning  = $vendor_earning < 0 ? 0 : $vendor_earning;
             $admin_earning   = 0;
         } else {
             $admin_earning -= $discount_price;
@@ -404,7 +411,7 @@ class Manager {
         $current_data['vendor_earning']         = $vendor_earning;
         $current_data['current_product_price'] -= $discount_price;
         $current_data['coupon_applied']        += 1;
-        
+
         return apply_filters( 'dokan_get_earning_by_product_if_have_vendor_coupon', $current_data, $coupon_meta, $discount_price );
     }
 

@@ -55,6 +55,7 @@ class Module {
     public function includes() {
         require_once DOKAN_VENDOR_STAFF_INC_DIR . '/functions.php';
         require_once DOKAN_VENDOR_STAFF_INC_DIR . '/class-staffs.php';
+        require_once DOKAN_VENDOR_STAFF_INC_DIR . '/VendorStaffCache.php';
     }
 
     /**
@@ -66,6 +67,7 @@ class Module {
      */
     public function initiate() {
         new \Dokan_Staffs();
+        new \DokanPro\Modules\VendorStaff\VendorStaffCache();
     }
 
     /**

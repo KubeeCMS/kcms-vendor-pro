@@ -1,5 +1,7 @@
 <?php
 
+use WeDevs\Dokan\Cache;
+
 /**
  * Warranty Type
  *
@@ -446,6 +448,16 @@ function dokan_update_warranty_request( $data = [] ) {
         return new WP_Error( 'status-not-updated', __( 'Status not updated, Please try again', 'dokan' ) );
     }
 
+    /**
+     * Dokan Warranty Request Updated Action
+     *
+     * @since 3.4.2
+     *
+     * @param int $id
+     * @param int $vendor_id
+     */
+    do_action( 'dokan_warranty_request_updated', $data['id'], dokan_get_current_user_id() );
+
     return $result;
 }
 
@@ -470,6 +482,11 @@ function dokan_get_warranty_request( $data = [] ) {
 
     $data = dokan_parse_args( $data, $default );
 
+    $cache_group     = 'rma';
+    $cache_key       = 'rma_datas_' . md5( wp_json_encode( $data ) );
+    $cache_key_count = 'rma_data_count_' . md5( wp_json_encode( $data ) );
+
+    // prepare sql
     $request_table      = $wpdb->prefix . 'dokan_rma_request';
     $request_item_table = $wpdb->prefix . 'dokan_rma_request_product';
 
@@ -512,10 +529,22 @@ function dokan_get_warranty_request( $data = [] ) {
     }
 
     if ( $data['count'] || $data['id'] ) {
-        return $wpdb->get_row( $sql, ARRAY_A );
+        $result_count = Cache::get( $cache_key_count, $cache_group );
+        if ( false === $result_count ) {
+            $result_count = $wpdb->get_row( $sql, ARRAY_A );
+            Cache::set( $cache_key_count, $result_count, $cache_group );
+        }
+
+        return $result_count;
     }
 
-    return $wpdb->get_results( $sql, ARRAY_A );
+    $result = Cache::get( $cache_key, $cache_group );
+    if ( false === $result ) {
+        $result = $wpdb->get_results( $sql, ARRAY_A );
+        Cache::set( $cache_key, $result, $cache_group );
+    }
+
+    return $result;
 }
 
 /**
@@ -547,6 +576,16 @@ function dokan_update_warranty_request_status( $id, $status ) {
         return new WP_Error( 'status-not-updated', __( 'Status not updated, Please try again', 'dokan' ) );
     }
 
+    /**
+     * Dokan Warranty Request Status Updated Action
+     *
+     * @since 3.4.2
+     *
+     * @param int $id
+     * @param int $vendor_id
+     */
+    do_action( 'dokan_warranty_request_updated_status', $id, dokan_get_current_user_id() );
+
     return $result;
 }
 
@@ -560,10 +599,12 @@ function dokan_update_warranty_request_status( $id, $status ) {
 function dokan_warranty_request_status_count() {
     global $wpdb;
 
-    $vendor_id = dokan_get_current_user_id();
-    $request_table      = $wpdb->prefix . 'dokan_rma_request';
-    $cache_key = 'dokan-count-warranty-request-' . $vendor_id;
-    $counts = wp_cache_get( $cache_key, 'dokan' );
+    $vendor_id     = dokan_get_current_user_id();
+    $request_table = $wpdb->prefix . 'dokan_rma_request';
+
+    $cache_group = 'rma';
+    $cache_key   = 'rma_data_status_count_' . $vendor_id;
+    $counts      = Cache::get( $cache_key, $cache_group );
 
     if ( false === $counts ) {
         // $query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s AND post_author = %d GROUP BY post_status";
@@ -577,7 +618,8 @@ function dokan_warranty_request_status_count() {
         }
 
         $counts['total'] = $total;
-        wp_cache_set( $cache_key, $counts, 'dokan' );
+
+        Cache::set( $cache_key, $counts, $cache_group );
     }
 
     return $counts;
@@ -749,6 +791,16 @@ function dokan_delete_warranty_request( $id, $vendor_id ) {
         [ 'request_id' => $id ],
         [ '%d' ]
     );
+
+    /**
+     * Dokan Warranty Request Deleted Action
+     *
+     * @since 3.4.2
+     *
+     * @param int $id
+     * @param int $vendor_id
+     */
+    do_action( 'dokan_warranty_request_deleted', $id, $vendor_id );
 
     return true;
 }
