@@ -10,6 +10,7 @@ use Stripe\Subscription;
 use WeDevs\DokanPro\Modules\Stripe\Helper as StripeHelper;
 use WeDevs\DokanPro\Modules\Stripe\Subscriptions\InvoiceEmail;
 use DokanPro\Modules\Subscription\Helper as SubscriptionHelper;
+use DokanPro\Modules\Subscription\SubscriptionPack;
 use WeDevs\DokanPro\Modules\Stripe\Abstracts\StripePaymentGateway;
 use WP_Error;
 
@@ -126,7 +127,7 @@ class ProductSubscription extends StripePaymentGateway {
     /**
      * Setup subscription data
      *
-     * @return Subscriptoin|WP_Error
+     * @return Subscriptoin|WP_Error|void
      * @since 3.0.3
      */
     public function setup_subscription() {
@@ -141,108 +142,108 @@ class ProductSubscription extends StripePaymentGateway {
             $initial_payment = WC()->cart->get_total( '' );
         }
 
-        if ( $dokan_subscription->is_recurring() ) {
-            $subscription_interval = $dokan_subscription->get_recurring_interval();
-            $subscription_period   = $dokan_subscription->get_period_type();
-            $trial_period_days     = $dokan_subscription->is_trial() ? $dokan_subscription->get_trial_period_length() : 0;
+        if ( ! $dokan_subscription->is_recurring() ) {
+            return;
+        }
 
-            // if vendor already has used a trial pack, create a new plan without trial period
-            if ( SubscriptionHelper::has_used_trial_pack( $vendor_id ) ) {
-                $trial_period_days = 0;
+        $subscription_interval = $dokan_subscription->get_recurring_interval();
+        $subscription_period   = $dokan_subscription->get_period_type();
+        $trial_period_days     = $dokan_subscription->is_trial() ? $dokan_subscription->get_trial_period_length() : 0;
+
+        // if vendor already has used a trial pack, create a new plan without trial period
+        if ( SubscriptionHelper::has_used_trial_pack( $vendor_id ) ) {
+            $trial_period_days = 0;
+        }
+
+        // retrieve stripe product object
+        try {
+            if ( ! empty( $product_pack_id ) ) {
+                $stripe_product   = Product::retrieve( $product_pack_id );
+                $this->stripe_product_id = $stripe_product->id;
             }
+        } catch ( Exception $exception ) {
+            $this->stripe_product_id = null;
+        }
 
-            // retrieve stripe product object
+        // if product not exist on stripe end, create a new product
+        if ( empty( $this->stripe_product_id ) ) {
             try {
-                if ( ! empty( $product_pack_id ) ) {
-                    $stripe_product   = Product::retrieve( $product_pack_id );
-                    $this->stripe_product_id = $stripe_product->id;
-                }
-            } catch ( Exception $exception ) {
-                $this->stripe_product_id = null;
-            }
-
-            // if product not exist on stripe end, create a new product
-            if ( empty( $this->stripe_product_id ) ) {
-                try {
-                    $product_pack_name  = __( 'Vendor Subscription', 'dokan' ) . ': ' . $product_pack->get_title() . ' #' . $product_pack->get_id();
-                    $stripe_product = Product::create(
-                        [
-                            'name' => $product_pack_name,
-                            'type' => 'service',
-                        ]
-                    );
-
-                    $this->stripe_product_id = $stripe_product->id;
-
-                    // store this value for future use
-                    update_post_meta( $product_pack->get_id(), '_dokan_stripe_product_id', $stripe_product->id );
-                } catch ( Exception $exception ) {
-                    return new WP_Error( 'stripe_api_error', $exception->getMessage() );
-                }
-            }
-
-            // create subscription plan
-            $subscription_args = [
-                'items' => [
+                $product_pack_name  = __( 'Vendor Subscription', 'dokan' ) . ': ' . $product_pack->get_title() . ' #' . $product_pack->get_id();
+                $stripe_product = Product::create(
                     [
-                        'price_data' => [
-                            'currency' => strtolower( get_woocommerce_currency() ),
-                            'product' => $this->stripe_product_id,
-                            'recurring' => [
-                                'interval' => $subscription_period,
-                                'interval_count' => $subscription_interval,
-                            ],
-                            'unit_amount' => StripeHelper::get_stripe_amount( $initial_payment ),
+                        'name' => $product_pack_name,
+                        'type' => 'service',
+                    ]
+                );
+
+                $this->stripe_product_id = $stripe_product->id;
+
+                // store this value for future use
+                update_post_meta( $product_pack->get_id(), '_dokan_stripe_product_id', $stripe_product->id );
+            } catch ( Exception $exception ) {
+                return new WP_Error( 'stripe_api_error', $exception->getMessage() );
+            }
+        }
+
+        // create subscription plan
+        $subscription_args = [
+            'items' => [
+                [
+                    'price_data' => [
+                        'currency' => strtolower( get_woocommerce_currency() ),
+                        'product' => $this->stripe_product_id,
+                        'recurring' => [
+                            'interval' => $subscription_period,
+                            'interval_count' => $subscription_interval,
                         ],
+                        'unit_amount' => StripeHelper::get_stripe_amount( $initial_payment ),
                     ],
                 ],
-            ];
+            ],
+        ];
 
-            if ( ! empty( $trial_period_days ) ) {
-                try {
-                    $date_time = dokan_current_datetime()->modify( "+ {$trial_period_days} days" );
-                    $subscription_args['trial_end'] = $date_time->getTimestamp();
-                } catch ( Exception $exception ) {
-                    $subscription_args['trial_end'] = time();
-                }
+        if ( ! empty( $trial_period_days ) ) {
+            try {
+                $date_time = dokan_current_datetime()->modify( "+ {$trial_period_days} days" );
+                $subscription_args['trial_end'] = $date_time->getTimestamp();
+            } catch ( Exception $exception ) {
+                $subscription_args['trial_end'] = time();
             }
-
-            $subscription = $this->maybe_create_subscription( $subscription_args );
-
-            if ( is_wp_error( $subscription ) ) {
-                return $subscription;
-            } elseif ( empty( $subscription->id ) ) {
-                return new WP_Error( 'subscription_not_created', __( 'Unable to create subscription', 'dokan' ) );
-            }
-
-            if ( $product_pack && 'product_pack' === $product_pack->get_type() ) {
-                update_user_meta( $vendor_id, 'can_post_product', '1' );
-                update_user_meta( $vendor_id, '_stripe_subscription_id', $subscription->id );
-                update_user_meta( $vendor_id, 'product_package_id', $product_pack->get_id() );
-                update_user_meta( $vendor_id, 'product_no_with_pack', get_post_meta( $product_pack->get_id(), '_no_of_product', true ) );
-                update_user_meta( $vendor_id, 'product_pack_startdate', dokan_current_datetime()->format( 'Y-m-d H:i:s' ) );
-                update_user_meta( $vendor_id, '_customer_recurring_subscription', 'active' );
-                update_user_meta( $vendor_id, 'dokan_has_active_cancelled_subscrption', false );
-                update_user_meta( $vendor_id, 'product_pack_enddate', $dokan_subscription->get_product_pack_end_date() );
-
-                // need to remove these meta data. Update it on webhook reponse
-                $this->setup_commissions( $product_pack, $vendor_id );
-                do_action( 'dokan_vendor_purchased_subscription', $vendor_id );
-            }
-
-            return $subscription;
         }
+
+        $subscription = $this->maybe_create_subscription( $subscription_args );
+
+        if ( is_wp_error( $subscription ) ) {
+            return $subscription;
+        } elseif ( empty( $subscription->id ) ) {
+            return new WP_Error( 'subscription_not_created', __( 'Unable to create subscription', 'dokan' ) );
+        }
+
+        if ( $product_pack && 'product_pack' === $product_pack->get_type() ) {
+            // need to remove these meta data. Update it on webhook reponse
+            update_user_meta( $vendor_id, 'can_post_product', '1' );
+            update_user_meta( $vendor_id, '_stripe_subscription_id', $subscription->id );
+            update_user_meta( $vendor_id, 'product_package_id', $product_pack->get_id() );
+            update_user_meta( $vendor_id, 'product_no_with_pack', get_post_meta( $product_pack->get_id(), '_no_of_product', true ) );
+            update_user_meta( $vendor_id, 'product_pack_startdate', dokan_current_datetime()->format( 'Y-m-d H:i:s' ) );
+            update_user_meta( $vendor_id, '_customer_recurring_subscription', 'active' );
+            update_user_meta( $vendor_id, 'dokan_has_active_cancelled_subscrption', false );
+            update_user_meta( $vendor_id, 'product_pack_enddate', $dokan_subscription->get_product_pack_end_date() );
+        }
+
+        return $subscription;
     }
 
     /**
      * Process recurring, non-recurring and (stripe 3ds non-recurring subscriptions)
+     *
+     * @since 3.0.3
      *
      * @param \WC_Order $order
      * @param \Stripe\Intent $intent
      * @param bool $is_recurring
      *
      * @return void
-     * @since 3.0.3
      */
     public function process_subscription( $order, $intent, $is_recurring = false ) {
         $product_pack       = StripeHelper::get_subscription_product_by_order( $order );
@@ -277,19 +278,8 @@ class ProductSubscription extends StripePaymentGateway {
                 $this->cancel_now( $previous_subscription, $dokan_subscription );
             }
 
-            update_user_meta( $vendor_id, 'previous_subscription', false );
-            update_user_meta( $vendor_id, 'product_package_id', $product_pack->get_id() );
-            update_user_meta( $vendor_id, 'product_order_id', $order->get_id() );
-            update_user_meta( $vendor_id, 'product_no_with_pack', get_post_meta( $product_pack->get_id(), '_no_of_product', true ) );
-            update_user_meta( $vendor_id, 'product_pack_startdate', dokan_current_datetime()->format( 'Y-m-d H:i:s' ) );
-            update_user_meta( $vendor_id, 'can_post_product', '1' );
-            update_user_meta( $vendor_id, '_customer_recurring_subscription', false );
-            update_user_meta( $vendor_id, 'dokan_has_active_cancelled_subscrption', false );
-            update_user_meta( $vendor_id, 'product_pack_enddate', $dokan_subscription->get_product_pack_end_date() );
-
-            $this->setup_commissions( $product_pack, $vendor_id );
+            $dokan_subscription->activate_subscription( $order );
             $order->payment_complete();
-            do_action( 'dokan_vendor_purchased_subscription', $vendor_id );
         }
     }
 
@@ -313,7 +303,7 @@ class ProductSubscription extends StripePaymentGateway {
             if ( 'incomplete' === $subscription->status ) {
                 try {
                     $subscription->cancel();
-                } catch ( Exception $exception ) {
+                } catch ( Exception $exception ) { // phpcs:ignore
                     // do nothing incase of api error
                 }
                 return $this->create_subscription( $subscription_args );
@@ -483,37 +473,14 @@ class ProductSubscription extends StripePaymentGateway {
                     'cancel_at_period_end' => false,
                 ]
             );
+
+            // Add order re-activation note
+            $order->add_order_note( __( 'Subscription reactivated.', 'dokan' ) );
+
             $vendor_subscription->reset_active_cancelled_subscription();
         } catch ( Exception $e ) {
             /* Translators: Error message from stripe api response. */
             dokan_log( sprintf( __( 'Unable to re-activate subscription with stripe. More details: %s', 'dokan' ), $e->getMessage() ) );
-        }
-    }
-
-    /**
-     * Setup commissions
-     *
-     * @since 3.0.3
-     *
-     * @param Object $product_pack
-     * @param int $vendor_id
-     *
-     * @return void
-     */
-    protected function setup_commissions( $product_pack, $vendor_id ) {
-        $admin_commission      = get_post_meta( $product_pack->get_id(), '_subscription_product_admin_commission', true );
-        $admin_additional_fee  = get_post_meta( $product_pack->get_id(), '_subscription_product_admin_additional_fee', true );
-        $admin_commission_type = get_post_meta( $product_pack->get_id(), '_subscription_product_admin_commission_type', true );
-
-        if ( ! empty( $admin_commission ) && ! empty( $admin_additional_fee ) && ! empty( $admin_commission_type ) ) {
-            update_user_meta( $vendor_id, 'dokan_admin_percentage', $admin_commission );
-            update_user_meta( $vendor_id, 'dokan_admin_additional_fee', $admin_additional_fee );
-            update_user_meta( $vendor_id, 'dokan_admin_percentage_type', $admin_commission_type );
-        } elseif ( ! empty( $admin_commission ) && ! empty( $admin_commission_type ) ) {
-            update_user_meta( $vendor_id, 'dokan_admin_percentage', $admin_commission );
-            update_user_meta( $vendor_id, 'dokan_admin_percentage_type', $admin_commission_type );
-        } else {
-            update_user_meta( $vendor_id, 'dokan_admin_percentage', '' );
         }
     }
 
@@ -586,7 +553,6 @@ class ProductSubscription extends StripePaymentGateway {
 
         if ( $vendor_subscription->has_recurring_pack() ) {
             SubscriptionHelper::delete_subscription_pack( $vendor_id, $order_id );
-            delete_user_meta( $vendor_id, '_stripe_subscription_id' );
         }
     }
 }

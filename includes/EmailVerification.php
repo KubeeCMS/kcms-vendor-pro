@@ -420,14 +420,16 @@ class EmailVerification {
     }
 
     /**
-     * Show `Double Opt In` admin notice
+     * Show `Double Opt-In` admin notice
      *
      * @since 3.2.3
      *
-     * @return void
+     * @param array $notices
+     *
+     * @return array
      */
-    public function double_opt_in_admin_notice() {
-        $germannized_option_url       = sprintf(
+    public function double_opt_in_admin_notice( $notices ) {
+        $germanized_option_url       = sprintf(
             '<a href="%1$s" title="%2$s">%3$s</a>',
             esc_attr( admin_url( 'admin.php?page=wc-settings&tab=germanized-double_opt_in' ) ),
             esc_attr__( 'Germanized for WooCommerce Double Opt In', 'dokan' ),
@@ -440,25 +442,21 @@ class EmailVerification {
             esc_attr__( 'Email Verification', 'dokan' )
         );
 
-        $class = 'notice notice-warning is-dismissible dokan-email-verification-germanized-notice';
+        // translators: Germanized for WooCommerce double opt-in option page anchor URL; Dokan admin settings page anchor URL.
+        $message = sprintf( __( 'Please disable %1$s in Germanized for WooCommerce to enable Dokan %2$s', 'dokan' ), $germanized_option_url, $email_verification_option_url );
 
-        // translators: Germanized for WooCommerce double opt in option page anchor URL; Dokan admin settings page anchor URL.
-        $message = sprintf( __( 'Please disable %1$s in Germanized for WooCommerce to enable Dokan %2$s', 'dokan' ), $germannized_option_url, $email_verification_option_url );
-        $nonce   = wp_create_nonce( 'email_verification_double_opt_in_admin_notice_nonce' );
-        printf(
-            '<div class="%1$s" data-dismiss-nonce="%2$s"><p>%3$s</p></div>',
-            esc_attr( $class ),
-            esc_attr( $nonce ),
-            wp_kses(
-                $message,
-                array(
-                    'a' => array(
-                        'href' => array(),
-                        'title' => array(),
-                    ),
-                )
-            )
-        );
+        $notices[] = [
+            'type'              => 'warning',
+            'description'       => $message,
+            'show_close_button' => true,
+            'priority'          => 10,
+            'ajax_data'         => [
+                'action'          => 'woocommerce_germanized_double_opt_in_ajax',
+                'opt_in_security' => wp_create_nonce( 'email_verification_double_opt_in_admin_notice_nonce' ),
+            ],
+        ];
+
+        return $notices;
     }
 
     /**
@@ -483,7 +481,7 @@ class EmailVerification {
      */
     private function display_double_opt_in_admin_notice() {
         if ( ! get_transient( 'dokan_email_verification_double_opt_in_admin_notice' ) ) {
-            add_action( 'admin_notices', array( $this, 'double_opt_in_admin_notice' ) );
+            add_filter( 'dokan_admin_notices', [ $this, 'double_opt_in_admin_notice' ] );
         }
     }
 }

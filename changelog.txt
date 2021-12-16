@@ -1,3 +1,23 @@
+v3.4.3 Dec 15, 2021
+----------------------------------
+
+- **update:** [Delivery Time]  Now users will not be able to choose time slots that are before the order time #1599
+- **update:** [Vendor Subscription] Added sweet alert while canceling a subscription from the vendor dashboard. #1612
+- **update:** Redesigned What’s New page design for Dokan Pro changelog
+- **update:** [Vendor Subscription] Recurring order support added for subscriptions purchased via PayPal Standard Gateway
+- **update:** [Vendor Subscription] Recurring order support added for subscriptions purchased via Dokan Stripe Payment Gateway
+- **refactor:** float typecast refactored to wc_format_decimal() #1448
+- **fix:**  [Wholesale] prevent users to buy products at wholesale prices if they are not wholesale customers. #1607
+- **fix:** [Geolocation] Location wasn’t updating if geolocation field was added before and then changed the settings to Same as store. #1615
+- **fix:** Fix loading issue while loading Dokan pages when permalink sets to plain text, Also added a notice to instruct users to change permalink setting. #1621
+- **fix:** [Auction] Start date and End date" fields from the edit auction product page wasn’t saving when users have not previously provided these fields data. #1622
+- **fix:** Show all variation products in admin dashboard -> coupon vendor restriction section #1626
+- **fix:** [Rank Math SEO] Compatibility issue with latest version of Rank Math SEO plugin #1633
+- **fix:** Some string are not translating, now has been fixed #1627
+- **fix:** Fixed Some deprecated warning  #1642
+- **fix:** Category dropdown list in Dokan Live Search was invisible in the Dokani theme. added an id to the element to add proper css in the Dokani theme to make it visible #1616
+- **fix:**  When variable products are edited using the bulk edit feature of the vendor dashboard, it resets the product status and switches product type to Simple. This issue has been fixed now #1644
+
 v3.4.2 Nov 30, 2021
 ----------------------------------
 - **new:** [Booking] Added accommodation booking for Booking module

@@ -32,10 +32,6 @@ class Admin {
         add_action( 'dokan_render_admin_toolbar', array( $this, 'render_pro_admin_toolbar' ) );
         add_action( 'init', array( $this, 'dokan_export_all_logs' ), 99 );
         add_action( 'admin_menu', array( $this, 'remove_add_on_menu' ), 80 );
-        add_action( 'admin_notices', array( $this, 'show_whats_new_notice' ), 10 );
-        add_action( 'admin_notices', array( $this, 'show_chirstmas_notice' ), 10 );
-        add_action( 'wp_ajax_dokan-whats-new-notice', array( $this, 'dismiss_new_notice' ) );
-        add_action( 'wp_ajax_dokan-dismiss-christmas-offer-notice', array( $this, 'dismiss_christmas_offer' ) );
         add_action( 'admin_init', array( $this, 'handle_seller_bulk_action' ), 10 );
         add_filter( 'dokan_commission_types', [ $this, 'add_combine_commission_type' ] );
 
@@ -110,7 +106,7 @@ class Admin {
      * @since 2.4
      *
      * @param  string $capability
-     * @param  intiger $menu_position
+     * @param  integer $menu_position
      *
      * @return void
      */
@@ -143,7 +139,7 @@ class Admin {
     }
 
     /**
-     * Remove addon submen from dokan admin menu
+     * Remove addon submenu from dokan admin menu
      *
      * @since 2.7.0
      *
@@ -737,142 +733,6 @@ class Admin {
             }
             fclose( $ob );
             exit();
-        }
-    }
-
-    /**
-     * Show update notice
-     *
-     * @since 1.0
-     *
-     * @return void
-     */
-
-    public function show_whats_new_notice() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        // check if it has already been dismissed
-        $versions = get_option( 'dokan_whats_new_versions', array() );
-
-        if ( in_array( DOKAN_PRO_PLUGIN_VERSION, $versions ) ) {
-            return;
-        }
-
-        ?>
-            <div class="info notice notice-info is-dismissible" id="dokan-pro-whats-new-notice">
-                <p>Check What's new in Dokan Pro</p>
-                <a style="margin-bottom: 10px;" href="<?php echo add_query_arg( array( 'page' => 'whats-new-dokan' ), admin_url( 'admin.php' ) ); ?>" class="button button-primary">What's New in Dokan Pro</a>
-            </div>
-
-            <script type='text/javascript'>
-                jQuery('body').on('click', '#dokan-pro-whats-new-notice .notice-dismiss', function(e) {
-                    e.preventDefault();
-
-                    wp.ajax.post('dokan-whats-new-notice', {
-                        dokan_promotion_dismissed: true
-                    });
-                });
-            </script>
-        <?php
-    }
-
-    /**
-     * Dismiss new notice
-     *
-     * @since 1.0
-     *
-     * @return void
-     */
-    public function dismiss_new_notice() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        if ( ! empty( $_POST['dokan_promotion_dismissed'] ) ) {
-            $versions = get_option( 'dokan_whats_new_versions', array() );
-
-            if ( ! in_array( DOKAN_PRO_PLUGIN_VERSION, $versions ) ) {
-                $versions[] = DOKAN_PRO_PLUGIN_VERSION;
-            }
-
-            update_option( 'dokan_whats_new_versions', $versions );
-        }
-    }
-
-    /**
-     * Added xmas promotion notice
-     *
-     * @since  2.9.3
-     *
-     * @return void
-     */
-    public function show_chirstmas_notice() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return;
-        }
-
-        // check if it has already been dismissed
-        $offer_key   = 'dokan_pro_christmas_notice';
-        $hide_notice = get_option( $offer_key, 'show' );
-        $offer_link  = 'https://wedevs.com/dokan/pricing/#dokan-compare-table-section';
-        $offer_last_date = strtotime( '2018-12-31 12:00:00' );
-        $content = __( '<p>Christmas Offer! <strong>Save 30%%</strong> Upgrading Your Dokan Package. <strong>Coupon: “XMAS30”</strong>. Offer Ends in 31st Dec, 12.00 PM! <a target="_blank" href="%s">Grab The Deal</a></p>', 'dokan' );
-
-        if ( 'hide' == $hide_notice ) {
-            return;
-        }
-
-        if ( current_time( 'timestamp' ) > $offer_last_date ) {
-            return;
-        }
-
-        ?>
-            <div class="notice notice-success is-dismissible" id="dokan-christmas-notice">
-                <?php printf( wp_kses_post( $content ), esc_url( $offer_link ) ); ?>
-            </div>
-
-            <style>
-                #dokan-christmas-notice p {
-                    font-size: 14px;
-                }
-            </style>
-
-            <script type='text/javascript'>
-                jQuery('body').on('click', '#dokan-christmas-notice .notice-dismiss', function(e) {
-                    e.preventDefault();
-
-                    wp.ajax.post( 'dokan-dismiss-christmas-offer-notice', {
-                        dokan_christmas_dismissed: true,
-                        nonce: '<?php echo esc_attr( wp_create_nonce( 'dokan_admin' ) ); ?>'
-                    });
-                });
-            </script>
-        <?php
-    }
-
-    /**
-     * Dismiss promotion notice
-     *
-     * @since  2.9.3
-     *
-     * @return void
-     */
-    public function dismiss_christmas_offer() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( __( 'You have no permission to do that', 'dokan' ) );
-        }
-
-        $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
-
-        if ( ! wp_verify_nonce( $nonce, 'dokan_admin' ) ) {
-            wp_send_json_error( __( 'Invalid nonce', 'dokan' ) );
-        }
-
-        if ( ! empty( $_POST['dokan_christmas_dismissed'] ) ) {
-            $offer_key = 'dokan_pro_christmas_notice';
-            update_option( $offer_key, 'hide' );
         }
     }
 

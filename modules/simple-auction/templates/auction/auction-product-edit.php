@@ -31,6 +31,8 @@ $_auction_bid_increment        = get_post_meta( $post_id, '_auction_bid_incremen
 $_auction_reserved_price       = get_post_meta( $post_id, '_auction_reserved_price', true );
 $_auction_dates_from           = get_post_meta( $post_id, '_auction_dates_from', true );
 $_auction_dates_to             = get_post_meta( $post_id, '_auction_dates_to', true );
+$_auction_dates_to_timestamp   = $_auction_dates_to ? dokan_current_datetime()->modify( $_auction_dates_to ) : '';
+$_auction_dates_to_timestamp   = $_auction_dates_to_timestamp ? $_auction_dates_to_timestamp->getTimestamp() : '';
 
 $_auction_automatic_relist     = get_post_meta( $post_id, '_auction_automatic_relist', true );
 $_auction_relist_fail_time     = get_post_meta( $post_id, '_auction_relist_fail_time', true );
@@ -368,33 +370,33 @@ do_action( 'dokan_edit_auction_product_content_before' );
                                     <div class="content-half-part dokan-auction-dates-from">
                                         <label class="dokan-control-label" for="_auction_dates_from"><?php _e( 'Auction Start date', 'dokan' ); ?></label>
                                         <div class="dokan-form-group">
-                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_from" id="_auction_dates_from" type="text" value="<?php echo $_auction_dates_from; ?>" style="width: 97%;" readonly>
+                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_from" id="_auction_dates_from" type="text" value="<?php echo esc_attr( $_auction_dates_from ); ?>" style="width: 97%;" readonly>
                                         </div>
                                     </div>
 
                                     <div class="content-half-part dokan-auction-dates-to">
                                         <label class="dokan-control-label" for="_auction_dates_to"><?php _e( 'Auction End date', 'dokan' ); ?></label>
                                         <div class="dokan-form-group">
-                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_to" id="_auction_dates_to" type="text" value="<?php echo $_auction_dates_to; ?>" readonly>
+                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_to" id="_auction_dates_to" type="text" value="<?php echo esc_attr( $_auction_dates_to ); ?>" readonly>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="dokan-clearfix"></div>
 
-                                <?php if ( time() > strtotime( $_auction_dates_to ) ): ?>
+                                <?php if ( $_auction_dates_to_timestamp && ( time() > $_auction_dates_to_timestamp ) ) : ?>
                                 <div class="dokan-auction-date-relist">
                                     <div class="content-half-part dokan-auction-dates-from">
                                         <label class="dokan-control-label" for="_auction_dates_from"><?php _e( 'Relist Auction Start date', 'dokan' ); ?></label>
                                         <div class="dokan-form-group">
-                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_from" id="_relist_auction_dates_from" type="text" value="<?php echo $_auction_dates_from; ?>" style="width: 97%;" readonly>
+                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_from" id="_relist_auction_dates_from" type="text" value="<?php echo esc_attr( $_auction_dates_from ); ?>" style="width: 97%;" readonly>
                                         </div>
                                     </div>
 
                                     <div class="content-half-part dokan-auction-dates-to">
                                         <label class="dokan-control-label" for="_auction_dates_to"><?php _e( 'Relist Auction End date', 'dokan' ); ?></label>
                                         <div class="dokan-form-group">
-                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_to" id="_relist_auction_dates_to" type="text" value="<?php echo $_auction_dates_to; ?>" readonly>
+                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_to" id="_relist_auction_dates_to" type="text" value="<?php echo esc_attr( $_auction_dates_to ); ?>" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -410,7 +412,7 @@ do_action( 'dokan_edit_auction_product_content_before' );
                                             </label>
                                         </div>
                                     </div>
-                                    <?php if ( time() > strtotime( $_auction_dates_to ) ): ?>
+                                    <?php if ( $_auction_dates_to_timestamp && ( time() > $_auction_dates_to_timestamp ) ) : ?>
                                     <div class="dokan-form-group dokan-auction-automatic-relist">
                                         <button class="dokan-auction-relist-button">Relist</button>
                                     </div>

@@ -1290,24 +1290,31 @@ class Ajax {
     public function get_calculated_shipping_cost() {
         global $post;
 
-        $_overwrite_shipping      = get_post_meta( $_POST['product_id'], '_overwrite_shipping', true );
-
-        $dps_country_rates = get_user_meta( $_POST['author_id'], '_dps_country_rates', true );
-        $dps_state_rates   = get_user_meta( $_POST['author_id'], '_dps_state_rates', true );
-
-        $store_shipping_type_price    = (float)get_user_meta( $_POST['author_id'], '_dps_shipping_type_price', true );
-        $additional_product_cost      = (float)get_post_meta( $_POST['product_id'], '_additional_price', true );
-        $base_shipping_type_price     = (float)$store_shipping_type_price;
-        $additional_qty_product_price = get_post_meta( $_POST['product_id'], '_additional_qty', true );
-        $dps_additional_qty           = get_user_meta( $_POST['author_id'], '_dps_additional_qty', true );
-        $additional_qty_price         = $dps_additional_qty;
-
-        if ( $_overwrite_shipping == 'yes' ) {
-            $base_shipping_type_price     = ( (float)$store_shipping_type_price + ( ($additional_product_cost) ? (float)$additional_product_cost : 0 ) );
-            $additional_qty_price         = ( $additional_qty_product_price ) ? $additional_qty_product_price : $dps_additional_qty;
+        if ( ! isset( $_POST['product_id'] ) || ! isset( $_POST['author_id'] ) ) {
+            wp_send_json_error();
         }
 
-        if ( isset( $_POST['country_id'] ) || !empty( $_POST['country_id'] ) ) {
+        $product_id = absint( wp_unslash( $_POST['product_id'] ) );
+        $author_id  = absint( wp_unslash( $_POST['author_id'] ) );
+
+        $_overwrite_shipping = get_post_meta( $product_id, '_overwrite_shipping', true );
+
+        $dps_country_rates = get_user_meta( $author_id, '_dps_country_rates', true );
+        $dps_state_rates   = get_user_meta( $author_id, '_dps_state_rates', true );
+
+        $store_shipping_type_price    = (float) get_user_meta( $author_id, '_dps_shipping_type_price', true );
+        $additional_product_cost      = (float) get_post_meta( $product_id, '_additional_price', true );
+        $base_shipping_type_price     = $store_shipping_type_price;
+        $additional_qty_product_price = (float) wc_format_decimal( get_post_meta( $product_id, '_additional_qty', true ) );
+        $dps_additional_qty           = (float) wc_format_decimal( get_user_meta( $author_id, '_dps_additional_qty', true ) );
+        $additional_qty_price         = $dps_additional_qty;
+
+        if ( $_overwrite_shipping === 'yes' ) {
+            $base_shipping_type_price     = $store_shipping_type_price + $additional_product_cost;
+            $additional_qty_price         = $additional_qty_product_price ? $additional_qty_product_price : $dps_additional_qty;
+        }
+
+        if ( isset( $_POST['country_id'] ) || ! empty( $_POST['country_id'] ) ) {
             $country = $_POST['country_id'];
         } else {
             $country = '';
@@ -1321,20 +1328,18 @@ class Ajax {
 
         $additional_quantity_cost = ( $quantity - 1 ) * $additional_qty_price;
         $flag = '';
-        ob_start(); ?>
-
-        <?php
+        ob_start();
         if ( $country != '' ) {
-            if ( isset( $dps_state_rates[$country] ) && count( $dps_state_rates[$country] ) && empty( $_POST['state'] ) ) {
-                _e( 'Please select a State from the dropdown', 'dokan' );
-            } else if ( !isset( $dps_state_rates[$country] ) && empty( $_POST['state'] ) ) {
+            if ( isset( $dps_state_rates[ $country ] ) && count( $dps_state_rates[ $country ] ) && empty( $_POST['state'] ) ) {
+                esc_html_e( 'Please select a State from the dropdown', 'dokan' );
+            } elseif ( ! isset( $dps_state_rates[ $country ] ) && empty( $_POST['state'] ) ) {
                 echo __( 'Shipping Cost : ', 'dokan' ) . '<h4>' . wc_price( $dps_country_rates[$country] + $base_shipping_type_price + $additional_quantity_cost ) . '</h4>';
-            } else if ( isset( $_POST['state'] ) && !empty( $_POST['state'] ) ) {
+            } elseif ( isset( $_POST['state'] ) && ! empty( $_POST['state'] ) ) {
                 $state = $_POST['state'];
                 echo __( 'Shipping Cost : ', 'dokan' ) . '<strong>' . wc_price( $dps_state_rates[$country][$state] + $base_shipping_type_price + $additional_quantity_cost ) . '</strong>';
             }
         } else {
-            _e( 'Please select a country from the dropdown', 'dokan' );
+            esc_html_e( 'Please select a country from the dropdown', 'dokan' );
         }
         $content = ob_get_clean();
 

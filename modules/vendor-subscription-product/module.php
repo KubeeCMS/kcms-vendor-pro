@@ -37,11 +37,11 @@ class Module {
         $this->depends_on['WC_Subscriptions'] = array(
             'name'   => 'WC_Subscriptions',
             /* translators: WooCommerce subscription plugin link */
-            'notice' => sprintf( __( '<b>Dokan Vendor Subscription Product Addon </b> requires %1$sWooCommerce Subscriptions plugin%2$s to be installed & activated first !', 'dokan' ), '<a target="_blank" href="https://woocommerce.com/products/woocommerce-subscriptions/">', '</a>' ),
+            'notice' => sprintf( __( 'Dokan <b>Vendor Subscription Product</b> requires %1$sWooCommerce Subscriptions plugin%2$s to be installed & activated first !', 'dokan' ), '<a target="_blank" href="https://woocommerce.com/products/woocommerce-subscriptions/">', '</a>' ),
         );
 
         if ( ! $this->check_if_has_dependency() ) {
-            add_action( 'admin_notices', array( $this, 'dependency_notice' ) );
+            add_filter( 'dokan_admin_notices', [ $this, 'dependency_notice' ] );
             return;
         }
 
@@ -192,16 +192,30 @@ class Module {
      * Print error notice if dependency not active
      *
      * @since 1.0.0
+     *
+     * @param array $notices
+     *
+     * @return array
      */
-    public function dependency_notice() {
-        $errors = '';
-        $error = '';
+    public function dependency_notice( $notices ) {
         foreach ( $this->dependency_error as $error ) {
-            $errors .= '<p>' . $error . '</p>';
+            $notices[] = [
+                'type'        => 'alert',
+                'title'       => __( 'Dokan Product Subscription module is almost ready!', 'dokan' ),
+                'description' => $error,
+                'priority'    => 10,
+                'actions'     => [
+                    [
+                        'type'   => 'primary',
+                        'text'   => __( 'Get Now', 'dokan' ),
+                        'target' => '_blank',
+                        'action' => esc_url( 'https://woocommerce.com/products/woocommerce-subscriptions/' ),
+                    ],
+                ],
+            ];
         }
-        $message = '<div class="error">' . $errors . '</div>';
 
-        echo $message;
+        return $notices;
     }
 
     /**

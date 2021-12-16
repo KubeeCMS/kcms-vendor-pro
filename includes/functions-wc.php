@@ -526,7 +526,7 @@ function dokan_variable_product_type_options() {
 
     jQuery('#variable_product_options').on('click', 'button.link_all_variations', function(){
 
-    var answer = confirm('<?php echo esc_js( __( 'Are you sure you want to link all variations? This will create a new variation for each and every possible combination of variation attributes (max 50 per run).', 'dokan' ) ); ?>');
+    var answer = confirm(dokan.i18n_link_all_variations);
 
     if (answer) {
 

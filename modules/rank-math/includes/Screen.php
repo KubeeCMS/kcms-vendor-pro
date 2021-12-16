@@ -139,7 +139,6 @@ class Screen implements IScreen {
      * @return array
      */
     public function get_values() {
-        $redirection = Cache::get_by_object_id( $this->get_object_id(), $this->get_object_type() );
         $values      = array_merge_recursive(
             $this->screen->get_values(),
             array(
@@ -174,13 +173,7 @@ class Screen implements IScreen {
                     'researchesTests'       => $this->get_analysis(),
                     'hasRedirection'        => Helper::is_module_active( 'redirections' ),
                     'hasBreadcrumb'         => Helper::is_breadcrumbs_enabled(),
-                    'redirection'           => $redirection
-                                            ? DB::get_redirection_by_id( $redirection->redirection_id, 'active' )
-                                            : array(
-                                                'id'          => '',
-                                                'url_to'      => '',
-                                                'header_code' => Helper::get_settings( 'general.redirections_header_code' ),
-                                            ),
+                    'redirection'           => $this->get_redirection_data(),
                     'autoCreateRedirection' => Helper::get_settings( 'general.redirections_post_redirect' ),
                 ),
                 'isPro'              => defined( 'RANK_MATH_PRO_FILE' ),
@@ -200,6 +193,32 @@ class Screen implements IScreen {
         $values = $this->do_filter( 'metabox/values', $values, $this );
 
         return $this->do_filter( 'metabox/' . $this->get_object_type() . '/values', $values, $this );
+    }
+
+    /**
+     * Retrieves redirection data
+     *
+     * @since 3.4.3
+     *
+     * @return array
+     */
+    private function get_redirection_data() {
+        $redirection = array(
+            'id'          => '',
+            'url_to'      => '',
+            'header_code' => Helper::get_settings( 'general.redirections_header_code' ),
+        );
+
+        if ( ! Helper::is_module_active( 'redirections' ) ) {
+            return $redirection;
+        }
+
+        $redirect_obj = Cache::get_by_object_id( $this->get_object_id(), $this->get_object_type() );
+        if ( $redirect_obj ) {
+            $redirection = DB::get_redirection_by_id( $redirect_obj->redirection_id, 'active' );
+        }
+
+        return $redirection;
     }
 
     /**

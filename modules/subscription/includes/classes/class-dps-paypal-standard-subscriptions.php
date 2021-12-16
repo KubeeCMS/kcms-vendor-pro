@@ -345,6 +345,7 @@ class DPS_PayPal_Standard_Subscriptions {
         $vendor_subscription = dokan()->subscription->get( $product['product_id'] );
         $subs_interval       = $vendor_subscription->get_recurring_interval();
         $no_of_product_pack  = $vendor_subscription->get_number_of_products();
+        $subscription_id     = $transaction_details['subscr_id'];
 
         if ( dokan_get_prop( $order, 'order_key' ) !== $order_key ) {
             self::log( 'Subscription IPN Error: Order Key does not match invoice.' );
@@ -362,62 +363,102 @@ class DPS_PayPal_Standard_Subscriptions {
                 update_post_meta( $order_id, 'Payer PayPal first name', $transaction_details['first_name'] );
                 update_post_meta( $order_id, 'Payer PayPal last name', $transaction_details['last_name'] );
 
-                $order->payment_complete();
+                $vendor_subscription->activate_subscription( $order );
 
-                update_user_meta( $customer_id, 'product_package_id', $product['product_id'] );
-                update_user_meta( $customer_id, 'product_order_id', $order_id );
-                update_user_meta( $customer_id, 'product_no_with_pack', $no_of_product_pack );
-                update_user_meta( $customer_id, 'product_pack_startdate', dokan_current_datetime()->format( 'Y-m-d H:i:s' ) );
-                update_user_meta( $customer_id, 'can_post_product', '1' );
-                update_user_meta( $customer_id, 'product_pack_enddate', $vendor_subscription->get_product_pack_end_date() );
+                // check subscription has trial,
+                if ( $vendor_subscription->is_trial() ) {
+                    // translators: 1) PayPal Subscription ID
+                    $order->add_order_note( sprintf( __( 'IPN subscription trial activated. Subscription ID: %s', 'dokan' ), $subscription_id ) );
 
-                if ( $vendor_subscription->is_recurring() ) {
-                    update_user_meta( $customer_id, '_customer_recurring_subscription', 'active' );
-                }
+                    // store trial information as user meta
+                    update_user_meta( $customer_id, '_dokan_subscription_is_on_trial', 'yes' );
 
-                // make all the existing product publish
-                Helper::make_product_publish( $customer_id );
+                    // store trial period also
+                    $trial_interval_unit  = $vendor_subscription->get_trial_period_types(); //day, week, month, year
+                    $trial_interval_count = absint( $vendor_subscription->get_trial_range() ); //int
 
-                $admin_commission      = get_post_meta( $product['product_id'], '_subscription_product_admin_commission', true );
-                $admin_additional_fee  = get_post_meta( $product['product_id'], '_subscription_product_admin_additional_fee', true );
-                $admin_commission_type = get_post_meta( $product['product_id'], '_subscription_product_admin_commission_type', true );
+                    $time = dokan_current_datetime();
+                    $time = $time->modify( "$trial_interval_count $trial_interval_unit" );
 
-                if ( ! empty( $admin_commission ) && ! empty( $admin_commission_type ) ) {
-                    update_user_meta( $customer_id, 'dokan_admin_percentage', $admin_commission );
-                    update_user_meta( $customer_id, 'dokan_admin_percentage_type', $admin_commission_type );
+                    if ( $time ) {
+                        update_user_meta( $customer_id, '_dokan_subscription_trial_until', $time->format( 'Y-m-d H:i:s' ) );
+                    }
                 } else {
-                    update_user_meta( $customer_id, 'dokan_admin_percentage', '' );
+                    // translators: 1) PayPal Subscription ID
+                    $order->add_order_note( sprintf( __( 'IPN subscription activated. Subscription ID: %s', 'dokan' ), $subscription_id ) );
                 }
-
-                if ( ! empty( $admin_additional_fee ) && ! empty( $admin_commission_type ) ) {
-                    update_user_meta( $customer_id, 'dokan_admin_additional_fee', $admin_additional_fee );
-                } else {
-                    update_user_meta( $customer_id, 'dokan_admin_additional_fee', '' );
-                }
-
-                do_action( 'dokan_vendor_purchased_subscription', $customer_id );
-
-                $order->add_order_note( __( 'IPN subscription sign up completed.', 'dokan' ) );
-                self::log( 'IPN subscription sign up completed for order ' );
 
                 break;
 
             case 'subscr_payment':
                 if ( 'completed' === strtolower( $transaction_details['payment_status'] ) ) {
-                    update_user_meta( $customer_id, 'dokan_has_active_cancelled_subscrption', false );
-                    update_user_meta( $customer_id, 'product_pack_startdate', dokan_current_datetime()->format( 'Y-m-d H:i:s' ) );
-                    update_user_meta( $customer_id, 'can_post_product', '1' );
-                    update_user_meta( $customer_id, 'has_pending_subscription', false );
-                    update_user_meta( $customer_id, 'product_pack_enddate', $vendor_subscription->get_product_pack_end_date() );
+                    // check if this is a renewal
+                    $is_renewal    = ! empty( $order->get_meta( '_dokan_paypal_payment_capture_id' ) );
+                    $renewal_order = null;
 
-                    do_action( 'dokan_vendor_purchased_subscription', $customer_id );
+                    if ( $is_renewal ) {
+                        // check if transaction already recorded
+                        add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', __CLASS__ . '::handle_custom_query_var', 10, 2 );
 
-                    if ( dokan_get_prop( $order, 'status' ) != 'completed' ) {
-                        $order->payment_complete();
+                        $query = new WC_Order_Query(
+                            array(
+                                'search_transaction' => $transaction_details['txn_id'],
+                                'customer_id'        => $order->get_customer_id(),
+                                'limit'              => 1,
+                                'type'               => 'shop_order',
+                                'orderby'            => 'date',
+                                'order'              => 'DESC',
+                                'return'             => 'ids',
+                            )
+                        );
+
+                        $orders = $query->get_orders();
+
+                        remove_filter( 'woocommerce_order_data_store_cpt_get_orders_query', __CLASS__ . '::handle_custom_query_var' );
+
+                        if ( ! empty( $orders ) ) {
+                            // transaction is already recorded
+                            $order->payment_complete( $transaction_details['txn_id'] );
+                            return;
+                        }
+
+                        // create new renewal order
+                        $renewal_order = Helper::create_renewal_order( $order );
+
+                        if ( is_wp_error( $renewal_order ) ) {
+                            dokan_log( '[PayPal] Create Renewal Order Failed. Error: ' . $renewal_order->get_error_message() );
+                            return;
+                        }
+
+                        // translators: %s: order number.
+                        $order_number = sprintf( _x( '#%s', 'hash before order number', 'dokan' ), $renewal_order->get_order_number() );
+
+                        // translators: %s: order number.
+                        $subscription_order_number = sprintf( _x( '#%s', 'hash before order number', 'dokan' ), $order->get_order_number() );
+
+                        // translators: placeholder is order ID
+                        $order->add_order_note( sprintf( __( 'Order %s created to record renewal.', 'dokan' ), sprintf( '<a href="%s">%s</a> ', esc_url( Helper::get_edit_post_link( $renewal_order->get_id() ) ), $order_number ) ) );
+
+                        // add order note on renewal order
+                        // translators: 1) subscription order number
+                        $renewal_order->add_order_note( sprintf( __( 'Order created to record renewal subscription for %s.', 'dokan' ), sprintf( '<a href="%s">%s</a> ', esc_url( Helper::get_edit_post_link( $order->get_id() ) ), $subscription_order_number ) ) );
+
+                        // set subscription to renewal order
+                        $order = $renewal_order;
                     }
 
+                    // Mark the order's payment as completed
+                    $order->payment_complete();
+
                     // Subscription Payment completed
-                    $order->add_order_note( sprintf( __( 'IPN subscription payment completed. txn_id#%s', 'dokan' ), $transaction_details['txn_id'] ) );
+                    $order->add_order_note( sprintf( __( 'IPN subscription payment completed. Transaction ID: %s', 'dokan' ), $transaction_details['txn_id'] ) );
+
+                    // Record payment capture id
+                    $order->update_meta_data( '_dokan_paypal_payment_capture_id', $transaction_details['txn_id'] );
+
+                    // Delete trail metas
+                    delete_user_meta( $customer_id, '_dokan_subscription_is_on_trial' );
+                    delete_user_meta( $customer_id, '_dokan_subscription_trial_until' );
                 } elseif ( 'failed' === strtolower( $transaction_details['payment_status'] ) ) {
 
                     // Subscription Payment completed
@@ -429,13 +470,13 @@ class DPS_PayPal_Standard_Subscriptions {
                 } else {
                     self::log( 'IPN subscription payment notification received for order ' . $order_id . ' with status ' . $transaction_details['payment_status'] );
                 }
+
                 break;
 
             case 'subscr_cancel':
                 self::log( 'IPN subscription cancelled for order ' . $order_id );
 
-                // Subscription Payment completed
-                $order->add_order_note( __( 'IPN subscription cancelled for order.', 'dokan' ) );
+                $order->add_order_note( __( 'IPN subscription cancelled.', 'dokan' ) );
 
                 if ( get_user_meta( $customer_id, 'product_order_id', true ) == $order_id ) {
                     Helper::log( 'Subscription cancel check: PayPal ( subscr_cancel ) has canceled Subscription of User #' . $customer_id . ' on order #' . $order_id );
@@ -484,6 +525,28 @@ class DPS_PayPal_Standard_Subscriptions {
 
         // Prevent default IPN handling for subscription txn_types
         exit;
+    }
+
+    /**
+     * Handles custom query variables
+     *
+     * @since 3.4.3
+     *
+     * @param array $query
+     * @param array $query_vars
+     *
+     * @return array
+     */
+    public static function handle_custom_query_var( $query, $query_vars ) {
+        if ( ! empty( $query_vars['search_transaction'] ) ) {
+            $query['meta_query'][] = [
+                'key'       => '_dokan_paypal_payment_capture_id',
+                'value'     => $query_vars['search_transaction'],
+                'compare'   => '=',
+            ];
+        }
+
+        return $query;
     }
 
     /**

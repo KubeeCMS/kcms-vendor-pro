@@ -14,7 +14,7 @@ class Module {
      * @uses add_action()
      */
     public function __construct() {
-        add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+        add_action( 'dokan_admin_notices', [ $this, 'admin_notices' ] );
         add_action( 'dokan_activated_module_table_rate_shipping', [ $this, 'activate' ] );
         add_action( 'plugins_loaded', [ $this, 'init' ] );
     }
@@ -26,16 +26,30 @@ class Module {
      *
      * @return void
      */
-    public function admin_notices() {
+    public function admin_notices( $notices ) {
         $dokan_appearance = get_option( 'dokan_appearance', [] );
 
         if ( ! empty( $dokan_appearance['gmap_api_key'] ) ) {
-            return;
+            return $notices;
         }
 
 		// translators: %1$s: Distance rate label, %2$s: Google map api label, %3$s: Setting url
-		$notice = sprintf( __( '%1$s shipping requires %2$s key. Please set your API Key in %3$s.', 'dokan' ), '<strong>Dokan Distance Rate</strong>', '<strong>Google Map API</strong>', '<strong>Dokan Admin Settings >Appearance</strong>' );
-		printf( '<div class="error"><p>' . $notice . '</p></div>' );
+
+        $notices[] = [
+            'type'        => 'alert',
+            'title'       => __( 'Dokan Table Rate Shipping module is almost ready!', 'dokan' ),
+            'description' => sprintf( __( '%1$s shipping requires %2$s key. Please set your API Key in %3$s.', 'dokan' ), 'Dokan <strong>Distance Rate</strong>', '<strong>Google Map API</strong>', '<strong>Dokan Admin Settings > Appearance</strong>' ),
+            'priority'    => 10,
+            'actions'     => [
+                [
+                    'type'   => 'primary',
+                    'text'   => __( 'Go to Settings', 'dokan' ),
+                    'action'  => add_query_arg( array( 'page' => 'dokan#/settings' ), admin_url( 'admin.php' ) ),
+                ],
+            ],
+        ];
+
+        return $notices;
     }
 
     /**
@@ -354,7 +368,7 @@ class Module {
      * @param string $output Output format.
      * @return mixed
      */
-    public function get_shipping_rates( $output = OBJECT, $instance_id ) {
+    public function get_shipping_rates( $output = OBJECT, $instance_id = null ) {
         global $wpdb;
 
         $rates = $wpdb->get_results( $wpdb->prepare( "SELECT * from {$wpdb->prefix}dokan_table_rate_shipping WHERE instance_id = %d ORDER BY rate_order ASC", $instance_id ), $output );
@@ -406,7 +420,7 @@ class Module {
      * @param string $output Output format.
      * @return mixed
      */
-    public function get_shipping_distance_rates( $output = OBJECT, $instance_id ) {
+    public function get_shipping_distance_rates( $output = OBJECT, $instance_id = null ) {
         global $wpdb;
 
         $rates = $wpdb->get_results( $wpdb->prepare( "SELECT * from {$wpdb->prefix}dokan_distance_rate_shipping WHERE instance_id = %d ORDER BY rate_id ASC", $instance_id ), $output );

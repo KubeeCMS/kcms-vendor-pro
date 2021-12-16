@@ -250,7 +250,7 @@ class AdminCoupons {
      * @param string $term (default: '') Term to search for.
      * @param bool   $include_variations in search or not.
      */
-    public function dokan_json_search_products_and_variations_for_coupon( $term = '', $include_variations = false ) {
+    public function dokan_json_search_products_and_variations_for_coupon( $term = '', $include_variations = true ) {
         check_ajax_referer( 'search-products', 'security' );
 
         if ( ! isset( $_GET['search_products_for_vendor_coupon'] ) ) {
@@ -343,7 +343,7 @@ class AdminCoupons {
      * @param  string     $enable_all_vendor
      * @return array of ids
      */
-    public function search_products( $term, $type = '', $include_variations = false, $all_statuses = false, $limit = null, $include = null, $exclude = null, $include_vendor_ids, $exclude_vendor_ids, $enable_all_vendor ) {
+    public function search_products( $term, $type = '', $include_variations = false, $all_statuses = false, $limit = null, $include = null, $exclude = null, $include_vendor_ids = null, $exclude_vendor_ids = null, $enable_all_vendor = null ) {
         global $wpdb;
 
         $custom_results = apply_filters( 'dokan_product_pre_search_products', false, $term, $type, $include_variations, $all_statuses, $limit );

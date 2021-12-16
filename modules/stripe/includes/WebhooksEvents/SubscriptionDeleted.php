@@ -49,6 +49,15 @@ class SubscriptionDeleted implements WebhookHandleable {
             return;
         }
 
+        // validate order
+        $order = wc_get_order( $order_id );
+        if ( ! $order ) {
+            dokan_log( '[Dokan Stripe] Webhook: SubscriptionDeleted, Invalid Order id: ' . $order_id ); // maybe deleted order
+            return;
+        }
+
+        $order->add_order_note( __( 'Subscription Cancelled.', 'dokan' ) );
+
         if ( $has_recurring ) {
             SubscriptionHelper::delete_subscription_pack( $vendor_id, $order_id );
             delete_user_meta( $vendor_id, '_stripe_subscription_id' );

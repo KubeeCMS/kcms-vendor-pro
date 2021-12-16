@@ -623,14 +623,14 @@ function dokan_add_combine_commission( $earning, $commission_rate, $commission_t
     if ( 'combine' === $commission_type ) {
         // vendor will get 100 percent if commission rate > 100
         if ( $commission_rate > 100 ) {
-            return (float) $product_price;
+            return (float) wc_format_decimal( $product_price );
         }
 
         // If `_dokan_item_total` returns `non-falsy` value that means, the request comes from the `order refund request`.
         // So modify `additional_fee` to the correct amount to get refunded. (additional_fee/item_total)*product_price.
         // Where `product_price` means item_total - refunded_total_for_item.
-        $item_total = get_post_meta( $order_id, '_dokan_item_total', true );
-
+        $item_total    = get_post_meta( $order_id, '_dokan_item_total', true );
+        $product_price = (float) wc_format_decimal( $product_price );
         if ( $order_id && $item_total ) {
             $order          = wc_get_order( $order_id );
             $additional_fee = ( $additional_fee / $item_total ) * $product_price;
@@ -641,7 +641,7 @@ function dokan_add_combine_commission( $earning, $commission_rate, $commission_t
         $earning       = (float) $product_price - $total_earning;
     }
 
-    return $earning;
+    return floatval( wc_format_decimal( $earning ) );
 }
 
 add_filter( 'dokan_prepare_for_calculation', 'dokan_add_combine_commission', 10, 6 );

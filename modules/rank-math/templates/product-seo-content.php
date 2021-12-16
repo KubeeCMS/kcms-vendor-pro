@@ -16,6 +16,10 @@
     #rank-math-metabox-wrapper .rank-math-tabs .components-panel__body .advanced-robots .components-checkbox-control input {
         width: inherit !important;
     }
+
+    #rank-math-metabox-wrapper .components-notice.is-warning {
+        display: none !important;
+    }
 </style>
 
 <div class="dokan-edit-row dokan-clearfix dokan-border-top">

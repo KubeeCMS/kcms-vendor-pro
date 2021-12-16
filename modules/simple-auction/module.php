@@ -46,7 +46,7 @@ class Module {
         );
 
         if ( ! $this->check_if_has_dependency() ) {
-            add_action( 'admin_notices', array( $this, 'dependency_notice' ) );
+            add_filter( 'dokan_admin_notices', [ $this, 'dependency_notice' ] );
             return;
         }
 
@@ -109,19 +109,34 @@ class Module {
         return $res;
     }
 
-    /*
-    * print error notice if dependency not active
-    * @since 1.5.0
-    */
-    public function dependency_notice() {
-        $errors = '';
-        $error = '';
+    /**
+     * Print error notice if dependency not active
+     *
+     * @since 1.5.0
+     *
+     * @param array $notices
+     *
+     * @return array
+     */
+    public function dependency_notice( $notices ) {
         foreach ( $this->dependency_error as $error ) {
-            $errors .= '<p>' . $error . '</p>';
+            $notices[] = [
+                'type'        => 'alert',
+                'title'       => __( 'Dokan Auction Integration module is almost ready!', 'dokan' ),
+                'description' => $error,
+                'priority'    => 10,
+                'actions'     => [
+                    [
+                        'type'   => 'primary',
+                        'text'   => __( 'Get Now', 'dokan' ),
+                        'target' => '_blank',
+                        'action' => esc_url( 'https://codecanyon.net/item/woocommerce-simple-auctions-wordpress-auctions/6811382' ),
+                    ],
+                ],
+            ];
         }
-        $message = '<div class="error">' . $errors . '</div>';
 
-        echo $message;
+        return $notices;
     }
 
     /**

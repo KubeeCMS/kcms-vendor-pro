@@ -78,7 +78,7 @@ class Module {
             add_action( 'dokan_new_seller_created', array( $this, 'set_default_geolocation_data' ), 35 );
             add_action( 'woocommerce_product_import_inserted_product_object', array( $this, 'set_product_geo_location_meta_on_import' ), 10, 2 );
         } else {
-            add_action( 'admin_notices', array( $this, 'admin_notices' ) );
+            add_filter( 'dokan_admin_notices', [ $this, 'admin_notices' ] );
         }
     }
 
@@ -205,10 +205,26 @@ class Module {
      *
      * @since 1.0.0
      *
-     * @return void
+     * @param array $notices
+     *
+     * @return array
      */
-    public function admin_notices() {
-        dokan_geo_get_template( 'admin-notices' );
+    public function admin_notices( $notices ) {
+        $notices[] = [
+            'type'        => 'alert',
+            'title'       => __( 'Dokan Geolocation module is almost ready!', 'dokan' ),
+            'description' => __( 'Dokan <strong> Geolocation Module</strong> requires Google Map API Key or Mapbox Access Token. Please set your API Key or Token in <strong>Dokan Admin Settings > Appearance</strong>.', 'dokan' ),
+            'priority'    => 10,
+            'actions'     => [
+                [
+                    'type'   => 'primary',
+                    'text'   => __( 'Go to Settings', 'dokan' ),
+                    'action'  => add_query_arg( array( 'page' => 'dokan#/settings' ), admin_url( 'admin.php' ) ),
+                ],
+            ],
+        ];
+
+        return $notices;
     }
 
     /**

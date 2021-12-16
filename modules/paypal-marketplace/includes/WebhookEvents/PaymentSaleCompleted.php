@@ -56,38 +56,6 @@ class PaymentSaleCompleted extends WebhookEventHandler {
     }
 
     /**
-     * This method will return edit order page link
-     *
-     * @param int $id
-     * @param string $context
-     *
-     * @since 3.3.7
-     *
-     * @return mixed|void
-     */
-    private function get_edit_post_link( $id = 0 ) {
-        $post = get_post( $id );
-        if ( ! $post ) {
-            return;
-        }
-
-        $action = '&action=edit';
-
-        $post_type_object = get_post_type_object( $post->post_type );
-        if ( ! $post_type_object ) {
-            return;
-        }
-
-        if ( $post_type_object->_edit_link ) {
-            $link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-        } else {
-            $link = '';
-        }
-
-        return $link;
-    }
-
-    /**
      * Handle payment sale
      *
      * @since 3.3.7
@@ -155,12 +123,12 @@ class PaymentSaleCompleted extends WebhookEventHandler {
                 $query = new WC_Order_Query(
                     [
                         'search_transaction' => $paypal_transaction_id,
-                        'customer_id' => $subscription->get_customer_id(),
-                        'limit'   => 1,
-                        'type'    => 'shop_order',
-                        'orderby' => 'date',
-                        'order'   => 'DESC',
-                        'return'  => 'ids',
+                        'customer_id'        => $subscription->get_customer_id(),
+                        'limit'              => 1,
+                        'type'               => 'shop_order',
+                        'orderby'            => 'date',
+                        'order'              => 'DESC',
+                        'return'             => 'ids',
                     ]
                 );
                 $orders = $query->get_orders();
@@ -185,10 +153,10 @@ class PaymentSaleCompleted extends WebhookEventHandler {
                 // translators: %s: order number.
                 $subscription_order_number = sprintf( _x( '#%s', 'hash before order number', 'dokan' ), $subscription->get_order_number() );
                 // translators: placeholder is order ID
-                $subscription->add_order_note( sprintf( __( 'Order %s created to record renewal.', 'dokan' ), sprintf( '<a href="%s">%s</a> ', esc_url( $this->get_edit_post_link( $renewal_order->get_id() ) ), $order_number ) ) );
+                $subscription->add_order_note( sprintf( __( 'Order %s created to record renewal.', 'dokan' ), sprintf( '<a href="%s">%s</a> ', esc_url( SubscriptionHelper::get_edit_post_link( $renewal_order->get_id() ) ), $order_number ) ) );
                 // add order note on renewal order
                 // translators: 1) subscription order number
-                $renewal_order->add_order_note( sprintf( __( 'Order created to record renewal subscription for %s.', 'dokan' ), sprintf( '<a href="%s">%s</a> ', esc_url( $this->get_edit_post_link( $subscription->get_id() ) ), $subscription_order_number ) ) );
+                $renewal_order->add_order_note( sprintf( __( 'Order created to record renewal subscription for %s.', 'dokan' ), sprintf( '<a href="%s">%s</a> ', esc_url( SubscriptionHelper::get_edit_post_link( $subscription->get_id() ) ), $subscription_order_number ) ) );
                 // set subscription to renewal order
                 $subscription = $renewal_order;
             }

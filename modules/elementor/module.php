@@ -21,7 +21,7 @@ final class Module {
      * @return void
      */
     public function __construct() {
-        add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+        add_filter( 'dokan_admin_notices', [ $this, 'admin_notices' ] );
         add_action( 'elementor_pro/init', [ $this, 'init' ] );
     }
 
@@ -72,27 +72,36 @@ final class Module {
      *
      * @since 2.9.11
      *
-     * @return 1.0.0
+     * @param array $notices
+     *
+     * @return array
      */
-    public function admin_notices() {
+    public function admin_notices( $notices ) {
         $notice = '';
 
         if ( ! class_exists( '\Elementor\Plugin' ) || ! class_exists( '\ElementorPro\Plugin' ) ) {
             // translators: %2: elementor plugin name
-            $notice = sprintf( __( 'Dokan Elementor module requires both %1$s and %2$s to be activated', 'dokan' ), '<strong>Elementor</strong>', '<strong>Elementor Pro</strong>' );
+            $notice = sprintf( __( 'Dokan Elementor module requires both %1$s and %2$s to be activated', 'dokan' ), '<a href="https://wordpress.org/plugins/elementor/" target="_blank">Elementor</a>', '<a href="https://elementor.com/pro/" target="_blank">Elementor Pro</a>' );
         }
 
         if ( defined( 'ELEMENTOR_VERSION' ) && version_compare( ELEMENTOR_VERSION, '2.5.15', '<' ) ) {
-            // translators: %s: elemenotor requires version
-            $notice = sprintf( __( 'Dokan Elementor module requires atleast %s.', 'dokan' ), '<strong>Elementor v2.5.15</strong>' );
+            // translators: %s: elementor requires version
+            $notice = sprintf( __( 'Dokan Elementor module requires at least %s.', 'dokan' ), '<strong>Elementor v2.5.15</strong>' );
         } elseif ( defined( 'ELEMENTOR_PRO_VERSION' ) && version_compare( ELEMENTOR_PRO_VERSION, '2.5.3', '<' ) ) {
-            // translators: %s: elemenotor pro requires version
-            $notice = sprintf( __( 'Dokan Elementor module requires atleast %s.', 'dokan' ), '<strong>Elementor Pro v2.5.3</strong>' );
+            // translators: %s: elementor pro requires version
+            $notice = sprintf( __( 'Dokan Elementor module requires at least %s.', 'dokan' ), '<strong>Elementor Pro v2.5.3</strong>' );
         }
 
         if ( $notice ) {
-            printf( '<div class="error"><p>' . $notice . '</p></div>' );
+            $notices[] = [
+                'type'        => 'alert',
+                'title'       => __( 'Dokan Elementor module is almost ready!', 'dokan' ),
+                'description' => $notice,
+                'priority'    => 10,
+            ];
         }
+
+        return $notices;
     }
 
     /**

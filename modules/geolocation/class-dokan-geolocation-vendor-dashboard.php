@@ -164,11 +164,7 @@ class Dokan_Geolocation_Vendor_Dashboard {
         $dokan_geo_address   = get_user_meta( $store_id, 'dokan_geo_address', true );
         $use_store_settings  = 'yes';
 
-        if ( isset( $_POST['_dokan_geolocation_use_store_settings'] ) && 'yes' !== $_POST['_dokan_geolocation_use_store_settings'] ) {
-            $use_store_settings = 'no';
-        } else if ( $geo_location_store_settings = get_post_meta( $post_id, '_dokan_geolocation_use_store_settings', true ) ) {
-            $use_store_settings = $geo_location_store_settings;
-        }
+        $use_store_settings = ! empty( $_POST['_dokan_geolocation_use_store_settings'] ) && 'no' === sanitize_text_field( $_POST['_dokan_geolocation_use_store_settings'] ) ? 'no' : 'yes';
 
         update_post_meta( $post_id, '_dokan_geolocation_use_store_settings', $use_store_settings );
 

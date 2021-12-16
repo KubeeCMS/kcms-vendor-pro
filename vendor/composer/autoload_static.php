@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9ee97958238087e45b56c05ea2b5e273
+class ComposerStaticInit02d4ce8d5ddbe03be7a72ddd0cefcf27
 {
     public static $files = array (
         '7785487378a7be19e13559cd0ddda925' => __DIR__ . '/..' . '/moip/moip-sdk-php/src/Helper/helpers.php',
@@ -2341,6 +2341,9 @@ class ComposerStaticInit9ee97958238087e45b56c05ea2b5e273
         'WeDevs\\DokanPro\\Admin\\Ajax' => __DIR__ . '/../..' . '/includes/Admin/Ajax.php',
         'WeDevs\\DokanPro\\Admin\\Announcement' => __DIR__ . '/../..' . '/includes/Admin/Announcement.php',
         'WeDevs\\DokanPro\\Admin\\AnnouncementBackgroundProcess' => __DIR__ . '/../..' . '/includes/Admin/AnnouncementBackgroundProcess.php',
+        'WeDevs\\DokanPro\\Admin\\Notices\\DokanLiteMissing' => __DIR__ . '/../..' . '/includes/Admin/Notices/DokanLiteMissing.php',
+        'WeDevs\\DokanPro\\Admin\\Notices\\Manager' => __DIR__ . '/../..' . '/includes/Admin/Notices/Manager.php',
+        'WeDevs\\DokanPro\\Admin\\Notices\\WhatsNew' => __DIR__ . '/../..' . '/includes/Admin/Notices/WhatsNew.php',
         'WeDevs\\DokanPro\\Admin\\Pointers' => __DIR__ . '/../..' . '/includes/Admin/Pointers.php',
         'WeDevs\\DokanPro\\Admin\\Promotion' => __DIR__ . '/../..' . '/includes/Admin/Promotion.php',
         'WeDevs\\DokanPro\\Admin\\ReportLogExporter' => __DIR__ . '/../..' . '/includes/Admin/ReportLogExporter.php',
@@ -2527,6 +2530,7 @@ class ComposerStaticInit9ee97958238087e45b56c05ea2b5e273
         'WeDevs\\DokanPro\\ProductSeo' => __DIR__ . '/../..' . '/includes/ProductSeo.php',
         'WeDevs\\DokanPro\\Products' => __DIR__ . '/../..' . '/includes/Products.php',
         'WeDevs\\DokanPro\\REST\\AnnouncementController' => __DIR__ . '/../..' . '/includes/REST/AnnouncementController.php',
+        'WeDevs\\DokanPro\\REST\\ChangeLogController' => __DIR__ . '/../..' . '/includes/REST/ChangeLogController.php',
         'WeDevs\\DokanPro\\REST\\CouponController' => __DIR__ . '/../..' . '/includes/REST/CouponController.php',
         'WeDevs\\DokanPro\\REST\\LogsController' => __DIR__ . '/../..' . '/includes/REST/LogsController.php',
         'WeDevs\\DokanPro\\REST\\Manager' => __DIR__ . '/../..' . '/includes/REST/Manager.php',
@@ -2583,10 +2587,10 @@ class ComposerStaticInit9ee97958238087e45b56c05ea2b5e273
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit9ee97958238087e45b56c05ea2b5e273::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit02d4ce8d5ddbe03be7a72ddd0cefcf27::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit02d4ce8d5ddbe03be7a72ddd0cefcf27::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit02d4ce8d5ddbe03be7a72ddd0cefcf27::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit02d4ce8d5ddbe03be7a72ddd0cefcf27::$classMap;
 
         }, null, ClassLoader::class);
     }

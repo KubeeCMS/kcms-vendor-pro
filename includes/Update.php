@@ -35,10 +35,10 @@ class Update {
 
         if ( is_multisite() ) {
             if ( is_main_site() ) {
-                add_action( 'admin_notices', [ $this, 'license_enter_notice' ] );
+                add_filter( 'dokan_admin_notices', [ $this, 'license_enter_notice' ] );
             }
         } else {
-            add_action( 'admin_notices', [ $this, 'license_enter_notice' ] );
+            add_filter( 'dokan_admin_notices', [ $this, 'license_enter_notice' ] );
         }
 
         add_action( 'in_plugin_update_message-' . plugin_basename( DOKAN_PRO_FILE ), [ $this, 'plugin_update_message' ] );
@@ -78,71 +78,31 @@ class Update {
     /**
      * Prompts the user to add license key if it's not already filled out
      *
-     * @return void
+     * @param array $notices
+     *
+     * @return array
      */
-    public function license_enter_notice() {
-	return;
+    public function license_enter_notice( $notices ) {
+    return;
         if ( $this->license->is_valid() ) {
-            return;
-        } ?>
-        <div class="notice error dokan-license-notice">
-            <div class="dokan-license-notice__logo">
-                <img src="<?php echo DOKAN_PLUGIN_ASSEST; ?>/images/dokan-logo-small.svg" alt="Dokan Logo">
-            </div>
-            <div class="dokan-license-notice__message">
-                <strong><?php esc_html_e( 'Activate Dokan Pro License', 'dokan' ); ?></strong>
-                <p><?php printf( __( 'Please <a href="%s">enter</a> your valid <strong>Dokan Pro</strong> plugin license key to unlock more features, premium support and future updates.', 'dokan' ), admin_url( 'admin.php?page=dokan_updates' ) ); ?></p>
-            </div>
+            return $notices;
+        }
 
-            <div class="dokan-license-notice__button">
-                <a class="button" href="<?php echo admin_url( 'admin.php?page=dokan_updates' ); ?>"><?php esc_html_e( 'Activate License', 'dokan' ); ?></a>
-            </div>
-        </div>
+        $notices[] = [
+            'type'              => 'alert',
+            'title'             => __( 'Activate Dokan Pro License', 'dokan' ),
+            'description'       => sprintf( __( 'Please <a href="%s">enter</a> your valid <strong>Dokan Pro</strong> plugin license key to unlock more features, premium support and future updates.', 'dokan' ), admin_url( 'admin.php?page=dokan_updates' ) ),
+            'priority'          => 1,
+            'actions'           => [
+                [
+                    'type'   => 'primary',
+                    'text'   => __( 'Activate License', 'dokan' ),
+                    'action' => admin_url( 'admin.php?page=dokan_updates' ),
+                ],
+            ],
+        ];
 
-        <style>
-            .notice.dokan-license-notice {
-                display: flex;
-                align-items: center;
-                padding: 15px 10px;
-                border: 1px solid #e4e4e4;
-                border-left: 4px solid #fb6e76;
-                background-image: url('<?php echo DOKAN_PLUGIN_ASSEST; ?>/images/dokan-notification-banner.svg');
-                background-repeat: no-repeat;
-                background-position: bottom right;
-            }
-
-            .dokan-license-notice__logo {
-                margin-right: 10px;
-            }
-
-            .dokan-license-notice__logo img {
-                width: 48px;
-                height: auto;
-            }
-
-            .dokan-license-notice__message {
-                flex-basis: 100%;
-            }
-
-            .dokan-license-notice__button {
-                padding: 0 25px;
-            }
-
-            .dokan-license-notice__button .button {
-                background: #fb6e76;
-                color: #fff;
-                border-color: #fb6e76;
-                font-size: 15px;
-                padding: 3px 15px;
-            }
-
-            .dokan-license-notice__button .button:hover {
-                background: #f1545d;
-                color: #fff;
-                border-color: #fb6e76;
-            }
-        </style>
-        <?php
+        return $notices;
     }
 
     /**

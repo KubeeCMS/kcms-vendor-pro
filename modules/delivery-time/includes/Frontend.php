@@ -252,18 +252,16 @@ class Frontend {
      * @since 3.3.0
      */
     public function get_vendor_delivery_time_slot() {
-        $post_data = wp_unslash( $_POST );
-
-        if ( ! isset( $post_data['action'] ) || $post_data['action'] !== 'dokan_get_delivery_time_slot' ) {
+        if ( ! isset( $_POST['action'] ) || wc_clean( wp_unslash( $_POST['action'] ) ) !== 'dokan_get_delivery_time_slot' ) {
             wp_send_json_error( __( 'Something went wrong', 'dokan' ), '403' );
         }
 
-        if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $post_data['nonce'] ) ), 'dokan_delivery_time' ) ) {
+        if ( ! isset( $_POST['nonce'] ) && ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'dokan_delivery_time' ) ) {
             wp_send_json_error( __( 'Invalid nonce', 'dokan' ) );
         }
 
-        $vendor_id = (int) $post_data['vendor_id'];
-        $date      = $post_data['date'];
+        $vendor_id = ! empty( $_POST['vendor_id'] ) ? sanitize_text_field( wp_unslash( $_POST['vendor_id'] ) ) : '';
+        $date      = ! empty( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
 
         if ( empty( $vendor_id ) || empty( $date ) || ! strtotime( $date ) ) {
             wp_send_json_error( [ 'message' => __( 'No date or vendor id found.', 'dokan' ) ], 400 );
@@ -298,7 +296,7 @@ class Frontend {
         foreach ( $posted_data as $data ) {
             if ( 'on' === $is_time_selection_required && ! empty( $data['selected_delivery_type'] ) && ( ! empty( $data['vendor_id'] ) && empty( $data['delivery_date'] ) ) ) {
                 /* translators: %1$s selected delivery type name, %2$s: store name */
-                $errors->add( 'dokan_delivery_date_required_error', sprintf( __( 'Please make sure you have selected the %1$s date for %2$s.', 'dokan' ), $data['selected_delivery_type'], $data['store_name'] ) );
+                $errors->add( 'dokan_delivery_date_required_error', sprintf( __( 'Please make sure you have selected the %1$s date for %2$s.', 'dokan' ), StorePickupHelper::get_formatted_delivery_type( $data['selected_delivery_type'] ), $data['store_name'] ) );
             }
 
             if ( ! empty( $data['selected_delivery_type'] ) && ( ! empty( $data['vendor_id'] ) && ! empty( $data['delivery_date'] ) ) && empty( $data['delivery_time_slot'] ) ) {

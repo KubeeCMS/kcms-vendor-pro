@@ -119,13 +119,13 @@ class Shortcode {
                     if ( ! ( ! $subscription->is_recurring() && $subscription->has_active_cancelled_subscrption() ) ) {
                         ?>
                         <p>
-                        <form action="" method="post">
+                        <form id="dps_submit_form" action="" method="post">
                             <?php
                             $maybe_reactivate = $subscription->is_recurring() && $subscription->has_active_cancelled_subscrption();
                             $notice           = $maybe_reactivate ? __( 'activate', 'dokan' ) : __( 'cancel', 'dokan' );
                             $nonce            = $maybe_reactivate ? 'dps-sub-activate' : 'dps-sub-cancel';
                             $input_name       = $maybe_reactivate ? 'dps_activate_subscription' : 'dps_cancel_subscription';
-                            $btn_class        = $maybe_reactivate ? 'btn-success' : 'btn-danger';
+                            $btn_class        = $maybe_reactivate ? 'dokan-btn-success' : 'dokan-btn-danger';
                             $again            = $maybe_reactivate ? __( 'again', 'dokan' ) : '';
                             ?>
 
@@ -137,7 +137,8 @@ class Shortcode {
                             </label>
 
                             <?php wp_nonce_field( $nonce ); ?>
-                            <input type="submit" name="<?php echo esc_attr( $input_name ); ?>" class="<?php echo esc_attr( "btn btn-sm {$btn_class}" ); ?>" value="<?php echo esc_attr( ucfirst( $notice ) ); ?>">
+                            <input type="hidden" name="<?php echo esc_attr( $input_name ); ?>" value="1">
+                            <input type="submit" name="dps_submit" class="<?php echo esc_attr( "btn btn-sm {$btn_class}" ); ?>" value="<?php echo esc_attr( ucfirst( $notice ) ); ?>">
                         </form>
                         </p>
                         <?php

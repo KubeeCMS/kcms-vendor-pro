@@ -24,6 +24,7 @@ class Manager {
         $class_map[ DOKAN_PRO_INC . '/REST/AnnouncementController.php' ]     = AnnouncementController::class;
         $class_map[ DOKAN_PRO_INC . '/REST/LogsController.php' ]             = LogsController::class;
         $class_map[ DOKAN_PRO_INC . '/REST/RefundController.php' ]           = RefundController::class;
+        $class_map[ DOKAN_PRO_INC . '/REST/ChangeLogController.php' ]        = ChangeLogController::class;
 
         return $class_map;
     }

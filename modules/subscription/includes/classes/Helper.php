@@ -658,6 +658,7 @@ class Helper {
         delete_user_meta( $customer_id, '_dokan_paypal_marketplace_vendor_subscription_id' );
         delete_user_meta( $customer_id, '_dokan_subscription_is_on_trial' );
         delete_user_meta( $customer_id, '_dokan_subscription_trial_until' );
+        delete_user_meta( $customer_id, '_stripe_subscription_id' );
 
         // make product status draft after subscriptions is got cancelled.
         if ( self::check_vendor_has_existing_product( $customer_id ) ) {
@@ -964,6 +965,83 @@ class Helper {
         }
 
         return $haystack;
+    }
+
+    /**
+     * Generates post edit link
+     *
+     * @since 3.4.3
+     *
+     * @param integer $post_id
+     *
+     * @return string
+     */
+    public static function get_edit_post_link( $post_id = null ) {
+        $post = get_post( $post_id );
+        if ( ! $post ) {
+            return;
+        }
+
+        $post_type_object = get_post_type_object( $post->post_type );
+        if ( ! $post_type_object ) {
+            return;
+        }
+
+        $link = '';
+        if ( $post_type_object->_edit_link ) {
+            $link = admin_url( sprintf( $post_type_object->_edit_link . '&action=edit', $post->ID ) );
+        }
+
+        return $link;
+    }
+
+    /**
+     * Handle Subscription Activation on trial.
+     *
+     * Before calling this function, must confirms that the subscription is on trial.
+     *
+     * @since 3.4.3
+     *
+     * @param \WC_Order        $order
+     * @param SubscriptionPack $subscription
+     * @param string           $subscription_id
+     *
+     * @return void
+     */
+    public static function activate_trial_subscription( \WC_Order $order, SubscriptionPack $subscription, $subscription_id ) {
+        // Get vendor from Order
+        $vendor_id = $order->get_customer_id();
+
+        // translators: 1) Stripe Subscription ID coming from stripe event
+        $order->add_order_note( sprintf( __( 'Subscription Trial activated. Subscription ID: %s', 'dokan' ), $subscription_id ) );
+
+        // store trial information as user meta
+        update_user_meta( $vendor_id, '_dokan_subscription_is_on_trial', 'yes' );
+
+        // store trial period also
+        $trial_interval_unit  = $subscription->get_trial_period_types(); //day, week, month, year
+        $trial_interval_count = absint( $subscription->get_trial_range() ); //int
+
+        $time = dokan_current_datetime();
+        $time = $time->modify( "$trial_interval_count $trial_interval_unit" );
+
+        if ( $time ) {
+            update_user_meta( $vendor_id, '_dokan_subscription_trial_until', $time->format( 'Y-m-d H:i:s' ) );
+        }
+    }
+
+    /**
+     * Delete Trial Meta data for vendor.
+     *
+     * @since 3.4.3
+     *
+     * @param int $vendor_id
+     *
+     * @return void
+     */
+    public static function delete_trial_meta_data( $vendor_id ) {
+        delete_user_meta( $vendor_id, '_dokan_subscription_is_on_trial' );
+        delete_user_meta( $vendor_id, '_dokan_subscription_trial_until' );
     }
 }
 

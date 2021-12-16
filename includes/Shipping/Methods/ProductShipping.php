@@ -262,7 +262,7 @@ class ProductShipping extends WC_Shipping_Method {
                         $price[ $seller_id ]['addition_price'][] = 0;
                     }
 
-                    $price[ $seller_id ]['default'] = floatval( $default_shipping_price );
+                    $price[ $seller_id ]['default'] = (float) wc_format_decimal( $default_shipping_price );
 
                     if ( $product['quantity'] > 1 ) {
                         $price[ $seller_id ]['qty'][] = ( ( $product['quantity'] - 1 ) * floatval( $default_shipping_qty_price ) );
@@ -273,7 +273,7 @@ class ProductShipping extends WC_Shipping_Method {
                 }
 
                 if ( count( $products ) > 1 ) {
-                    $price[ $seller_id ]['add_product'] =  floatval( $default_shipping_add_price ) * ( count( $products) - ( 1 + $downloadable_count ) );
+                    $price[ $seller_id ]['add_product'] =  (float) wc_format_decimal( floatval( $default_shipping_add_price ) * ( count( $products ) - ( 1 + $downloadable_count ) ) );
                 } else {
                     $price[ $seller_id ]['add_product'] = 0;
                 }
@@ -285,23 +285,23 @@ class ProductShipping extends WC_Shipping_Method {
 
                     if ( array_key_exists( $destination_state, $dps_state_rates[$destination_country] ) ) {
                         if ( isset( $dps_state_rates[$destination_country][$destination_state] ) ) {
-                            $price[$seller_id]['state_rates'] = floatval( $dps_state_rates[$destination_country][$destination_state] );
+                            $price[$seller_id]['state_rates'] = (float) wc_format_decimal( $dps_state_rates[$destination_country][$destination_state] );
                         } else {
-                            $price[$seller_id]['state_rates'] = ( isset( $dps_country_rates[$destination_country] ) ) ? floatval( $dps_country_rates[$destination_country] ) : 0;
+                            $price[$seller_id]['state_rates'] = ( isset( $dps_country_rates[$destination_country] ) ) ? (float) wc_format_decimal( $dps_country_rates[ $destination_country ] ) : 0;
                         }
 
                     } elseif ( array_key_exists( 'everywhere', $dps_state_rates[$destination_country] ) ) {
-                        $price[$seller_id]['state_rates'] = ( isset( $dps_state_rates[$destination_country]['everywhere'] ) ) ? floatval( $dps_state_rates[$destination_country]['everywhere'] ) : 0;
+                        $price[$seller_id]['state_rates'] = ( isset( $dps_state_rates[$destination_country]['everywhere'] ) ) ? (float) wc_format_decimal( $dps_state_rates[ $destination_country ]['everywhere'] ) : 0;
                     } else {
                         $price[$seller_id]['state_rates'] = 0;
                     }
 
                 } else {
 
-                    if ( !array_key_exists( $destination_country, $dps_country_rates ) ) {
-                        $price[$seller_id]['state_rates'] = isset( $dps_country_rates['everywhere'] ) ? floatval( $dps_country_rates['everywhere'] ) : 0;
+                    if ( ! array_key_exists( $destination_country, $dps_country_rates ) ) {
+                        $price[$seller_id]['state_rates'] = isset( $dps_country_rates['everywhere'] ) ? (float) wc_format_decimal( $dps_country_rates['everywhere'] ) : 0;
                     } else {
-                        $price[$seller_id]['state_rates'] = ( isset( $dps_country_rates[$destination_country] ) ) ? floatval( $dps_country_rates[$destination_country] ) : 0;
+                        $price[$seller_id]['state_rates'] = ( isset( $dps_country_rates[$destination_country] ) ) ? (float) wc_format_decimal( $dps_country_rates[$destination_country] ) : 0;
                     }
                 }
             }

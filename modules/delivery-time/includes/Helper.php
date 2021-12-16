@@ -297,16 +297,38 @@ class Helper {
         $vendor_can_override_settings = dokan_get_option( 'allow_vendor_override_settings', 'dokan_delivery_time', 'off' );
 
         // Getting admin slot settings
-        $admin_slot_settings = get_option( '_dokan_delivery_slot_settings', [] );
+        $delivery_slot_settings = get_option( '_dokan_delivery_slot_settings', [] );
+
+        // Getting admin buffer day setting
+        $delivery_buffer_days = dokan_get_option( 'preorder_date', 'dokan_delivery_time', '0' );
+        $time_slot_duration   = dokan_get_option( 'time_slot_minutes', 'dokan_delivery_time', '0' );
+
+        // Get todays date data
+        $now   = dokan_current_datetime();
+        $today = strtolower( $now->format( 'l' ) );
 
         // Getting vendor slot settings
         $vendor_slot_settings = get_user_meta( $vendor_id, '_dokan_vendor_delivery_time_slots', true );
-
         if ( 'on' === $vendor_can_override_settings && ( is_array( $vendor_slot_settings ) && ! empty( $vendor_slot_settings ) ) ) {
-            return $vendor_slot_settings;
+            $delivery_slot_settings        = $vendor_slot_settings;
+            $vendor_delivery_time_settings = get_user_meta( $vendor_id, '_dokan_vendor_delivery_time_settings', true );
+            $delivery_buffer_days          = isset( $vendor_delivery_time_settings['preorder_date'] ) ? $vendor_delivery_time_settings['preorder_date'] : '0';
+            $time_slot_duration            = isset( $vendor_delivery_time_settings['time_slot_minutes'][ $today ] ) ? $vendor_delivery_time_settings['time_slot_minutes'][ $today ] : '0';
         }
 
-        return $admin_slot_settings;
+        // return if delivery time slo
+        if ( 0 !== intval( $delivery_buffer_days ) || ! array_key_exists( $today, $delivery_slot_settings ) ) {
+            return $delivery_slot_settings;
+        }
+
+        $current_time = $now->modify( "+ $time_slot_duration minutes" )->format( 'h:i a' );
+        $delivery_slot_settings[ $today ] = array_filter(
+            $delivery_slot_settings[ $today ], function( $data ) use ( $current_time ) {
+                return strtotime( $data['start'] ) > strtotime( $current_time );
+            }
+        );
+
+        return $delivery_slot_settings;
     }
 
     /**

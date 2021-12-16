@@ -43,10 +43,10 @@ class ProductBulkEdit {
             dokan_get_template_part(
                 'global/dokan-success',
                 '',
-                array(
+                [
                     'deleted' => true,
                     'message' => __( 'Product successfully updated.', 'dokan' ),
-                )
+                ]
             );
         }
     }
@@ -64,7 +64,8 @@ class ProductBulkEdit {
         if ( ! current_user_can( 'dokan_edit_product' ) ) {
             return $bulk_statuses;
         }
-        return dokan_array_insert_after( $bulk_statuses, [ 'edit' => __( 'Edit', 'dokan' ) ], -1 );
+
+        return dokan_array_insert_after( $bulk_statuses, [ 'edit' => __( 'Edit', 'dokan' ) ], - 1 );
     }
 
     /**
@@ -79,41 +80,40 @@ class ProductBulkEdit {
             return;
         }
 
-        $shipping_class     = get_terms( 'product_shipping_class', [ 'hide_empty' => false ] );
-        $post_statuses      = [
+        $shipping_class = get_terms( 'product_shipping_class', [ 'hide_empty' => false ] );
+        $post_statuses  = [
             ''        => __( '— No change —', 'dokan' ),
             'draft'   => __( 'Draft', 'dokan' ),
             'publish' => __( 'Online', 'dokan' ),
         ];
-        $comment_status     = [
+        $comment_status = [
             ''      => __( '— No change —', 'dokan' ),
             'open'  => __( 'Allow', 'dokan' ),
             'close' => __( 'Do not Allow', 'dokan' ),
         ];
-        $price              = [
+        $price          = [
             ''  => __( '— No change —', 'dokan' ),
             '1' => __( 'Change to:', 'dokan' ),
             '2' => __( 'Increase existing price by (fixed amount or %):', 'dokan' ),
             '3' => __( 'Decrease existing price by (fixed amount or %):', 'dokan' ),
         ];
-        $sale               = [
+        $sale           = [
             ''  => __( '— No change —', 'dokan' ),
             '1' => __( 'Change to:', 'dokan' ),
             '2' => __( 'Increase existing sale price by (fixed amount or %):', 'dokan' ),
             '3' => __( 'Decrease existing sale price by (fixed amount or %):', 'dokan' ),
             '4' => __( 'Set to regular price decreased by (fixed amount or %):', 'dokan' ),
         ];
-        $tax_status         = [
+        $tax_status     = [
             ''         => __( '— No change —', 'dokan' ),
             'taxable'  => __( 'Taxable', 'dokan' ),
             'shipping' => __( 'Shipping only', 'dokan' ),
             'none'     => _x( 'None', 'Tax status', 'dokan' ),
         ];
-        $tax_class          = [
-            ''         => __( '— No change —', 'dokan' ),
-            'standard' => __( 'Standard', 'dokan' ),
-        ];
-        $tax_classes        = WC_Tax::get_tax_classes();
+        $tax_classes    = WC_Tax::get_tax_classes();
+        if ( ! in_array( '', $tax_classes, true ) ) { // Make sure "Standard rate" (empty class name) is present.
+            array_unshift( $tax_classes, 'Standard' );
+        }
         $weight             = [
             ''  => __( '— No change —', 'dokan' ),
             '1' => __( 'Change to:', 'dokan' ),
@@ -157,7 +157,6 @@ class ProductBulkEdit {
             'price'              => $price,
             'sale'               => $sale,
             'tax_status'         => $tax_status,
-            'tax_class'          => $tax_class,
             'tax_classes'        => $tax_classes,
             'weight'             => $weight,
             'lwh'                => $lwh,
@@ -190,6 +189,7 @@ class ProductBulkEdit {
 
         if ( ! current_user_can( 'dokan_edit_product' ) ) {
             wc_add_notice( __( 'You don\'t have the permission.', 'dokan' ), 'error' );
+
             return;
         }
 
@@ -204,7 +204,7 @@ class ProductBulkEdit {
         }
 
         if ( ! empty( $request_data['product_tags'] ) ) {
-            $product_tags = [];
+            $product_tags    = [];
             $can_create_tags = 'on' === dokan_get_option( 'product_vendors_can_create_tags', 'dokan_selling', 'off' );
 
             foreach ( $request_data['product_tags'] as $tag ) {
@@ -228,7 +228,7 @@ class ProductBulkEdit {
         }
 
         // set product status
-        $post_status = '';
+        $post_status    = '';
         $pending_review = 'on' === dokan_get_option( 'edited_product_status', 'dokan_selling', 'off' );
 
         if ( $pending_review ) {
@@ -242,7 +242,7 @@ class ProductBulkEdit {
         if ( ! empty( $bulk_products ) ) {
             foreach ( $bulk_products as $post_id ) {
                 // Get the product and save.
-                $product = new WC_Product( $post_id );
+                $product = wc_get_product( $post_id );
 
                 // Make sure it's a product object
                 if ( ! is_a( $product, 'WC_Product' ) ) {
@@ -271,9 +271,9 @@ class ProductBulkEdit {
             global $wp;
             $redirect_url = home_url(
                 add_query_arg(
-                    array(
+                    [
                         $_GET,
-                    ), $wp->request
+                    ], $wp->request
                 )
             );
 
@@ -422,7 +422,7 @@ class ProductBulkEdit {
         }
 
         if ( ! empty( $request_data['product_tags'] ) ) {
-            $tags_to_add = array_merge( $product->get_tag_ids(), $request_data['product_tags'] );
+            $tags_to_add                = array_merge( $product->get_tag_ids(), $request_data['product_tags'] );
             $maximum_tags_select_length = apply_filters( 'dokan_product_tags_select_max_length', - 1 );
 
             // Setting limitation for how many product tags that vendor can input.

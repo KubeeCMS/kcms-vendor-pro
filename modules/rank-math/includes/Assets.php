@@ -82,7 +82,6 @@ class Assets extends RankMathAssets {
             'wp-url',
             'wp-media-utils',
             'wp-url',
-            'tagify',
             'wp-block-editor',
         );
     }

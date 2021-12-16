@@ -191,4 +191,21 @@ class Helper {
 
         return true;
     }
+
+    /**
+     *Get translated delivary type string
+     *
+     * @param string $type
+     *
+     * @return string
+     */
+    public static function get_formatted_delivery_type( $type ) {
+        switch ( $type ) {
+            case 'delivery':
+                return __( 'Delivery', 'dokan' );
+            case 'store-pickup':
+                return __( 'Store Pickup', 'dokan' );
+        }
+    }
 }
+

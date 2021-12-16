@@ -25,8 +25,9 @@ class Module {
                 return;
             }
 
-            add_action( 'admin_notices', array( $this, 'rank_math_activation_notice' ) );
+            add_filter( 'dokan_admin_notices', [ $this, 'rank_math_activation_notice' ] );
             add_action( 'wp_ajax_dokan_install_rank_math_seo', array( $this, 'install_rank_math_seo' ) );
+            add_action( 'wp_ajax_dokan_activate_rank_math_seo', array( $this, 'activate_rank_math_seo' ) );
 
             //return from here
             return;
@@ -46,13 +47,81 @@ class Module {
      *
      * @since 3.4.0
      *
-     * @return void
+     * @param array $notices
+     *
+     * @return array
      * */
-    public function rank_math_activation_notice() {
+    public function rank_math_activation_notice( $notices ) {
         $rank_math_plugin_file  = 'seo-by-rank-math/rank-math.php';
         $is_rank_math_installed = $this->is_rank_math_installed();
 
-        include_once DOKAN_RANK_MATH_TEMPLATE_PATH . 'rank-math-activation-notice.php';
+        if ( $is_rank_math_installed ) {
+            $notices[] = [
+                'type'        => 'success',
+                'title'       => __( 'Dokan Rank Math SEO module is almost ready!', 'dokan' ),
+                'description' => sprintf( __( 'You just need to activate the %s plugin to make it functional.', 'dokan' ), '<strong>Rank Math SEO</strong>' ),
+                'priority'    => 10,
+                'actions'     => [
+                    [
+                        'type'           => 'primary',
+                        'text'           => __( 'Activate this plugin', 'dokan' ),
+                        'loading_text'   => __( 'Activating...', 'dokan' ),
+                        'completed_text' => __( 'Activated', 'dokan' ),
+                        'reload'         => true,
+                        'ajax_data'      => [
+                            'action'   => 'dokan_activate_rank_math_seo',
+                            '_wpnonce' => wp_create_nonce( 'dokan-rank-math-activate-nonce' ),
+                        ],
+                    ],
+                ],
+            ];
+        } else {
+            $notices[] = [
+                'type'        => 'alert',
+                'title'       => __( 'Dokan Rank Math SEO module is almost ready!', 'dokan' ),
+                'description' => sprintf( __( 'You just need to install the %s plugin to make it functional.', 'dokan' ), '<a target="_blank" href="https://wordpress.org/plugins/seo-by-rank-math/">Rank Math SEO</a>' ),
+                'priority'    => 10,
+                'actions'     => [
+                    [
+                        'type'           => 'secondary',
+                        'text'           => __( 'Install Now', 'dokan' ),
+                        'loading_text'   => __( 'Installing...', 'dokan' ),
+                        'completed_text' => __( 'Installed', 'dokan' ),
+                        'reload'         => true,
+                        'ajax_data'      => [
+                            'action'   => 'dokan_install_rank_math_seo',
+                            '_wpnonce' => wp_create_nonce( 'dokan-rank-math-installer-nonce' ),
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        return $notices;
+    }
+
+    /**
+     * Activate Rank Math SEO plugin
+     *
+     * @since 3.4.3
+     *
+     * @return void
+     * */
+    public function activate_rank_math_seo() {
+        if (
+            ! isset( $_REQUEST['_wpnonce'] ) ||
+            ! wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'dokan-rank-math-activate-nonce' ) // phpcs:ignore
+        ) {
+            wp_send_json_error( __( 'Error: Nonce verification failed', 'dokan' ) );
+        }
+
+        if ( ! current_user_can( 'manage_woocommerce' ) ) {
+            wp_send_json_error( __( 'You have no permission to do that', 'dokan-lite' ) );
+        }
+
+        activate_plugin( 'seo-by-rank-math/rank-math.php' );
+
+        wp_send_json_success();
     }
 
     /**
@@ -65,7 +134,7 @@ class Module {
     public function install_rank_math_seo() {
         if (
             ! isset( $_REQUEST['_wpnonce'] ) ||
-            ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'dokan-rank-math-installer-nonce' ) // phpcs:ignore
+            ! wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'dokan-rank-math-installer-nonce' ) // phpcs:ignore
         ) {
             wp_send_json_error( __( 'Error: Nonce verification failed', 'dokan' ) );
         }

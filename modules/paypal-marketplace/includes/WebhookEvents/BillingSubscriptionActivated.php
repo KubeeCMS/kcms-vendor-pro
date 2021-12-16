@@ -140,10 +140,9 @@ class BillingSubscriptionActivated extends WebhookEventHandler {
             $trial_interval_unit  = $subscription->get_trial_period_types(); //day, week, month, year
             $trial_interval_count = absint( $subscription->get_trial_range() ); //int
 
-            $time = dokan_current_datetime();
-            $time = $time->modify( "$trial_interval_count $trial_interval_unit" );
+            $time = dokan_current_datetime()->modify( "$trial_interval_count $trial_interval_unit" );
             if ( $time ) {
-                update_user_meta( '_dokan_subscription_trial_until', $time->format( 'Y-m-d H:i:s' ) );
+                update_user_meta( $vendor_id, '_dokan_subscription_trial_until', $time->format( 'Y-m-d H:i:s' ) );
             }
         } else {
             // translators: 1) PayPal Subscription ID

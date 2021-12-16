@@ -3,6 +3,7 @@
 namespace WeDevs\DokanPro\Modules\Stripe;
 
 use Stripe\BalanceTransaction;
+use Stripe\Charge;
 use Stripe\Stripe;
 use WeDevs\Dokan\Exceptions\DokanException;
 use WeDevs\DokanPro\Modules\Stripe\Settings\RetrieveSettings;
@@ -511,6 +512,23 @@ class Helper {
     }
 
     /**
+     * Get Stripe Invoice Gateway Fee From Charge ID.
+     *
+     * @since 3.4.3
+     *
+     * @param string  $charge_id
+     * @param boolean $is_formatted
+     *
+     * @return int|float|string
+     */
+    public static function get_gateway_fee_from_charge_id( $charge_id, $is_formatted = false ) {
+        $charge      = Charge::retrieve( $charge_id, [ 'expand' => [ 'balance_transaction' ] ] );
+        $gateway_fee = self::format_gateway_balance_fee( $charge->balance_transaction );
+
+        return $is_formatted ? $gateway_fee : abs( $gateway_fee );
+    }
+
+    /**
      * Get no decimal currencies
      *
      * @return array
@@ -715,5 +733,17 @@ class Helper {
             $localized_message = __( 'Checking Payment Source: Payment processing failed. Please retry.', 'dokan' );
             throw new DokanException( print_r( $prepared_source, true ), $localized_message );
         }
+    }
+
+    /**
+     * Check whether subscription module is enabled or not.
+     *
+     * @since 3.4.3
+     *
+     * @return bool
+     */
+    public static function has_vendor_subscription_module() {
+        // don't confused with product_subscription, id for vendor subscription module is product_subscription
+        return function_exists( 'dokan_pro' ) && dokan_pro()->module->is_active( 'product_subscription' );
     }
 }

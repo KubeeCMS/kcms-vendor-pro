@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: KCMS Vendor Pro
- * Plugin URI: https://github.com/KubeeCMS/kcms-vendor/
- * Description: E-commerce marketplace pro.
+ * Plugin Name: Dokan Pro
+ * Plugin URI: https://wedevs.com/dokan/
+ * Description: An e-commerce marketplace plugin for WordPress. Powered by WooCommerce and weDevs.
  * Version: 3.4.3
- * Author: Kubee
- * Author URI: https://github.com/KubeeCMS/
- * WC requires at least: 5.0
- * WC tested up to: 6.0
+ * Author: weDevs
+ * Author URI: https://wedevs.com/
+ * WC requires at least: 3.0
+ * WC tested up to: 5.9.0
  * License: GPL2
  * TextDomain: dokan
  */

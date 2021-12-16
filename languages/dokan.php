@@ -235,6 +235,7 @@ return [
 	__( 'Vendor Updated', 'dokan' ),
 	__( 'Vendor Updated Successfully!', 'dokan' ),
 	__( 'Zone Name', 'dokan' ),
+	__( 'Region(s)', 'dokan' ),
 	__( 'Shipping Method', 'dokan' ),
 	__( 'No method found', 'dokan' ),
 	__( 'Add Shipping Method', 'dokan' ),

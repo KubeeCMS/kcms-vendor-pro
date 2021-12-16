@@ -21,7 +21,7 @@ class RegisterWithdrawMethods {
      * @return void
      */
     public function __construct() {
-        add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+        add_filter( 'dokan_admin_notices', [ $this, 'admin_notices' ] );
 
         if ( ! Helper::is_ready() ) {
             return;
@@ -52,25 +52,54 @@ class RegisterWithdrawMethods {
      *
      * @since 3.0.4
      *
-     * @return 1.0.0
+     * @param array $notices
+     *
+     * @return array
      */
-    public function admin_notices() {
+    public function admin_notices( $notices ) {
         if ( ! Helper::is_enabled() || ! Helper::get_secret_key() || ! Helper::get_client_id() ) {
+            $mode = Helper::is_test_mode() ? __( 'Test', 'dokan' ) : __( 'Live', 'dokan' );
             $notice = sprintf(
-                    __( 'Please insert Live %s credential to use Live Mode', 'dokan' ),
-                    '<strong>Stripe</strong>'
-                );
-            printf( '<div class="error"><p>' . $notice . '</p></div>' );
+            // translators: 1) test or live mode, 2) Stripe, 3) test or live mode
+                __( 'Please insert %1$s %2$s credential to use %3$s Mode', 'dokan' ), $mode, '<strong>Stripe</strong>', $mode
+            );
+            $notices[] = [
+                'type'        => 'alert',
+                'title'       => __( 'Dokan Stripe Connect module is almost ready!', 'dokan' ),
+                'description' => $notice,
+                'priority'    => 10,
+                'actions'     => [
+                    [
+                        'type'    => 'primary',
+                        'text'    => __( 'Go to Settings', 'dokan' ),
+                        'actions' => esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=dokan-stripe-connect' ) ),
+                        'action'  => add_query_arg(
+                            array(
+                                'page'    => 'wc-settings',
+                                'tab'     => 'checkout',
+                                'section' => 'dokan-stripe-connect',
+                            ), admin_url( 'admin.php' )
+                        ),
+                    ],
+                ],
+            ];
         }
 
         if ( ! is_ssl() && ! Helper::is_test_mode() ) {
-           $notice = sprintf(
-                    __( '%s requires %s', 'dokan' ),
-                    '<strong>Dokan Stripe Connect</strong>',
-                    '<strong>SSL</strong>'
-                );
-            printf( '<div class="error"><p>' . $notice . '</p></div>' );
+            /* translators: 1: Dokan Stripe Connect 2: SSL Mode */
+            $notice = sprintf(
+                __( '%1s requires %2s', 'dokan' ),
+                '<strong>Dokan Stripe Connect</strong>',
+                '<strong>SSL</strong>'
+            );
+            $notices[] = [
+                'type'        => 'alert',
+                'description' => $notice,
+                'priority'    => 10,
+            ];
         }
+
+        return $notices;
     }
 
     /**
