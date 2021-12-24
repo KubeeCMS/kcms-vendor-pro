@@ -83,7 +83,6 @@ class Update {
      * @return array
      */
     public function license_enter_notice( $notices ) {
-    return;
         if ( $this->license->is_valid() ) {
             return $notices;
         }

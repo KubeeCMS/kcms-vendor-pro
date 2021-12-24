@@ -1,3 +1,9 @@
+v3.4.4 Dec 23, 2021
+----------------------------------
+
+- **fix:** SEO section is not appearing while the latest Yoast SEO plugin (17.8) is installed and activated #1658
+- **fix:** Refund not working if order has sub order #1656
+
 v3.4.3 Dec 15, 2021
 ----------------------------------
 

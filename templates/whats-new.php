@@ -4,6 +4,22 @@
  */
 $changelog = [
     [
+        'version'  => 'Version 3.4.4',
+        'released' => '2021-12-23',
+        'changes'  => [
+            'Fix' => [
+                [
+                    'title'       => 'SEO section is not appearing while the latest Yoast SEO plugin (17.8) is installed and activated.',
+                    'description' => '',
+                ],
+                [
+                    'title'       => 'Refund not working if order has sub order.',
+                    'description' => '',
+                ],
+            ],
+        ]
+    ],
+    [
         'version'  => 'Version 3.4.3',
         'released' => '2021-12-15',
         'changes'  => [

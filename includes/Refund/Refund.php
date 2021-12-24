@@ -668,11 +668,29 @@ class Refund extends DokanModel {
             'restock_items'  => $restock_refunded_items,
         ];
 
+        /*
+         * First, Create the refund object for order or suborder depending on condition.
+         * If it is sub order, Only a refund record will be created.
+         * No request will be sent to payment processor.
+         */
+        $refund = wc_create_refund( $arr );
+
+        if ( is_wp_error( $refund ) ) {
+            // translators: 1: Order number.
+            dokan_log( sprintf( __( 'Refund processing for the order #%d failed.', 'dokan' ), $this->get_order_id() ) );
+            $this->cancel();
+            return new WP_Error( 'dokan_pro_refund_error_processing', __( 'This refund is failed to process.', 'dokan' ) );
+        }
+
+        /**
+         * If refund is a sub-order, then create a refund for parent order also.
+         * It's just for keeping a track of refund amount.
+         */
         if ( dokan_is_sub_order( $this->get_order_id() ) ) {
             $parent_order_id = wp_get_post_parent_id( $this->get_order_id() );
 
             // Create the refund object for parent order.
-            $refund = wc_create_refund(
+            $parent_refund = wc_create_refund(
                 [
                     'amount'         => $this->get_refund_amount(),
                     'reason'         => $this->get_refund_reason(),
@@ -683,9 +701,12 @@ class Refund extends DokanModel {
                 ]
             );
 
-            if ( is_wp_error( $refund ) ) {
+            if ( is_wp_error( $parent_refund ) ) {
+                // Delete the refund which is created for the order/sub-order.
+                $refund->delete();
+
                 // translators: 1: Order number.
-                dokan_log( sprintf( __( 'Refund processing for the suborder #%1$s failed.', 'dokan' ), $this->get_order_id() ) );
+                dokan_log( sprintf( __( 'Refund processing for the suborder #%d failed.', 'dokan' ), $this->get_order_id() ) );
                 $this->cancel();
                 return new WP_Error( 'dokan_pro_refund_error_processing', __( 'This refund is failed to process.', 'dokan' ) );
             }
@@ -695,29 +716,16 @@ class Refund extends DokanModel {
             $parent_order->add_order_note(
                 sprintf(
                     // translators: 1: Payment gateway name 2: Refund Reason 3:Suborder ID 4: Approved by.
-                    __( 'Refund Processed via %1$s – Reason: %2$s - Suborder %3$s - Approved by %4$s', 'dokan' ),
+                    __( 'Refund Processed via %1$s – Reason: %2$s - Suborder %3$d - Approved by %4$s', 'dokan' ),
                     $api_refund || ! empty( $args ) ? $payment_method_title : __( 'Manual Processing', 'dokan' ),
-                    $refund->get_reason(),
+                    $parent_refund->get_reason(),
                     $this->get_order_id(),
                     $approved_by
                 )
             );
         }
 
-        /*
-         * Create the refund object for order or suborder depending on condition.
-         * If it is sub order, Only a refund record will be created.
-         * No request will be sent to payment processor.
-         */
-        $refund = wc_create_refund( $arr );
-
-        if ( is_wp_error( $refund ) ) {
-            // translators: 1: Order number.
-            dokan_log( sprintf( __( 'Refund processing for the order #%1$s failed.', 'dokan' ), $this->get_order_id() ) );
-            $this->cancel();
-            return new WP_Error( 'dokan_pro_refund_error_processing', __( 'This refund is failed to process.', 'dokan' ) );
-        }
-
+        // Add refund note
         $order->add_order_note(
             sprintf(
                 // translators: 1: Refund amount 2: Payment gateway name 3: Refund reason.

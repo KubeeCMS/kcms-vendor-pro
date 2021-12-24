@@ -2,9 +2,9 @@
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dokan Pro 3.4.3\n"
+"Project-Id-Version: Dokan Pro 3.4.4\n"
 "Report-Msgid-Bugs-To: https://wedevs.com/account/tickets/\n"
-"POT-Creation-Date: 2021-12-15 11:08:43+00:00\n"
+"POT-Creation-Date: 2021-12-23 11:48:06+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1010,7 +1010,7 @@ msgid "Option..."
 msgstr ""
 
 #: dist/dokan-pro/includes/BlockEditorBlockTypes.php:31
-#: includes/BlockEditorBlockTypes.php:31
+#: includes/BlockEditorBlockTypes.php:45
 #: modules/elementor/includes/Bootstrap.php:132
 msgid "Dokan"
 msgstr ""
@@ -3009,7 +3009,7 @@ msgstr ""
 msgid "This refund is not allowed to approve"
 msgstr ""
 
-#: dist/dokan-pro/includes/Refund/Refund.php:784 includes/Refund/Refund.php:839
+#: dist/dokan-pro/includes/Refund/Refund.php:784 includes/Refund/Refund.php:847
 #. translators: 1) user name
 msgid "Refund request approved by %1$s"
 msgstr ""
@@ -9798,8 +9798,8 @@ msgstr ""
 msgid "Refund request could not be approved. Error: %s"
 msgstr ""
 
-#: includes/Refund/ProcessAutomaticRefund.php:76 includes/Refund/Refund.php:690
-#: includes/Refund/Refund.php:718
+#: includes/Refund/ProcessAutomaticRefund.php:76 includes/Refund/Refund.php:682
+#: includes/Refund/Refund.php:711
 msgid "This refund is failed to process."
 msgstr ""
 
@@ -9815,37 +9815,37 @@ msgid ""
 "Dokan Wirecard Connect or Dokan Stripe Connect operation."
 msgstr ""
 
-#: includes/Refund/Refund.php:688
+#: includes/Refund/Refund.php:680
 #. translators: 1: Order number.
-msgid "Refund processing for the suborder #%1$s failed."
+msgid "Refund processing for the order #%d failed."
 msgstr ""
 
-#: includes/Refund/Refund.php:698
+#: includes/Refund/Refund.php:709
+#. translators: 1: Order number.
+msgid "Refund processing for the suborder #%d failed."
+msgstr ""
+
+#: includes/Refund/Refund.php:719
 #. translators: 1: Payment gateway name 2: Refund Reason 3:Suborder ID 4:
 #. Approved by.
-msgid "Refund Processed via %1$s – Reason: %2$s - Suborder %3$s - Approved by %4$s"
+msgid "Refund Processed via %1$s – Reason: %2$s - Suborder %3$d - Approved by %4$s"
 msgstr ""
 
-#: includes/Refund/Refund.php:699 includes/Refund/Refund.php:726
+#: includes/Refund/Refund.php:720 includes/Refund/Refund.php:734
 msgid "Manual Processing"
 msgstr ""
 
-#: includes/Refund/Refund.php:716
-#. translators: 1: Order number.
-msgid "Refund processing for the order #%1$s failed."
-msgstr ""
-
-#: includes/Refund/Refund.php:724
+#: includes/Refund/Refund.php:732
 #. translators: 1: Refund amount 2: Payment gateway name 3: Refund reason.
 msgid "Refunded %1$s via %2$s – Reason: %3$s "
 msgstr ""
 
-#: includes/Refund/Refund.php:901
+#: includes/Refund/Refund.php:909
 #. translators: 1: Refund amount 2: Refund reason.
 msgid "Refund Request for the amount: %1$s – Reason: %2$s - Got canceled."
 msgstr ""
 
-#: includes/Refund/Refund.php:915
+#: includes/Refund/Refund.php:923
 #. translators: 1: Suborder ID 2: Refund amount 2: Refund reason.
 msgid ""
 "Refund Request for the Suborder #%1$s - Amount %2$s – Reason: %3$s - Got "

@@ -3,7 +3,7 @@
  * Plugin Name: KCMS Vendor Pro
  * Plugin URI: https://github.com/KubeeCMS/kcms-vendor/
  * Description: E-commerce marketplace pro.
- * Version: 3.4.3
+ * Version: 3.4.4
  * Author: Kubee
  * Author URI: https://github.com/KubeeCMS/
  * WC requires at least: 5.0
@@ -36,7 +36,7 @@ class Dokan_Pro {
      *
      * @var string
      */
-    public $version = '3.4.3';
+    public $version = '3.4.4';
 
     /**
      * Database version key
@@ -777,3 +777,4 @@ function dokan_pro() {
 }
 
 dokan_pro();
+
