@@ -76,6 +76,9 @@ class Dokan_Moip_Withdraw {
      */
     public function init_filters() {
         add_filter( 'dokan_withdraw_methods', array( $this, 'register_withdraw_method' ) );
+        add_filter( 'dokan_withdraw_method_settings_title', [ $this, 'get_heading' ], 10, 2 );
+        add_filter( 'dokan_withdraw_method_icon', [ $this, 'get_icon' ], 10, 2 );
+        add_filter( 'dokan_payment_method_storage_key', [ $this, 'get_storage_key' ] );
     }
 
     /**
@@ -258,6 +261,57 @@ class Dokan_Moip_Withdraw {
         if ( ! $instance ) {
             return $instance = new static(); //phpcs:ignore
         }
+    }
+
+    /**
+     * Get the Withdrawal method icon
+     *
+     * @since 3.5.6
+     *
+     * @param string $method_icon
+     * @param string $method_key
+     *
+     * @return string
+     */
+    public function get_icon( $method_icon, $method_key ) {
+        if ( in_array( $method_key, [ 'moip', 'dokan-moip-connect' ], true ) ) {
+            $method_icon = MOIP_ASSETS . '/images/wirecard-withdraw-method.svg';
+        }
+
+        return $method_icon;
+    }
+
+    /**
+     * Get the heading for this payment's settings page
+     *
+     * @since 3.5.6
+     *
+     * @param string $heading
+     * @param string $slug
+     *
+     * @return string
+     */
+    public function get_heading( $heading, $slug ) {
+        if ( false !== strpos( $slug, 'dokan-moip-connect' ) ) {
+            $heading = __( 'Wirecard(MOIP) Settings', 'dokan' );
+        }
+
+        return $heading;
+    }
+
+    /**
+     * Get the storage key in payment settings for this method
+     *
+     * @since 3.5.6
+     *
+     * @param array $old_key
+     *
+     * @return array
+     */
+    public function get_storage_key( $old_key ) {
+        $old_key['dokan-moip-connect'] = 'moip';
+
+        return $old_key;
     }
 }
 

@@ -26,7 +26,7 @@ class StoreCategory {
             add_action( 'dokan_store_profile_saved', array( $this, 'after_store_profile_saved' ) );
             add_action( 'dokan_store_profile_saved_via_rest', array( $this, 'after_store_profile_saved' ) );
             add_action( 'dokan_seller_wizard_store_field_save', array( $this, 'after_seller_wizard_store_field_save' ) );
-            add_action( 'dokan_vendor_shop_data', array( $this, 'add_store_categories_in_vendor_shop_data' ), 10, 2 );
+            add_filter( 'dokan_vendor_shop_data', array( $this, 'add_store_categories_in_vendor_shop_data' ), 10, 2 );
             add_action( 'dokan_vendor_to_array', array( $this, 'add_store_categories_vendor_to_array' ), 10, 2 );
             add_action( 'dokan_rest_prepare_store_item_for_response', array( $this, 'rest_prepare_store_item_for_response' ), 10, 2 );
             add_action( 'dokan_rest_stores_update_store', array( $this, 'rest_stores_update_store_category' ), 10, 2 );
@@ -266,7 +266,7 @@ class StoreCategory {
             $store_categories = wp_get_object_terms( $vendor->get_id(), 'store_category' );
 
             if ( empty( $store_categories ) ) {
-                return;
+                return $shop_info;
             }
 
             return $this->add_store_categories_in_vendor_shop_data( $shop_info, $vendor );

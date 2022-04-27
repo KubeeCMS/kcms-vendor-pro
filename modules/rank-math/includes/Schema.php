@@ -50,7 +50,7 @@ class Schema extends Admin {
         wp_enqueue_style(
             'rank-math-schema',
             rank_math()->plugin_url() . 'includes/modules/schema/assets/css/schema.css',
-            array( 'wp-components', 'rank-math-post-metabox' ),
+            array( 'wp-components', 'rank-math-metabox' ),
             rank_math()->version
         );
 
@@ -59,7 +59,7 @@ class Schema extends Admin {
         wp_enqueue_script(
             'rank-math-schema',
             rank_math()->plugin_url() . 'includes/modules/schema/assets/js/schema-gutenberg.js',
-            array( 'rank-math-metabox' ),
+            array( 'rank-math-editor' ),
             rank_math()->version,
             true
         );

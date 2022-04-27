@@ -46,6 +46,11 @@ class Admin {
 
         add_action( 'dokan_seller_meta_fields', array( $this, 'add_admin_user_withdraw_threshold_options' ), 9 );
         add_action( 'dokan_process_seller_meta_fields', array( $this, 'save_admin_user_withdraw_threshold_option' ) );
+
+        add_action( 'wp_trash_post', array( $this, 'dokan_page_trash_handler' ) );
+        add_action( 'untrash_post', array( $this, 'dokan_page_untrash_handler' ), 10, 2 );
+        add_action( 'delete_post', array( $this, 'dokan_page_delete_handler' ) );
+        add_action( 'trash_to_draft', array( $this, 'dokan_draft_to_publish' ) );
     }
 
     /**
@@ -564,7 +569,14 @@ class Admin {
         $dokan_pages = array();
 
         if ( ! $page_created ) {
+            $old_pages = get_option( 'dokan_pages', [] );
+
             foreach ( $pages as $page ) {
+                if ( in_array( $page['page_id'], array_keys( $old_pages ), true ) ) {
+                    $dokan_pages[ $page['page_id'] ] = $old_pages[ $page['page_id'] ];
+                    continue;
+                }
+
                 $page_id = wp_insert_post(
                     array(
                         'post_title'     => $page['post_title'],
@@ -962,6 +974,199 @@ class Admin {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Update 'dokan_pages' and 'dokan_pages_created' options when pages are trashed
+     *
+     * @since 3.5.2
+     *
+     * @param $page_id
+     *
+     * @return void
+     */
+    public function dokan_page_trash_handler( $page_id ) {
+        if ( 'page' !== get_post_type( $page_id ) ) {
+            return;
+        }
+
+        $page_id = (int) $page_id;
+
+        $selected_slug = $this->update_dokan_page_options( $page_id );
+
+        if ( empty( $selected_slug ) ) {
+            return;
+        }
+
+        //track trashed pages to handle untrash later
+        $dokan_trashed_pages = get_option( 'dokan_trashed_pages', [] );
+
+        if ( ! isset( $dokan_trashed_pages[ $selected_slug ] ) ) {
+            $dokan_trashed_pages[ $selected_slug ] = [];
+        }
+
+        $dokan_trashed_pages[ $selected_slug ][] = $page_id;
+        update_option( 'dokan_trashed_pages', $dokan_trashed_pages );
+    }
+
+    /**
+     * Handle dokan untrash page
+     *
+     * @since 3.5.2
+     *
+     * @param $page_id
+     * @param $previous_status
+     *
+     * @return void
+     */
+    public function dokan_page_untrash_handler( $page_id, $previous_status ) {
+        if ( 'page' !== get_post_type( $page_id ) ) {
+            return;
+        }
+
+        $page_id = (int) $page_id;
+
+        $selected_slug = $this->update_dokan_trashed_page_options( $page_id );
+
+        if ( empty( $selected_slug ) ) {
+            return;
+        }
+
+        //check if a similar page already exists in published pages
+        $dokan_pages = get_option( 'dokan_pages', [] );
+        if ( ! isset( $dokan_pages[ $selected_slug ] ) ) {//a similar page already doesn't exist, then we make use the restored page
+            $dokan_pages[ $selected_slug ] = $page_id;
+            update_option( 'dokan_pages', $dokan_pages );
+
+            if ( 3 === count( array_keys( $dokan_pages ) ) ) { //if all the three pages(dashboard, my-order, store-list) are restored
+                update_option( 'dokan_pages_created', true );
+            }
+
+            //to use later in dokan_draft_to_publish method
+            update_option( 'dokan_page_to_publish', $page_id . ',' . $previous_status );
+        }
+    }
+
+    /**
+     * To Restore a dokan page in its previous status, say publish
+     *
+     * @since 3.5.2
+     *
+     * @param $page
+     */
+    public function dokan_draft_to_publish( $page ) {
+        $option   = get_option( 'dokan_page_to_publish', '' );
+        $splitted = explode( ',', $option );
+
+        if (
+            2 !== count( $splitted ) ||
+            $page->ID !== (int) $splitted[0] ||
+            ! in_array( $splitted[1], array_keys( get_post_statuses() ), true )
+        ) {
+            return;
+        }
+
+        wp_update_post(
+            [
+                'ID'          => $page->ID,
+                'post_status' => $splitted[1],
+            ]
+        );
+
+        update_option( 'dokan_page_to_publish', '' );
+    }
+
+    /**
+     * Handle deletion of a dokan page
+     *
+     * @since 3.5.2
+     *
+     * @param $page_id
+     *
+     * @return void
+     */
+    public function dokan_page_delete_handler( $page_id ) {
+        if ( 'page' !== get_post_type( $page_id ) ) {
+            return;
+        }
+
+        $page_id = (int) $page_id;
+
+        if ( 'trash' === get_post_status( $page_id ) ) {
+            $this->update_dokan_trashed_page_options( $page_id );
+        } else {
+            $this->update_dokan_page_options( $page_id );
+        }
+    }
+
+    /**
+     * Update the associated options
+     *
+     * @since 3.5.2
+     *
+     * @param int $page_id
+     *
+     * @return string
+     */
+    private function update_dokan_page_options( $page_id ) {
+        $dokan_pages   = get_option( 'dokan_pages', [] );
+        $selected_slug = '';
+
+        foreach ( $dokan_pages as $slug => $id ) {
+            if ( (int) $id === $page_id ) {
+                $selected_slug = $slug;
+                break;
+            }
+        }
+
+        if ( empty( $selected_slug ) ) {
+            return $selected_slug;
+        }
+
+        unset( $dokan_pages[ $selected_slug ] );
+        update_option( 'dokan_pages_created', false );
+        update_option( 'dokan_pages', $dokan_pages );
+
+        return $selected_slug;
+    }
+
+    /**
+     * Update dokan trashed pages option
+     *
+     * @since 3.5.2
+     *
+     * @param int $page_id
+     *
+     * @return string
+     */
+    private function update_dokan_trashed_page_options( $page_id ) {
+        $dokan_trashed_pages = get_option( 'dokan_trashed_pages', [] );
+
+        $selected_slug = '';
+
+        foreach ( $dokan_trashed_pages as $slug => $ids ) {
+            $int_ids = array_map( 'intval', $ids );
+            if ( in_array( $page_id, $int_ids, true ) ) {
+                $selected_slug = $slug;
+                break;
+            }
+        }
+
+        if ( empty( $selected_slug ) ) {
+            return $selected_slug;
+        }
+
+        $int_ids = array_filter(
+            $dokan_trashed_pages[ $selected_slug ],
+            function ( $id ) use ( $page_id ) {
+                return (int) $id !== $page_id;
+            }
+        );
+
+        $dokan_trashed_pages[ $selected_slug ] = $int_ids;
+        update_option( 'dokan_trashed_pages', $dokan_trashed_pages );
+
+        return $selected_slug;
     }
 }
 // End of WeDevs\DokanPro\Admin\Admin class;

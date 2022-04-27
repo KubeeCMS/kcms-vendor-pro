@@ -227,14 +227,14 @@ class Module {
             if ( $installed_version >= '2.4' ) {
                 $urls['tools'] = [
                     'title' => __( 'Tools', 'dokan' ),
-                    'icon'  => '<i class="fa fa-wrench"></i>',
+                    'icon'  => '<i class="fas fa-wrench"></i>',
                     'url'   => dokan_get_navigation_url( 'tools' ),
                     'pos'   => 182,
                 ];
             } else {
                 $urls['tools'] = [
                     'title' => __( 'Tools', 'dokan' ),
-                    'icon'  => '<i class="fa fa-wrench"></i>',
+                    'icon'  => '<i class="fas fa-wrench"></i>',
                     'url'   => dokan_get_navigation_url( 'tools' ),
                 ];
             }

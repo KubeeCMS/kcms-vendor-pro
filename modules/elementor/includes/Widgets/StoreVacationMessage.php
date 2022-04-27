@@ -70,8 +70,8 @@ class StoreVacationMessage extends Widget_Alert {
      *
      * @return void
      */
-    protected function _register_controls() {
-        parent::_register_controls();
+    protected function register_controls() {
+        parent::register_controls();
 
         $this->update_control(
             'alert_title',

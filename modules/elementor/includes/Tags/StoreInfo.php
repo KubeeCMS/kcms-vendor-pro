@@ -44,7 +44,7 @@ class StoreInfo extends TagBase {
                 'key'         => 'address',
                 'title'       => __( 'Address', 'dokan' ),
                 'text'        => $store_data['address'],
-                'icon'        => 'fa fa-map-marker',
+                'icon'        => 'fas fa-map-marker',
                 'show'        => true,
                 '__dynamic__' => [
                     'text' => $store_data['address'],
@@ -54,7 +54,7 @@ class StoreInfo extends TagBase {
                 'key'         => 'phone',
                 'title'       => __( 'Phone No', 'dokan' ),
                 'text'        => $store_data['phone'],
-                'icon'        => 'fa fa-mobile',
+                'icon'        => 'fas fa-mobile',
                 'show'        => true,
                 '__dynamic__' => [
                     'text' => $store_data['phone'],
@@ -64,7 +64,7 @@ class StoreInfo extends TagBase {
                 'key'         => 'email',
                 'title'       => __( 'Email', 'dokan' ),
                 'text'        => $store_data['email'],
-                'icon'        => 'fa fa-envelope-o',
+                'icon'        => 'fas fa-envelope-open',
                 'show'        => true,
                 '__dynamic__' => [
                     'text' => $store_data['email'],
@@ -74,7 +74,7 @@ class StoreInfo extends TagBase {
                 'key'         => 'rating',
                 'title'       => __( 'Rating', 'dokan' ),
                 'text'        => $store_data['rating'],
-                'icon'        => 'fa fa-star',
+                'icon'        => 'fas fa-star',
                 'show'        => true,
                 '__dynamic__' => [
                     'text' => $store_data['rating'],
@@ -84,7 +84,7 @@ class StoreInfo extends TagBase {
                 'key'         => 'open_close_status',
                 'title'       => __( 'Open/Close Status', 'dokan' ),
                 'text'        => $store_data['open_close'],
-                'icon'        => 'fa fa-shopping-cart',
+                'icon'        => 'fas fa-shopping-cart',
                 'show'        => true,
                 '__dynamic__' => [
                     'text' => $store_data['open_close'],

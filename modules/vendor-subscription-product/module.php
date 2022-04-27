@@ -7,24 +7,6 @@ use \WeDevs\DokanPro\Products;
 class Module {
 
     /**
-     * The plugins which are dependent for this plugin
-     *
-     * @since 1.0.0
-     *
-     * @var array
-     */
-    private $depends_on = array();
-
-    /**
-     * Displa dependency error if not present
-     *
-     * @since 1.0.0
-     *
-     * @var array
-     */
-    private $dependency_error = array();
-
-    /**
      * Constructor for the Dokan_VSP class
      *
      * Sets up all the appropriate hooks and actions
@@ -34,18 +16,15 @@ class Module {
      * @uses add_action()
      */
     public function __construct() {
-        $this->depends_on['WC_Subscriptions'] = array(
-            'name'   => 'WC_Subscriptions',
-            /* translators: WooCommerce subscription plugin link */
-            'notice' => sprintf( __( 'Dokan <b>Vendor Subscription Product</b> requires %1$sWooCommerce Subscriptions plugin%2$s to be installed & activated first !', 'dokan' ), '<a target="_blank" href="https://woocommerce.com/products/woocommerce-subscriptions/">', '</a>' ),
-        );
+        $this->define();
 
-        if ( ! $this->check_if_has_dependency() ) {
-            add_filter( 'dokan_admin_notices', [ $this, 'dependency_notice' ] );
+        include_once DOKAN_VSP_DIR_INC_DIR . '/DependencyNotice.php';
+
+        $dependency = new DependencyNotice();
+
+        if ( $dependency->is_missing_dependency() ) {
             return;
         }
-
-        $this->define();
 
         $this->includes();
 
@@ -186,54 +165,6 @@ class Module {
         if ( isset( $wp->query_vars['coupons'] ) && ! empty( $_GET['post'] ) ) { // phpcs:ignore
             $this->enqueue_scripts();
         }
-    }
-
-    /**
-     * Print error notice if dependency not active
-     *
-     * @since 1.0.0
-     *
-     * @param array $notices
-     *
-     * @return array
-     */
-    public function dependency_notice( $notices ) {
-        foreach ( $this->dependency_error as $error ) {
-            $notices[] = [
-                'type'        => 'alert',
-                'title'       => __( 'Dokan Product Subscription module is almost ready!', 'dokan' ),
-                'description' => $error,
-                'priority'    => 10,
-                'actions'     => [
-                    [
-                        'type'   => 'primary',
-                        'text'   => __( 'Get Now', 'dokan' ),
-                        'target' => '_blank',
-                        'action' => esc_url( 'https://woocommerce.com/products/woocommerce-subscriptions/' ),
-                    ],
-                ],
-            ];
-        }
-
-        return $notices;
-    }
-
-    /**
-     * Check whether is their has any dependency or not
-     *
-     * @return boolean
-     */
-    public function check_if_has_dependency() {
-        $res = true;
-
-        foreach ( $this->depends_on as $class ) {
-            if ( ! class_exists( $class['name'] ) ) {
-                $this->dependency_error[] = $class['notice'];
-                $res = false;
-            }
-        }
-
-        return $res;
     }
 
     /**

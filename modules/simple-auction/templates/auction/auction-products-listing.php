@@ -27,10 +27,10 @@
 
                     <?php if ( current_user_can( 'dokan_add_auction_product' ) ) { ?>
                         <span class="dokan-add-product-link">
-                            <a href="<?php echo dokan_get_navigation_url( 'new-auction-product' ); ?>" class="dokan-btn dokan-btn-theme dokan-right"><i class="fa fa-briefcase">&nbsp;</i> <?php _e( 'Add New Auction Product', 'dokan' ); ?></a>
+                            <a href="<?php echo dokan_get_navigation_url( 'new-auction-product' ); ?>" class="dokan-btn dokan-btn-theme dokan-right"><i class="fas fa-briefcase">&nbsp;</i> <?php _e( 'Add New Auction Product', 'dokan' ); ?></a>
                         </span>
-                        <span style="margin-left: 16px;">
-                            <a href="<?php echo dokan_get_navigation_url( 'auction-activity' ); ?>" class="dokan-btn dokan-right"><i class="fa fa-gavel">&nbsp;</i> <?php esc_html_e( 'Auction Activity', 'dokan' ); ?></a>
+                        <span class="button-ml">
+                            <a href="<?php echo esc_url( dokan_get_navigation_url( 'auction-activity' ) ); ?>" class="dokan-btn dokan-right"><i class="fa fa-gavel">&nbsp;</i> <?php esc_html_e( 'Auctions Activity', 'dokan' ); ?></a>
                         </span>
                     <?php } ?>
                 </div>

@@ -21,8 +21,7 @@ final class Module {
      * @return void
      */
     public function __construct() {
-        add_filter( 'dokan_admin_notices', [ $this, 'admin_notices' ] );
-        add_action( 'elementor_pro/init', [ $this, 'init' ] );
+        add_action( 'plugins_loaded', [ $this, 'init' ], 99 );
     }
 
     /**
@@ -33,8 +32,13 @@ final class Module {
      * @return void
      */
     public function init() {
-        $this->define_constants();
-        $this->instances();
+        $dependency = new DependencyNotice();
+
+        // Check if dependencies are not missing.
+        if ( ! $dependency->is_missing_dependency() ) {
+            $this->define_constants();
+            $this->instances();
+        }
     }
 
     /**
@@ -68,43 +72,6 @@ final class Module {
     }
 
     /**
-     * Show admin notices
-     *
-     * @since 2.9.11
-     *
-     * @param array $notices
-     *
-     * @return array
-     */
-    public function admin_notices( $notices ) {
-        $notice = '';
-
-        if ( ! class_exists( '\Elementor\Plugin' ) || ! class_exists( '\ElementorPro\Plugin' ) ) {
-            // translators: %2: elementor plugin name
-            $notice = sprintf( __( 'Dokan Elementor module requires both %1$s and %2$s to be activated', 'dokan' ), '<a href="https://wordpress.org/plugins/elementor/" target="_blank">Elementor</a>', '<a href="https://elementor.com/pro/" target="_blank">Elementor Pro</a>' );
-        }
-
-        if ( defined( 'ELEMENTOR_VERSION' ) && version_compare( ELEMENTOR_VERSION, '2.5.15', '<' ) ) {
-            // translators: %s: elementor requires version
-            $notice = sprintf( __( 'Dokan Elementor module requires at least %s.', 'dokan' ), '<strong>Elementor v2.5.15</strong>' );
-        } elseif ( defined( 'ELEMENTOR_PRO_VERSION' ) && version_compare( ELEMENTOR_PRO_VERSION, '2.5.3', '<' ) ) {
-            // translators: %s: elementor pro requires version
-            $notice = sprintf( __( 'Dokan Elementor module requires at least %s.', 'dokan' ), '<strong>Elementor Pro v2.5.3</strong>' );
-        }
-
-        if ( $notice ) {
-            $notices[] = [
-                'type'        => 'alert',
-                'title'       => __( 'Dokan Elementor module is almost ready!', 'dokan' ),
-                'description' => $notice,
-                'priority'    => 10,
-            ];
-        }
-
-        return $notices;
-    }
-
-    /**
      * Elementor\Plugin instance
      *
      * @since 2.9.11
@@ -123,8 +90,8 @@ final class Module {
      * @return bool
      */
     public function is_edit_or_preview_mode() {
-        $is_edit_mode    = $this->elementor()->editor->is_edit_mode();
-        $is_preview_mode = $this->elementor()->preview->is_preview_mode();
+        $is_edit_mode    = $this->elementor() ? $this->elementor()->editor->is_edit_mode() : null;
+        $is_preview_mode = $this->elementor() ? $this->elementor()->preview->is_preview_mode() : null;
 
         $get_data = wp_unslash( $_REQUEST ); // phpcs:ignore
 
@@ -167,13 +134,13 @@ final class Module {
      */
     public function get_social_networks_map() {
         $map = [
-            'fb'        => 'fa fa-facebook',
-            'twitter'   => 'fa fa-twitter',
-            'pinterest' => 'fa fa-pinterest',
-            'linkedin'  => 'fa fa-linkedin',
-            'youtube'   => 'fa fa-youtube',
-            'instagram' => 'fa fa-instagram',
-            'flickr'    => 'fa fa-flickr',
+            'fb'        => 'fab fa-facebook',
+            'twitter'   => 'fab fa-twitter',
+            'pinterest' => 'fab fa-pinterest',
+            'linkedin'  => 'fab fa-linkedin',
+            'youtube'   => 'fab fa-youtube',
+            'instagram' => 'fab fa-instagram',
+            'flickr'    => 'fab fa-flickr',
         ];
 
         return apply_filters( 'dokan_elementor_social_network_map', $map );

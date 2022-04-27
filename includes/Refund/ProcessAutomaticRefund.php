@@ -20,13 +20,37 @@ class ProcessAutomaticRefund {
     use Singleton;
 
     /**
+     * Payment gateways that are excluded from auto process API refund.
+     *
+     * @since 3.5.0
+     *
+     * @access private
+     *
+     * @var array
+     */
+    private $excluded_payment_gateways = array();
+
+    /**
      * Private Constructor
      *
      * @access private
      *
      * @since 3.3.7
+     * @since 3.5.0 Added `dokan_excluded_gateways_from_auto_process_api_refund` filter hook
+     *                        while setting excluded payment gateways from auto process API refund.
+     *
+     * @return void
      */
     private function __construct() {
+        $this->excluded_payment_gateways = apply_filters(
+            'dokan_excluded_gateways_from_auto_process_api_refund',
+            array(
+                'dokan-moip-connect'       => __( 'Dokan Wirecard Connect', 'dokan' ),
+                'dokan-stripe-connect'     => __( 'Dokan Stripe Connect', 'dokan' ),
+                'dokan_paypal_adaptive'    => __( 'Dokan Paypal Adaptive Payment', 'dokan' ),
+            )
+        );
+
         add_action( 'dokan_refund_request_created', array( $this, 'auto_approve_api_refund_request' ) );
         add_filter( 'dokan_settings_selling_option_commission', array( $this, 'add_automatic_process_refund_request_settings_field' ) );
         add_filter( 'dokan_pro_auto_process_api_refund', array( $this, 'set_auto_process_api_refund' ), 10, 2 );
@@ -91,7 +115,10 @@ class ProcessAutomaticRefund {
         $settings_fields['automatic_process_api_refund'] = array(
             'name'    => 'automatic_process_api_refund',
             'label'   => __( 'Process Refund via API', 'dokan' ),
-            'desc'    => __( 'Automatically process refund from payment gateways if payment gateway supports it when admin approve refund request. This settings does not interfere with Dokan PayPal Marketplace, Dokan Paypal Adaptive Payment, Dokan Wirecard Connect or Dokan Stripe Connect operation.', 'dokan' ),
+            'desc'    => sprintf(
+                __( 'Automatically process refund from payment gateways if payment gateway supports it when admin approve refund request. This settings does not interfere with %s operation.', 'dokan' ),
+                implode( ', ', array_values( $this->excluded_payment_gateways ) )
+            ),
             'type'    => 'checkbox',
             'default' => 'off',
         );
@@ -154,12 +181,7 @@ class ProcessAutomaticRefund {
          */
         $not_allowed_payment_methods = apply_filters(
             'dokan_pro_exclude_auto_approve_api_refund_request',
-            array(
-                'dokan-moip-connect',
-                'dokan-stripe-connect',
-                'dokan_paypal_adaptive',
-                'dokan_paypal_marketplace',
-            ),
+            array_keys( $this->excluded_payment_gateways ),
             $refund
         );
 

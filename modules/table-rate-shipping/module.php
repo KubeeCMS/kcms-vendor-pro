@@ -33,11 +33,10 @@ class Module {
             return $notices;
         }
 
-		// translators: %1$s: Distance rate label, %2$s: Google map api label, %3$s: Setting url
-
         $notices[] = [
             'type'        => 'alert',
             'title'       => __( 'Dokan Table Rate Shipping module is almost ready!', 'dokan' ),
+            // translators: %1$s: Distance rate label, %2$s: Google map api label, %3$s: Setting url
             'description' => sprintf( __( '%1$s shipping requires %2$s key. Please set your API Key in %3$s.', 'dokan' ), 'Dokan <strong>Distance Rate</strong>', '<strong>Google Map API</strong>', '<strong>Dokan Admin Settings > Appearance</strong>' ),
             'priority'    => 10,
             'actions'     => [

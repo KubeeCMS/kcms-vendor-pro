@@ -21,10 +21,6 @@ class Module {
      */
     public $version = null;
 
-    private $depends_on           = array();
-    private $dependency_error     = array();
-    private $dependency_not_found = false;
-
     /**
      * Constructor for the Dokan_WC_Booking class
      *
@@ -50,14 +46,11 @@ class Module {
         // flush rewrite rules
         add_action( 'woocommerce_flush_rewrite_rules', [ $this, 'flush_rewrite_rules' ] );
 
-        $this->depends_on['wc_bookings'] = array(
-            'name'   => 'WC_Bookings',
-            /* translators: %1$s: string %2$s: string */
-            'notice' => sprintf( __( 'Dokan <b> WooCommerce Booking</b> requires %1$sWooCommerce Bookings plugin%2$s to be installed & activated!', 'dokan' ), '<a target="_blank" href="https://woocommerce.com/products/woocommerce-bookings/">', '</a>' ),
-        );
+        include_once DOKAN_WC_BOOKING_DIR . '/includes/DependencyNotice.php';
 
-        if ( ! $this->check_if_has_dependency() ) {
-            add_filter( 'dokan_admin_notices', [ $this, 'dependency_notice' ] );
+        $dependency = new DependencyNotice();
+
+        if ( $dependency->is_missing_dependency() ) {
             return;
         }
 
@@ -117,25 +110,6 @@ class Module {
     }
 
     /**
-     * Check whether is their has any dependency or not
-     *
-     * @return boolean
-     */
-    public function check_if_has_dependency() {
-        $res = true;
-
-        foreach ( $this->depends_on as $class ) {
-            if ( ! class_exists( $class['name'] ) ) {
-                $this->dependency_error[] = $class['notice'];
-                $res = false;
-                $this->dependency_not_found = true;
-            }
-        }
-
-        return $res;
-    }
-
-    /**
     * Get plugin path
     *
     * @since 2.0
@@ -172,36 +146,6 @@ class Module {
         $types['booking'] = __( 'Bookable Product', 'dokan' );
 
         return $types;
-    }
-
-    /**
-     * Print error notice if dependency not active
-     *
-     * @since 1.0.0
-     *
-     * @param array $notices
-     *
-     * @return array
-     */
-    public function dependency_notice( $notices ) {
-        foreach ( $this->dependency_error as $error ) {
-            $notices[] = [
-                'type'        => 'alert',
-                'title'       => __( 'Dokan WooCommerce Booking Integration module is almost ready!', 'dokan' ),
-                'description' => $error,
-                'priority'    => 10,
-                'actions'     => [
-                    [
-                        'type'   => 'primary',
-                        'text'   => __( 'Get Now', 'dokan' ),
-                        'target' => '_blank',
-                        'action' => esc_url( 'https://woocommerce.com/products/woocommerce-bookings/' ),
-                    ],
-                ],
-            ];
-        }
-
-        return $notices;
     }
 
     /**
@@ -357,15 +301,12 @@ class Module {
      * @return void
      */
     public function init_hooks() {
-        if ( $this->dependency_not_found ) {
-            return;
-        }
-
         add_filter( 'dokan_get_dashboard_nav', array( $this, 'add_booking_page' ), 11, 1 );
         add_action( 'dokan_load_custom_template', array( $this, 'load_template_from_plugin' ) );
         add_filter( 'dokan_query_var_filter', array( $this, 'register_booking_queryvar' ) );
         add_filter( 'dokan_add_new_product_redirect', array( $this, 'set_redirect_url' ), 10, 2 );
         add_filter( 'dokan_product_listing_exclude_type', array( $this, 'exclude_booking_type_from_product_listing' ) );
+        add_action( 'delete_post', array( $this, 'handle_deleted_bookable_product' ), 10, 1 );
 
         // Init Cache
         include_once DOKAN_WC_BOOKING_DIR . '/includes/BookingCache.php';
@@ -472,7 +413,7 @@ class Module {
 
         $urls['booking'] = array(
             'title' => __( 'Booking', 'dokan' ),
-            'icon'  => '<i class="fa fa-calendar"></i>',
+            'icon'  => '<i class="far fa-calendar-alt"></i>',
             'url'   => dokan_get_navigation_url( 'booking' ),
             'pos'   => 180,
         );
@@ -667,6 +608,7 @@ class Module {
             'post_status'  => 'publish',
             'post_author'  => dokan_get_current_user_id(),
             'post_type'    => 'bookable_resource',
+            'meta_input'   => [ 'qty' => 1 ],
         );
         $resource_id = wp_insert_post( $resource );
         $edit_url    = dokan_get_navigation_url( 'booking' ) . 'resources/edit/?id=' . $resource_id;
@@ -1384,12 +1326,28 @@ class Module {
         $accommodation_i18n = \Dokan_Booking_Accommodation_Helper::get_accommodation_booking_i18n_strings();
         $time_format        = wc_time_format();
 
-        wp_enqueue_script( 'dokan_accommodation_booking_script', plugins_url( 'assets/js/accommodation.js', __FILE__ ), [ 'jquery' ], DOKAN_PRO_PLUGIN_VERSION, true );
+        wp_enqueue_script( 'dokan_accommodation_booking_script', plugins_url( 'assets/js/accommodation.js', __FILE__ ), [ 'jquery', 'dokan-util-helper' ], DOKAN_PRO_PLUGIN_VERSION, true );
         wp_localize_script( 'dokan_accommodation_booking_script', 'dokan_accommodation_i18n', $accommodation_i18n );
-        wp_localize_script( 'dokan_accommodation_booking_script', 'dokan_accommodation_time', [ 'format' => $time_format] );
 
         // Timepicker
         wp_enqueue_style( 'dokan-timepicker' );
         wp_enqueue_script( 'dokan-timepicker' );
+    }
+
+    /**
+     * Unlink the resources on delete of bookable products
+     *
+     * @since 3.5.2
+     *
+     * @param $post_id
+     */
+    public function handle_deleted_bookable_product( $post_id ) {
+        $product = wc_get_product( absint( $post_id ) );
+
+        if ( ! is_a( $product, 'WC_Product' ) || 'booking' !== $product->get_type() ) {
+            return;
+        }
+
+        \WC_Bookings_Tools::unlink_resource( $post_id );
     }
 }

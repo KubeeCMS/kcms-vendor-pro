@@ -308,7 +308,7 @@ class Module {
         if ( dokan_is_seller_enabled( get_current_user_id() ) && current_user_can( 'dokandar' ) && ! current_user_can( 'vendor_staff' ) ) {
             $urls['staffs'] = array(
                 'title' => __( 'Staff', 'dokan' ),
-                'icon'  => '<i class="fa fa-users"></i>',
+                'icon'  => '<i class="fas fa-users"></i>',
                 'url'   => dokan_get_navigation_url( 'staffs' ),
                 'pos'   => 172,
             );

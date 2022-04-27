@@ -20,9 +20,6 @@ class Module {
      */
     public $version = null;
 
-    private $depends_on = array();
-    private $dependency_error = array();
-
     /**
      * Constructor for the Dokan_Auction class
      *
@@ -39,14 +36,11 @@ class Module {
 
         define( 'DOKAN_AUCTION_DIR', dirname( __FILE__ ) );
 
-        $this->depends_on['WooCommerce_simple_auction'] = array(
-            'name'   => 'WooCommerce_simple_auction',
-            // @codingStandardsIgnoreLine
-            'notice' => sprintf( __( '<b>Auction Integration </b> requires %sWooCommerce Simple Auctions plugin%s to be installed & activated first !' , 'dokan' ), '<a target="_blank" href="https://codecanyon.net/item/woocommerce-simple-auctions-wordpress-auctions/6811382">', '</a>' ),
-        );
+        include_once DOKAN_AUCTION_DIR . '/includes/DependencyNotice.php';
 
-        if ( ! $this->check_if_has_dependency() ) {
-            add_filter( 'dokan_admin_notices', [ $this, 'dependency_notice' ] );
+        $dependency = new DependencyNotice();
+
+        if ( $dependency->is_missing_dependency() ) {
             return;
         }
 
@@ -89,54 +83,6 @@ class Module {
 
         // flush rewrite rules
         add_action( 'woocommerce_flush_rewrite_rules', [ $this, 'flush_rewrite_rules' ] );
-    }
-
-    /**
-     * Check whether is their has any dependency or not
-     *
-     * @return boolean
-     */
-    public function check_if_has_dependency() {
-        $res = true;
-
-        foreach ( $this->depends_on as $class ) {
-            if ( ! class_exists( $class['name'] ) ) {
-                $this->dependency_error[] = $class['notice'];
-                $res = false;
-            }
-        }
-
-        return $res;
-    }
-
-    /**
-     * Print error notice if dependency not active
-     *
-     * @since 1.5.0
-     *
-     * @param array $notices
-     *
-     * @return array
-     */
-    public function dependency_notice( $notices ) {
-        foreach ( $this->dependency_error as $error ) {
-            $notices[] = [
-                'type'        => 'alert',
-                'title'       => __( 'Dokan Auction Integration module is almost ready!', 'dokan' ),
-                'description' => $error,
-                'priority'    => 10,
-                'actions'     => [
-                    [
-                        'type'   => 'primary',
-                        'text'   => __( 'Get Now', 'dokan' ),
-                        'target' => '_blank',
-                        'action' => esc_url( 'https://codecanyon.net/item/woocommerce-simple-auctions-wordpress-auctions/6811382' ),
-                    ],
-                ],
-            ];
-        }
-
-        return $notices;
     }
 
     /**
@@ -379,7 +325,7 @@ class Module {
         if ( dokan_is_seller_enabled( get_current_user_id() ) && ! dokan_is_seller_auction_disabled( get_current_user_id() ) ) {
             $urls['auction'] = array(
                 'title' => __( 'Auction', 'dokan' ),
-                'icon'  => '<i class="fa fa-gavel"></i>',
+                'icon'  => '<i class="fas fa-gavel"></i>',
                 'url'   => dokan_get_navigation_url( 'auction' ),
                 'pos'   => 185,
                 'permission' => 'dokan_view_auction_menu',

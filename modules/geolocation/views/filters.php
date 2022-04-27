@@ -60,10 +60,10 @@
             </div>
         <?php endif; ?>
 
-        <?php if ( ! $scope ): ?>
+        <?php if ( ! $scope || 'product' === $scope ): ?>
             <div class="dokan-geo-filters-column">
-                <button type="button" class="dokan-btn dokan-geo-filters-search-btn">
-                    <?php _e( 'Search', 'dokan' ); ?>
+                <button type="button" class="dokan-btn <?php echo esc_attr( 'product' === $scope ? 'dokan-geo-product-search-btn' : 'dokan-geo-filters-search-btn' ); ?>">
+                    <?php esc_html_e( 'Search', 'dokan' ); ?>
                 </button>
             </div>
         <?php endif; ?>

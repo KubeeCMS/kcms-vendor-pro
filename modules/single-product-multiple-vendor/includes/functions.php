@@ -111,12 +111,11 @@ function dokan_spmv_update_clone_visibilities( $map_id ) {
 
         switch ( $show_order ) {
             case 'max_price':
-                $diff = $b_price - $a_price;
+                $diff = (float) $b_price - (float) $a_price;
                 break;
 
-            case 'min_price':
             default:
-                $diff = $a_price - $b_price;
+                $diff = (float) $a_price - (float) $b_price;
                 break;
         }
 

@@ -2,27 +2,10 @@
 
 namespace WeDevs\DokanPro\Modules\ProductAddon;
 
+use DependencyNotice;
 use WC_Product_Addons_Admin;
 
 class Module {
-
-    /**
-     * The plugins which are dependent for this plugin
-     *
-     * @since 1.0.0
-     *
-     * @var array
-     */
-    private $depends_on = [];
-
-    /**
-     * Displa dependency error if not present
-     *
-     * @since 1.0.0
-     *
-     * @var array
-     */
-    private $dependency_error = [];
 
     /**
      * Constructor for the Dokan_Product_Addon class
@@ -34,13 +17,16 @@ class Module {
      * @uses add_action()
      */
     public function __construct() {
-        $this->depends_on['WC_Product_Addons'] = [
-            'name'   => 'WC_Product_Addons',
-            'notice' => sprintf(
-                /* translators: 1: tag start with href, 2: tag end */
-                __( 'Dokan <b> Product Addon</b> requires %1$sWooCommerce Product addons plugin%2$s to be installed & activated first !', 'dokan' ), '<a target="_blank" href="https://woocommerce.com/products/product-add-ons/">', '</a>'
-            ),
-        ];
+        // Define Constant
+        $this->define();
+
+        require_once DOKAN_PRODUCT_ADDON_INC_DIR . '/DependencyNotice.php';
+
+        $dependency = new DependencyNotice();
+
+        if ( $dependency->is_missing_dependency() ) {
+            return;
+        }
 
         add_action( 'plugins_loaded', [ $this, 'init' ] );
     }
@@ -53,13 +39,6 @@ class Module {
      * @return void
      */
     public function init() {
-        if ( ! $this->check_if_has_dependency() ) {
-            add_filter( 'dokan_admin_notices', [ $this, 'dependency_notice' ] );
-
-            return;
-        }
-
-        $this->define();
         $this->includes();
         $this->initiate();
         $this->hooks();
@@ -201,54 +180,6 @@ class Module {
         if ( isset( $wp->query_vars['products'] ) && ! empty( $_GET['product_id'] ) && ! empty( $_GET['action'] ) && 'edit' === $_GET['action'] ) { //phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $this->enqueue_scripts();
         }
-    }
-
-    /**
-     * Print error notice if dependency not active
-     *
-     * @since 1.0.0
-     *
-     * @param array $notices
-     *
-     * @return array
-     */
-    public function dependency_notice( $notices ) {
-        foreach ( $this->dependency_error as $error ) {
-            $notices[] = [
-                'type'        => 'alert',
-                'title'       => __( 'Dokan Product Addon module is almost ready!', 'dokan' ),
-                'description' => $error,
-                'priority'    => 10,
-                'actions'     => [
-                    [
-                        'type'   => 'primary',
-                        'text'   => __( 'Get Now', 'dokan' ),
-                        'target' => '_blank',
-                        'action' => esc_url( 'https://woocommerce.com/products/product-add-ons/' ),
-                    ],
-                ],
-            ];
-        }
-
-        return $notices;
-    }
-
-    /**
-     * Check whether is their has any dependency or not
-     *
-     * @return boolean
-     */
-    public function check_if_has_dependency() {
-        $res = true;
-
-        foreach ( $this->depends_on as $class ) {
-            if ( ! class_exists( $class['name'] ) ) {
-                $this->dependency_error[] = $class['notice'];
-                $res                      = false;
-            }
-        }
-
-        return $res;
     }
 
     /**

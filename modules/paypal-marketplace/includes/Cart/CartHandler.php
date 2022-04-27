@@ -249,7 +249,7 @@ class CartHandler {
         foreach ( WC()->cart->get_cart() as $item ) {
             $product_id = $item['data']->get_id();
             // check if this is a vendor subscription product
-            if ( Helper::is_vendor_subscription_product( $product_id ) ) {
+            if ( apply_filters( 'dokan_paypal_marketplace_escape_after_checkout_validation', Helper::is_vendor_subscription_product( $product_id ), $item ) ) {
                 continue;
             }
 

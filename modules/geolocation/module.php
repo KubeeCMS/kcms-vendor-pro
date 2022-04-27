@@ -172,20 +172,28 @@ class Module {
      * @return void
      */
     public function enqueue_scripts() {
-        // Use minified libraries if SCRIPT_DEBUG is turned off
-        $suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+        if (
+            is_shop()
+            || dokan_is_store_listing()
+            || false !== get_query_var( 'products', false )
+            || false !== get_query_var( 'product', false )
+            || false !== get_query_var( 'booking', false )
+            || false !== get_query_var( 'auction', false )
+        ) {
+            // Use minified libraries if SCRIPT_DEBUG is turned off
+            $suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+            wp_enqueue_style( 'dokan-geolocation', DOKAN_GEOLOCATION_ASSETS . '/css/geolocation' . $suffix . '.css', array( 'dokan-magnific-popup' ), $this->version );
 
-        wp_enqueue_style( 'dokan-geolocation', DOKAN_GEOLOCATION_ASSETS . '/css/geolocation' . $suffix . '.css', array( 'dokan-magnific-popup' ), $this->version );
+            $js = DOKAN_GEOLOCATION_ASSETS . '/js/geolocation-vendor-dashboard-product-google-maps' . $suffix . '.js';
 
-        $js = DOKAN_GEOLOCATION_ASSETS . '/js/geolocation-vendor-dashboard-product-google-maps' . $suffix . '.js';
+            $source = dokan_get_option( 'map_api_source', 'dokan_appearance', 'google_maps' );
 
-        $source = dokan_get_option( 'map_api_source', 'dokan_appearance', 'google_maps' );
+            if ( 'mapbox' === $source ) {
+                $js = DOKAN_GEOLOCATION_ASSETS . '/js/geolocation-vendor-dashboard-product-mapbox' . $suffix . '.js';
+            }
 
-        if ( 'mapbox' === $source ) {
-            $js = DOKAN_GEOLOCATION_ASSETS . '/js/geolocation-vendor-dashboard-product-mapbox' . $suffix . '.js';
+            wp_enqueue_script( 'dokan-geolocation', $js, array( 'jquery', 'dokan-maps' ), $this->version, true );
         }
-
-        wp_enqueue_script( 'dokan-geolocation', $js, array( 'jquery', 'dokan-maps' ), $this->version, true );
     }
 
     /**

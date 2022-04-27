@@ -34,6 +34,10 @@ class RegisterWithdrawMethods {
         add_action( 'dokan_dashboard_before_widgets', [ $this, 'send_announcement_to_non_connected_vendor' ], 10 );
         // display notice
         add_action( 'dokan_dashboard_content_inside_before', [ $this, 'display_notice_on_vendor_dashboard' ] );
+
+        add_filter( 'dokan_withdraw_method_settings_title', [ $this, 'get_heading' ], 10, 2 );
+        add_filter( 'dokan_withdraw_method_icon', [ $this, 'get_icon' ], 10, 2 );
+        add_filter( 'dokan_payment_method_storage_key', [ $this, 'get_storage_key' ] );
     }
 
     /**
@@ -85,6 +89,14 @@ class RegisterWithdrawMethods {
             ),
             'dokan-paypal-marketplace-disconnect'
         );
+
+        // update merchant status if already not updated
+        if ( ! $is_seller_enabled && ! empty( $merchant_id ) ) {
+            if ( WithdrawManager::update_merchant_status( $merchant_id, get_current_user_id() ) ) {
+                $is_seller_enabled = Helper::is_seller_enable_for_receive_payment( get_current_user_id() );
+                $primary_email     = get_user_meta( get_current_user_id(), Helper::get_seller_primary_email_confirmed_key(), true );
+            }
+        }
 
         Helper::get_template(
             'vendor-settings-payment',
@@ -359,7 +371,7 @@ class RegisterWithdrawMethods {
         $_get_data = wp_unslash( $_GET );//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
         $status     = isset( $_get_data['status'] ) ? sanitize_text_field( rawurldecode( $_get_data['status'] ) ) : '';
-        $message    = isset( $_get_data['message'] ) ? esc_html( rawurldecode( $_get_data['message'] ) ) : '';
+        $message    = isset( $_get_data['message'] ) ? wp_kses_post( rawurldecode( $_get_data['message'] ) ) : '';
         $class      = $status === 'error' ? 'dokan-error' : 'dokan-message';
 
         if ( ! empty( $status ) && ! empty( $message ) ) {
@@ -480,8 +492,10 @@ class RegisterWithdrawMethods {
     private function connect_messsage() {
         return wp_kses(
             sprintf(
-                'Your account is not connected with PayPal Marketplace. Connect your <a href="%1$s">PayPal</a> account to receive automatic payouts.',
-                dokan_get_navigation_url( 'settings/payment' )
+            // Translators: %1$s is the link to the settings page, %2$s is anchor end tag.
+                __( 'Your account is not connected with PayPal Marketplace. Connect your %1$s PayPal%2$s account to receive automatic payouts.', 'dokan' ),
+                sprintf( '<a href="%1$s">', dokan_get_navigation_url( 'settings/payment' ) ),
+                '</a>'
             ),
             [
                 'a' => [
@@ -490,5 +504,56 @@ class RegisterWithdrawMethods {
                 ],
             ]
         );
+    }
+
+    /**
+     * Get the Withdrawal method icon
+     *
+     * @since 3.5.6
+     *
+     * @param string $method_icon
+     * @param string $method_key
+     *
+     * @return string
+     */
+    public function get_icon( $method_icon, $method_key ) {
+        if ( 'dokan-paypal-marketplace' === $method_key ) {
+            $method_icon = DOKAN_PAYPAL_MP_ASSETS . 'images/paypal-withdraw-method.svg';
+        }
+
+        return $method_icon;
+    }
+
+    /**
+     * Get the heading for this payment's settings page
+     *
+     * @since 3.5.6
+     *
+     * @param string $heading
+     * @param string $slug
+     *
+     * @return string
+     */
+    public function get_heading( $heading, $slug ) {
+        if ( false !== strpos( $slug, 'dokan-paypal-marketplace' ) ) {
+            $heading = __( 'Dokan Paypal Marketplace Settings', 'dokan' );
+        }
+
+        return $heading;
+    }
+
+    /**
+     * Get the storage key in payment settings for this method
+     *
+     * @since 3.5.6
+     *
+     * @param array $old_key
+     *
+     * @return array
+     */
+    public function get_storage_key( $old_key ) {
+        $old_key['dokan-paypal-marketplace'] = 'dokan_paypal_marketplace';
+
+        return $old_key;
     }
 }

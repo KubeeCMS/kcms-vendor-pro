@@ -33,7 +33,7 @@ class Settings {
         $section[] = array(
             'id'    => 'dokan_germanized',
             'title' => __( 'EU Compliance Fields', 'dokan' ),
-            'icon'  => 'dashicons-google',
+            'icon'  => 'dashicons-id',
         );
 
         return $section;

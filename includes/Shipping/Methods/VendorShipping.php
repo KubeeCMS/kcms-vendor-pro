@@ -345,7 +345,7 @@ class VendorShipping extends WC_Shipping_Method {
                         'cost'      => $rate['cost'],
                         'meta_data' => array( 'description' => $rate['description'] ),
                         'package'   => $package,
-                        'taxes'     => $tax_rate,
+                        'taxes'     => $rate['taxes'],
                     )
                 );
 
@@ -382,8 +382,14 @@ class VendorShipping extends WC_Shipping_Method {
             $total = round( $total - $discount_total, wc_get_price_decimals() );
         }
 
-        if ( $total >= $min_amount ) {
-            $has_met_min_amount = true;
+        if ( version_compare( WC_VERSION, '3.7.2', '<' ) ) {
+            if ( $total >= $min_amount ) {
+                $has_met_min_amount = true;
+            }
+        } else {
+            if ( $total - array_sum( $line_subtotal_tax ) >= $min_amount ) {
+                $has_met_min_amount = true;
+            }
         }
 
         return apply_filters( 'dokaan_shipping_free_shipping_is_available', $has_met_min_amount, $package, $method );

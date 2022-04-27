@@ -154,7 +154,7 @@ class Hooks {
     public function add_coupon_menu( $urls ) {
         $urls['coupons'] = array(
             'title'      => __( 'Coupons', 'dokan' ),
-            'icon'       => '<i class="fa fa-gift"></i>',
+            'icon'       => '<i class="fas fa-gift"></i>',
             'url'        => dokan_get_navigation_url( 'coupons' ),
             'pos'        => 55,
             'permission' => 'dokan_view_coupon_menu',
@@ -701,7 +701,7 @@ class Hooks {
         $amount             = wc_format_decimal( sanitize_text_field( $post_data['amount'] ) );
         $usage_limit        = empty( $post_data['usage_limit'] ) ? '' : absint( $post_data['usage_limit'] );
         $usage_limit_per_user = empty( $post_data['usage_limit_per_user'] ) ? '' : absint( $post_data['usage_limit_per_user'] );
-        $expiry_date        = ! empty( $post_data['expire'] ) ? dokan_get_timestamp( sanitize_text_field( $post_data['expire'] ) ) : '';
+        $expiry_date        = ! empty( $post_data['expire'] ) ? dokan_current_datetime()->modify( sanitize_text_field( $post_data['expire'] ) . ' 00:00:00' )->getTimestamp() : '';
         $apply_before_tax   = isset( $post_data['apply_before_tax'] ) ? 'yes' : 'no';
         $exclude_sale_items = isset( $post_data['exclude_sale_items'] ) ? 'yes' : 'no';
         $show_on_store      = isset( $post_data['show_on_store'] ) ? 'yes' : 'no';

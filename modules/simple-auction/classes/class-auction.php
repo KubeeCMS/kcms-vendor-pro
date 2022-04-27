@@ -239,7 +239,7 @@ class Dokan_Template_Auction {
                     $is_virtual = isset( $data['_virtual'] ) ? 'yes' : 'no';
 
                     $auction_product->set_virtual( $is_virtual );
-                    
+
                     // Dimensions
                     if ( 'no' === $is_virtual ) {
                         if ( ! empty( $data['_weight'] ) ) {
@@ -542,6 +542,15 @@ class Dokan_Template_Auction {
             $auction_dates_to   = isset( $_POST['_auction_dates_to'] ) ? sanitize_text_field( wp_unslash( $_POST['_auction_dates_to'] ) ) : '';
             $auction_dates_from = isset( $_POST['_auction_dates_from'] ) ? sanitize_text_field( wp_unslash( $_POST['_auction_dates_from'] ) ) : '';
 
+            if ( ! empty( $_POST['_relist_auction_dates_from'] ) && ! empty( $_POST['_relist_auction_dates_to'] ) ) {
+                // Set relisted dates data.
+                $auction_dates_to   = sanitize_text_field( wp_unslash( $_POST['_relist_auction_dates_to'] ) );
+                $auction_dates_from = sanitize_text_field( wp_unslash( $_POST['_relist_auction_dates_from'] ) );
+
+                // Update auction relisted data.
+                $this->relist_auction( $post_id, $auction_dates_to, $auction_dates_from );
+            }
+
             update_post_meta( $post_id, '_auction_dates_to', $auction_dates_to );
             update_post_meta( $post_id, '_auction_dates_from', $auction_dates_from );
 
@@ -587,6 +596,79 @@ class Dokan_Template_Auction {
             wp_redirect( add_query_arg( array( 'message' => 'success' ), $edit_url ) );
             exit;
         }
+    }
+
+    /**
+     * Relist our auction & update relisted data.
+     *
+     * @since 3.5.0
+     *
+     * @param int    $post_id
+     * @param string $relist_from
+     * @param string $relist_to
+     *
+     * @return void
+     */
+    public function relist_auction( $post_id, $relist_from, $relist_to ) {
+        global $wpdb;
+
+        // Get auction product.
+        $auction_product = wc_get_product( $post_id );
+
+        // Set auction metas for updated.
+        $update_auction_metas = [
+            '_stock'              => '1',
+            '_backorders'         => 'no',
+            '_stock_status'       => 'instock',
+            '_manage_stock'       => 'yes',
+            '_auction_dates_to'   => stripslashes( $relist_to ),
+            '_auction_relisted'   => current_time( 'mysql' ),
+            '_sold_individually'  => 'yes',
+            '_auction_dates_from' => stripslashes( $relist_from ),
+        ];
+
+        // Set auction metas for deleted.
+        $delete_auction_metas = [
+            '_stop_mails',
+            '_auction_closed',
+            '_auction_max_bid',
+            '_auction_started',
+            '_auction_bid_count',
+            '_auction_fail_reason',
+            '_auction_current_bid',
+            '_auction_current_bider',
+            '_auction_max_current_bider',
+        ];
+
+        // Update auction metas for relisted auction.
+        $auction_product->set_props( $update_auction_metas );
+
+        // Delete auction metas for relisted auction.
+        foreach ( $delete_auction_metas as $auction_meta_key ) {
+            $auction_product->delete_meta_data( $auction_meta_key );
+        }
+
+        $order_id = get_post_meta( $post_id, 'order_id', true );
+        $order    = wc_get_order( $order_id );
+
+        if ( $order instanceof \WC_Order ) {
+            $order->update_status( 'failed', __( 'Failed because off relisting', 'dokan' ) );
+            delete_post_meta( $post_id, '_order_id' );
+        }
+
+        // @codingStandardsIgnoreLine
+        $wpdb->delete( $wpdb->usermeta, [ 'meta_key' => 'wsa_my_auctions', 'meta_value' => $post_id ], [ '%s', '%d' ] );
+
+        /**
+         * Fires after auction product relisted.
+         *
+         * @since 3.5.0
+         *
+         * @param \WC_Product $auction_product
+         * @param string      $relist_from
+         * @param string      $relist_to
+         */
+        do_action( 'dokan_do_simple_auction_relist', $auction_product, $relist_from, $relist_to );
     }
 
     /**

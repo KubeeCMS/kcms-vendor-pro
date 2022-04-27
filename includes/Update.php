@@ -5,7 +5,7 @@ namespace WeDevs\DokanPro;
 /**
  * Dokan Update class
  *
- * Performas license validation and update checking
+ * Performs license validation and update checking
  */
 class Update {
 
@@ -32,7 +32,7 @@ class Update {
         }
 
         $this->init_appsero();
-
+    /**
         if ( is_multisite() ) {
             if ( is_main_site() ) {
                 add_filter( 'dokan_admin_notices', [ $this, 'license_enter_notice' ] );
@@ -40,7 +40,7 @@ class Update {
         } else {
             add_filter( 'dokan_admin_notices', [ $this, 'license_enter_notice' ] );
         }
-
+     */
         add_action( 'in_plugin_update_message-' . plugin_basename( DOKAN_PRO_FILE ), [ $this, 'plugin_update_message' ] );
     }
 
@@ -68,8 +68,10 @@ class Update {
         if ( method_exists( $this->license, 'set_option_key' ) ) {
             $this->license->set_option_key( 'dokan_pro_license' );
         }
+    /**
 
         $this->license->add_settings_page( $args );
+     */
 
         // Active automatic updater
         $client->updater();
@@ -81,8 +83,9 @@ class Update {
      * @param array $notices
      *
      * @return array
-     */
+
     public function license_enter_notice( $notices ) {
+    return;
         if ( $this->license->is_valid() ) {
             return $notices;
         }
@@ -103,7 +106,7 @@ class Update {
 
         return $notices;
     }
-
+     */
     /**
      * Show plugin udpate message
      *
@@ -112,7 +115,6 @@ class Update {
      * @param array $args
      *
      * @return void
-     */
     public function plugin_update_message( $args ) {
         if ( $this->license->is_valid() ) {
             return;
@@ -125,4 +127,5 @@ class Update {
 
         echo apply_filters( $this->product_id . '_in_plugin_update_message', wp_kses_post( $upgrade_notice ) );
     }
+*/	
 }

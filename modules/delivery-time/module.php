@@ -157,7 +157,7 @@ class Module {
      */
     public function register_frontend_scripts() {
         // Use minified libraries if SCRIPT_DEBUG is turned off
-        $suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+        $suffix  = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
         $version = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? time() : DOKAN_PRO_PLUGIN_VERSION;
 
         wp_register_script( 'dokan-delivery-time-main-script', DOKAN_DELIVERY_TIME_ASSETS_DIR . '/js/script-main' . $suffix . '.js', [ 'jquery' ], $version, true );
@@ -172,6 +172,12 @@ class Module {
         wp_register_style( 'dokan-delivery-time-vendor-style', DOKAN_DELIVERY_TIME_ASSETS_DIR . '/css/script-style' . $suffix . '.css', false, $version, 'all' );
 
         wp_register_script( 'dokan-store-location-pickup-script', DOKAN_DELIVERY_TIME_ASSETS_DIR . '/js/script-store-location-pickup' . $suffix . '.js', [ 'jquery' ], $version, true );
+
+        if ( false !== get_query_var( 'delivery-time-dashboard', false ) ) {
+            wp_enqueue_script( 'dokan-chart' );
+
+            wp_enqueue_style( 'dokan-timepicker' );
+        }
     }
 
     /**

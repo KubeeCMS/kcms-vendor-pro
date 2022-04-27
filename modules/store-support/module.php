@@ -41,6 +41,8 @@ class Module {
         require_once DOKAN_STORE_SUPPORT_DIR . '/support-widget.php';
 
         add_action( 'dokan_activated_module_store_support', [ $this, 'activate' ] );
+
+        $this->instances();
     }
 
     /**
@@ -94,6 +96,8 @@ class Module {
         add_filter( 'woocommerce_email_classes', [ $this, 'load_support_ticekt_emails' ] );
         add_filter( 'dokan_email_list', [ $this, 'set_email_template_directory' ] );
         add_filter( 'dokan_email_actions', [ $this, 'register_email_actions' ] );
+
+        add_filter( 'dokan_rest_api_class_map', [ $this, 'rest_api_class_map' ] );
     }
 
     /**
@@ -218,9 +222,9 @@ class Module {
         //load store support filter js
         if ( dokan_is_seller_dashboard() && isset( $wp->query_vars['support'] ) ) {
             wp_enqueue_style( 'dokan-select2-css' );
-            wp_enqueue_style( 'jquery-ui' );
+            wp_enqueue_style( 'dokan-date-range-picker' );
 
-            wp_enqueue_script( 'dokan-store-support-filter', plugins_url( 'assets/js/store-support-filter.js', __FILE__ ), [ 'jquery', 'dokan-select2-js', 'jquery-ui-datepicker', 'dokan-i18n-jed', 'dokan-util-helper' ], gmdate( 'Ymd' ), true );
+            wp_enqueue_script( 'dokan-store-support-filter', plugins_url( 'assets/js/store-support-filter.js', __FILE__ ), [ 'jquery', 'dokan-select2-js', 'dokan-moment', 'dokan-date-range-picker', 'dokan-i18n-jed', 'dokan-util-helper' ], gmdate( 'Ymd' ), true );
         }
     }
 
@@ -232,8 +236,10 @@ class Module {
      * @return void
      */
     public function include_scripts() {
-        wp_enqueue_style( 'dokan-magnific-popup' );
-        wp_enqueue_script( 'dokan-popup' );
+        if ( is_product() || dokan_is_store_page() || false !== get_query_var( 'view-order', false ) || false !== get_query_var( 'order-received', false ) ) {
+            wp_enqueue_style( 'dokan-magnific-popup' );
+            wp_enqueue_script( 'dokan-popup' );
+        }
     }
 
     /**
@@ -328,7 +334,6 @@ class Module {
      */
     public function get_support_button( $store_id ) {
         $button = [
-            'show'  => false,
             'class' => 'user_logged_out',
             'text'  => '',
         ];
@@ -337,12 +342,7 @@ class Module {
             $button['class'] = 'user_logged';
         }
 
-        $store_info = dokan_get_store_info( $store_id );
-
-        if ( isset( $store_info['show_support_btn'] ) && 'yes' === $store_info['show_support_btn'] || isset( $store_info['show_support_btn_product'] ) && 'yes' === $store_info['show_support_btn_product'] ) {
-            $button['show'] = true;
-        }
-
+        $store_info               = dokan_get_store_info( $store_id );
         $get_support_default_text = dokan_get_option( 'support_button_label', 'dokan_store_support_setting', __( 'Get Support', 'dokan' ) );
 
         $button['text'] = ! empty( $store_info['support_btn_name'] ) ? $store_info['support_btn_name'] : $get_support_default_text;
@@ -358,11 +358,15 @@ class Module {
      * @param int store_id
      */
     public function generate_support_button( $store_id ) {
+        $store_info = dokan_get_store_info( $store_id );
+
+        if ( isset( $store_info['show_support_btn'] ) && 'no' === $store_info['show_support_btn'] ) {
+            return;
+        }
+
         $button = $this->get_support_button( $store_id );
 
-        if ( ! $button['show'] ) {
-            return;
-        } ?>
+        ?>
         <li class="dokan-store-support-btn-wrap dokan-right">
             <button data-store_id="<?php echo esc_attr( $store_id ); ?>" class="dokan-store-support-btn dokan-btn dokan-btn-theme dokan-btn-sm <?php echo esc_attr( $button['class'] ); ?>"><?php echo esc_html( $button['text'] ); ?></button>
         </li>
@@ -391,9 +395,6 @@ class Module {
 
         $button = $this->get_support_button( $store_id );
 
-        if ( ! $button['show'] ) {
-            return;
-        }
         ?>
             <button data-store_id="<?php echo esc_attr( $store_id ); ?>" class="dokan-store-support-btn-product dokan-store-support-btn button alt <?php echo esc_attr( $button['class'] ); ?>"><?php echo esc_html( $button['text'] ); ?></button>
         <?php
@@ -422,9 +423,6 @@ class Module {
 
         $button = $this->get_support_button( $author->ID );
 
-        if ( ! $button['show'] ) {
-            return;
-        }
         ?>
             <button data-store_id="<?php echo esc_attr( $author->ID ); ?>" class="dokan-store-support-btn-product dokan-store-support-btn button alt <?php echo esc_attr( $button['class'] ); ?>"><?php echo esc_html( $button['text'] ); ?></button>
         <?php
@@ -462,9 +460,6 @@ class Module {
 
         $button = $this->get_support_button( $store_id );
 
-        if ( ! $button['show'] ) {
-            return;
-        }
         ?>
             <button data-order_id="<?php echo esc_attr( $order_id ); ?>" data-store_id="<?php echo esc_attr( $store_id ); ?>" class="dokan-store-support-btn-product dokan-store-support-btn button alt <?php echo esc_attr( $button['class'] ); ?>"><?php echo esc_html( $button['text'] ); ?></button>
         <?php
@@ -798,7 +793,7 @@ class Module {
 
             $urls['support'] = [
                 'title' => __( 'Support', 'dokan' ) . $count_text,
-                'icon'  => '<i class="fa fa-life-ring"></i>',
+                'icon'  => '<i class="far fa-life-ring"></i>',
                 'url'   => dokan_get_navigation_url( 'support' ),
                 'pos'   => 199,
             ];
@@ -860,12 +855,13 @@ class Module {
                 return;
             }
 
-            $args['customer_id']      = ! empty( $_GET['customer_id'] ) ? absint( wp_unslash( $_GET['customer_id'] ) ) : 0;
-            $args['ticket_date']      = ! empty( $_GET['ticket_date'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_date'] ) ) : '';
-            $args['ticket_keyword']   = ! empty( $_GET['ticket_keyword'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_keyword'] ) ) : '';
-            $args['ticket_status']    = ! empty( $_GET['ticket_status'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_status'] ) ) : 'open';
-            $args['pagenum']          = ! empty( $_GET['pagenum'] ) ? absint( wp_unslash( $_GET['pagenum'] ) ) : 1;
-            $args['is_store_support'] = true;
+            $args['customer_id']       = ! empty( $_GET['customer_id'] ) ? absint( wp_unslash( $_GET['customer_id'] ) ) : 0;
+            $args['ticket_start_date'] = ! empty( $_GET['ticket_start_date'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_start_date'] ) ) : '';
+            $args['ticket_end_date']   = ! empty( $_GET['ticket_end_date'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_end_date'] ) ) : '';
+            $args['ticket_keyword']    = ! empty( $_GET['ticket_keyword'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_keyword'] ) ) : '';
+            $args['ticket_status']     = ! empty( $_GET['ticket_status'] ) ? sanitize_text_field( wp_unslash( $_GET['ticket_status'] ) ) : 'open';
+            $args['pagenum']           = ! empty( $_GET['pagenum'] ) ? absint( wp_unslash( $_GET['pagenum'] ) ) : 1;
+            $args['is_store_support']  = true;
 
             if ( ! empty( $_GET['customer_id'] ) ) {
                 $user                  = get_user_by( 'id', absint( wp_unslash( $_GET['customer_id'] ) ) );
@@ -892,15 +888,20 @@ class Module {
     public function get_support_topics( $args = array() ) {
         global $wpdb;
 
+        if ( empty( $args['ticket_end_date'] ) ) {
+            unset( $args['ticket_end_date'] );
+        }
+
         $defaults = [
-            'vendor_id'      => absint( dokan_get_current_user_id() ),
-            'customer_id'    => 0,
-            'ticket_keyword' => '',
-            'ticket_date'    => 0,
-            'ticket_status'  => 'open',
-            'pagenum'        => 1,
-            'posts_per_page' => $this->per_page,
-            'paged'          => 1,
+            'vendor_id'         => absint( dokan_get_current_user_id() ),
+            'customer_id'       => 0,
+            'ticket_keyword'    => '',
+            'ticket_start_date' => 0,
+            'ticket_end_date'   => dokan_current_datetime()->format( 'Y-m-d' ),
+            'ticket_status'     => 'open',
+            'pagenum'           => 1,
+            'posts_per_page'    => $this->per_page,
+            'paged'             => 1,
         ];
 
         $args   = wp_parse_args( $args, $defaults );
@@ -930,10 +931,10 @@ class Module {
             $qry_args['s'] = $wpdb->esc_like( $args['ticket_keyword'] );
         }
 
-        if ( ! empty( $args['ticket_date'] ) ) {
+        if ( ! empty( $args['ticket_start_date'] ) && ! empty( $args['ticket_end_date'] ) ) {
             $qry_args['date_query'] = [
-                'after'     => $args['ticket_date'],
-                'before'    => dokan_current_datetime()->modify( $args['ticket_date'] )->modify( '+1 day' )->format( 'Y-m-d' ),
+                'after'     => $args['ticket_start_date'],
+                'before'    => $args['ticket_end_date'],
                 'inclusive' => true,
             ];
         }
@@ -1015,7 +1016,7 @@ class Module {
                         switch ( get_post_status() ) {
                             case 'open':
                                 $c_status     = 'closed';
-                                $btn_icon     = 'fa-close';
+                                $btn_icon     = 'fa-times';
                                 $topic_status = 'dokan-label-success';
                                 $status_label  = __( 'Open', 'dokan' );
                                 $btn_title    = __( 'Close Topic', 'dokan' );
@@ -1023,7 +1024,7 @@ class Module {
 
                             case 'closed':
                                 $c_status     = 'open';
-                                $btn_icon     = 'fa-file-o';
+                                $btn_icon     = 'fa-file';
                                 $topic_status = 'dokan-label-danger';
                                 $status_label     = __( 'Closed', 'dokan' );
                                 $btn_title    = __( 'Re-open Topic', 'dokan' );
@@ -1031,7 +1032,7 @@ class Module {
 
                             default:
                                 $c_status     = 'closed';
-                                $btn_icon     = 'fa-close';
+                                $btn_icon     = 'fa-times';
                                 $topic_status = 'dokan-label-success';
                                 $status_label      = __( 'Open', 'dokan' );
                                 $btn_title    = __( 'Close Topic', 'dokan' );
@@ -1043,7 +1044,8 @@ class Module {
                         <td data-title="<?php esc_attr_e( 'Status', 'dokan' ); ?>"><span class="dokan-label <?php echo esc_attr( $topic_status ); ?>"><?php echo esc_html( $status_label ); ?></span></td>
                         <td class="dokan-order-date" data-title="<?php esc_attr_e( 'Date', 'dokan' ); ?>"><span><?php echo esc_html( dokan_format_datetime( dokan_get_timestamp( $post->post_date_gmt, true ) ) ); ?></span></td>
                         <td data-title="<?php esc_attr_e( 'Action', 'dokan' ); ?>">
-                            <a class="dokan-btn dokan-btn-default dokan-btn-sm tips dokan-support-status-change" onclick="dokan_show_delete_prompt( event, dokan.delete_confirm );" href="<?php echo esc_url( $action_url ); ?>" title="" data-changing_post_id="<?php echo get_the_ID(); ?>" data-original-title="<?php echo esc_attr( $btn_title ); ?>"><i data-url="<?php echo esc_url( $action_url ); ?>" class="fa <?php echo esc_attr( $btn_icon ); ?>">&nbsp;</i></a>
+                            <?php $selected_icon = 'fa-file' === $btn_icon ? esc_attr( 'far' ) : esc_attr( 'fas' ); ?>
+                            <a class="dokan-btn dokan-btn-default dokan-btn-sm tips dokan-support-status-change" onclick="dokan_show_delete_prompt( event, dokan.delete_confirm );" href="<?php echo esc_url( $action_url ); ?>" title="" data-changing_post_id="<?php echo get_the_ID(); ?>" data-original-title="<?php echo esc_attr( $btn_title ); ?>"><i data-url="<?php echo esc_url( $action_url ); ?>" class="<?php echo esc_attr( $selected_icon . ' ' . $btn_icon ); ?>">&nbsp;</i></a>
                         </td>
                     </tr>
                     <?php
@@ -1148,7 +1150,15 @@ class Module {
                 <a href="<?php echo $back_url; ?>">&larr; <?php esc_html_e( 'Back to Tickets', 'dokan' ); ?></a>
 
                 <div class="dokan-support-single-title">
-                    <h1><?php the_title(); ?></h1>
+                    <div class="dokan-dss-chat-header">
+                        <div class="dokan-chat-title-box">
+                            <span class="dokan-chat-title"><?php the_title(); ?></span>
+                            <span class="dokan-chat-title dokan-chat-status"> #<?php echo get_the_ID(); ?></span>
+                        </div>
+                        <div class="dokan-chat-status-box">
+                            <span class="dokan-chat-status <?php echo get_post_status( get_the_ID() ) === 'open' ? 'chat-open' : 'chat-closed'; ?>"><?php echo get_post_status( get_the_ID() ) === 'open' ? __( 'Open', 'dokan' ) : __( 'Closed', 'dokan' ); ?></span>
+                        </div>
+                    </div>
                     <?php
                     $order_id = get_post_meta( get_the_ID(), 'order_id', true );
 
@@ -1162,6 +1172,7 @@ class Module {
                         ?>
                         <span class="order-reference" >
                             <h3>
+                                <?php /* translators: %s: Referenced Order */ ?>
                                 <?php echo '<a href="' . esc_url( $ticket_ref_url ) . '"><strong>' . sprintf( __( 'Referenced Order #%s', 'dokan' ), esc_attr( $order_id ) ) . '</strong></a>'; ?>
                             </h3>
                         </span>
@@ -1169,17 +1180,27 @@ class Module {
                     }
                     ?>
                 </div>
-                <div class="dokan-suppport-topic-body dokan-clearfix">
-                    <div class="dokan-support-user-image dokan-w3">
-                        <?php echo get_avatar( get_the_author_meta( 'ID' ), 90 ); ?>
 
-                        <div class="dokan-support-user-name">
-                            <h4><?php the_author(); ?></h4>
-                            <p class="dokan-support-date-time"><?php echo esc_html( dokan_format_datetime( dokan_get_timestamp( $post->post_date_gmt, true ) ) ); ?></p>
+                <div class="dokan-dss-chat-box main-topic">
+                    <div class="dokan-chat-image-box">
+                        <div class="dokan-chat-image-container dokan-chat-image-container-topic">
+                            <?php echo get_avatar( get_the_author_meta( 'ID' ), 90 ); ?>
                         </div>
                     </div>
-                    <div class="dokan-support-reply dokan-w9">
-                        <p><?php the_content(); ?></p>
+                    <div class="dokan-chat-info-box">
+                        <div class="dokan-chat-sender-info">
+                            <div class="dokan-chat-user-box">
+                                <span class="chat-user"><?php the_author(); ?></span>
+                            </div>
+                        </div>
+                        <div class="dokan-chat-text dokan-customer-chat-text">
+                            <?php the_content(); ?>
+                        </div>
+                        <div class="dokan-chat-time-box">
+                            <span class="dokan-chat-time">
+                            <?php echo esc_html( dokan_format_datetime( dokan_get_timestamp( $post->post_date_gmt, true ) ) ); ?>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -1212,8 +1233,8 @@ class Module {
             }
             ?>
 
-            <div class="dokan-panel dokan-panel-default">
-                <div class="dokan-panel-heading">
+            <div class="dokan-panel dokan-panel-default dokan-dss-panel-default">
+                <div class="dokan-dss-panel-heading">
                     <?php
                     $heading = $ticket_status === 'open' ? __( 'Add Reply', 'dokan' ) : __( 'Ticket Closed', 'dokan' );
                     ?>
@@ -1226,16 +1247,18 @@ class Module {
                     ?>
                 </div>
 
-                <div class="dokan-panel-body dokan-support-reply-form">
+                <div class="dokan-dss-panel-body dokan-support-reply-form">
                     <?php
                     if ( $ticket_status === 'open' || ! $is_customer ) {
                         $comment_textarea = '<p class="comment-form-comment"><label for="Reply ">' . //_x( 'Give Reply ', 'dokan' ) .
-                                            '</label><textarea class="comment-textarea" required="required" id="comment" name="comment" rows="3" aria-required="true">' . ' ' .
+                                            '</label><textarea class="dokan-dss-comment-textarea" required="required" id="comment" name="comment" rows="3" aria-required="true">' . ' ' .
                                             '</textarea></p>';
-                        $select_topic_status = '<select class="dokan-support-topic-select dokan-form-control dokan-w3" name="dokan-topic-status-change">
+                        $select_topic_status = $ticket_status === 'open' ?
+                                                '<select class="dokan-support-topic-select dokan-form-control dokan-w3" name="dokan-topic-status-change">
                                                     <option value="0">' . __( '-- Change Status --', 'dokan' ) . '</option>
                                                     <option value="1">' . __( 'Close Ticket', 'dokan' ) . '</option>
-                                                </select>';
+                                                </select>'
+                                                : '<input type="hidden" value="1" name="dokan-topic-status-change">';
 
                         $comment_field = $comment_textarea;
 
@@ -1255,7 +1278,7 @@ class Module {
                             'format'               => 'html5',
                             'comment_field'        => $comment_field,
                             'must_log_in'          => '<p class="must-log-in">' .
-                                sprintf( __( 'You must be <a href="%s">logged in</a> to post a comment.' ), wp_login_url( apply_filters( 'the_permalink', get_permalink() ) ) ) . '</p>',
+                                sprintf( __( 'You must be <a href="%s">logged in</a> to post a comment.', 'dokan-pro' ), wp_login_url( apply_filters( 'the_permalink', get_permalink() ) ) ) . '</p>',
                             'logged_in_as'         => '',
                             'comment_notes_before' => '',
                             'comment_notes_after'  => '',
@@ -1269,7 +1292,7 @@ class Module {
                         <?php
                     }
 
-                    wp_reset_query();
+                    wp_reset_postdata();
                     ?>
                 </div>
             </div>
@@ -1349,8 +1372,8 @@ class Module {
                     <tr>
                         <td>
                             <a href="<?php echo $topic_url; ?>"
-                               <strong>
-                                   <?php echo '#' . $topic->ID; ?>
+                                <strong>
+                                    <?php echo '#' . $topic->ID; ?>
                                 </strong>
                             </a>
                         </td>
@@ -1522,26 +1545,54 @@ class Module {
      */
     public function support_comment_format( $comment, $args, $depth ) {
         $GLOBALS['comment'] = $comment;
+
+        $user_type  = 'dokan-customer-chat-text';
+        $user_image = get_avatar_url( $comment->user_id );
+        $site_name  = '';
+
+        if ( user_can( $comment->user_id, 'manage_options' ) && dokan_is_user_seller( $comment->user_id ) ) {
+            $user_type = 'dokan-admin-chat-text';
+
+            $custom_logo_id = get_theme_mod( 'custom_logo' );
+            $logo = wp_get_attachment_image_src( $custom_logo_id, 'full' );
+            $user_image = has_custom_logo() ? $logo[0] : get_avatar_url( 0 );
+
+            $site_name = get_bloginfo( 'name', 'display' );
+        } elseif ( dokan_is_user_seller( $comment->user_id ) ) {
+            $user_type = 'dokan-vendor-chat-text';
+        }
         ?>
 
         <li <?php comment_class(); ?> id="li-comment-<?php comment_ID(); ?>">
 
-            <div class="dokan-suppport-topic-body">
-                <div class="dokan-support-user-image dokan-w3">
-                    <?php echo get_avatar( $comment, 50 ); ?>
-                    <div class="dokan-support-user-name">
-                        <h4> <?php comment_author(); ?> </h4>
-                        <p class="dokan-support-date-time">
+            <div class="dokan-dss-chat-box">
+                <div class="dokan-chat-image-box">
+                    <div class="dokan-chat-image-container">
+                        <img src="<?php echo esc_attr( $user_image ); ?>" alt="<?php echo esc_attr( $user_image ); ?>" class="dokan-chat-image">
+                    </div>
+                </div>
+                <div class="dokan-chat-info-box">
+                    <div class="dokan-chat-sender-info">
+                        <div class="dokan-chat-user-box">
+                            <?php if ( '' === $site_name ) : ?>
+                                <span class="chat-user"><?php comment_author(); ?></span>
+                            <?php else : ?>
+                                <span class="chat-user"><?php echo esc_html( $site_name ); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="dokan-chat-text <?php echo esc_attr( $user_type ); ?>">
+                        <?php comment_text(); ?>
+                    </div>
+                    <div class="dokan-chat-time-box">
+                        <span class="dokan-chat-time">
                             <time>
                                 <?php echo get_comment_time() . '<span class="human-diff"> ( ' . human_time_diff( time(), get_comment_time( 'U', true ) ) . ' )</span>'; ?>
                             </time>
-                        </p>
+                        </span>
                     </div>
                 </div>
-                <div class="dokan-support-reply dokan-w8">
-                    <p><?php comment_text(); ?></p>
-                </div>
-                <div class="dokan-clearfix"></div>
+                <!-- <div class="chat-action-box"></div> -->
             </div>
         <?php
     }
@@ -1697,7 +1748,7 @@ class Module {
         $support_text           = isset( $profile_info['support_btn_name'] ) ? $profile_info['support_btn_name'] : '';
         $enable_support         = isset( $profile_info['show_support_btn'] ) ? $profile_info['show_support_btn'] : 'yes';
         $enable_support_product = isset( $profile_info['show_support_btn_product'] ) ? $profile_info['show_support_btn_product'] : 'yes';
-        $store_support_product_page = dokan_get_option( 'store_support_product_page', 'dokan_store_support_setting', 'dont_show' );
+        $store_support_product_page = dokan_get_option( 'store_support_product_page', 'dokan_store_support_setting', 'above_tab' );
         ?>
             <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label"><?php esc_html_e( 'Enable Support', 'dokan' ); ?></label>
@@ -1890,9 +1941,24 @@ class Module {
      * @return $items
      */
     public function place_support_menu( $items ) {
+        $counts = $this->topic_count_by_customer( dokan_get_current_user_id() );
+        $count  = [];
+
+        if ( $counts ) {
+            $count = wp_list_pluck( $counts, 'count', 'post_status' );
+        }
+
+        $default = [
+            'open'   => 0,
+            'closed' => 0,
+        ];
+
+        $count      = wp_parse_args( $count, $default );
+        $count_text = $count['open'] ? " ({$count['open']})" : "";
+
         unset( $items['customer-logout'] );
-        $items['support-tickets']   = __( 'Seller Support Tickets', 'dokan' );
-        $items['customer-logout']   = __( 'Logout', 'dokan' );
+        $items['support-tickets'] = sprintf( '%s%s', __( 'Seller Support Tickets', 'dokan' ), $count_text );
+        $items['customer-logout'] = __( 'Logout', 'dokan' );
 
         return $items;
     }
@@ -1958,6 +2024,37 @@ class Module {
      */
     public function support_tickets_content() {
         dokan_get_template_part( 'store-support/support-tickets', '', [ 'is_store_support' => true ] );
+    }
+
+    /**
+     * Create module related class instances
+     *
+     * @since 3.5.0
+     *
+     * @return void
+     */
+    private function instances() {
+        require_once DOKAN_STORE_SUPPORT_INC_DIR . '/Admin/class-admin-support.php';
+
+        new \Dokan_Admin_Support();
+    }
+
+    /**
+     * Load store support rest api class.
+     *
+     * @since 3.5.0
+     *
+     * @param array $class_map
+     *
+     * @return array $class_map
+     */
+    public function rest_api_class_map( $class_map ) {
+        $store_support_controller_class = DOKAN_STORE_SUPPORT_INC_DIR . '/Rest/class-dokan-admin-store-support-rest-controller.php';
+        require_once $store_support_controller_class;
+
+        $class_map[ $store_support_controller_class ] = \AdminStoreSupportTicketController::class;
+
+        return $class_map;
     }
 
     /**

@@ -118,7 +118,7 @@ do_action( 'dokan_edit_auction_product_content_before' );
                                 <div class="instruction-inside<?php echo $instruction_class; ?>">
                                     <input type="hidden" name="feat_image_id" class="dokan-feat-image-id" value="<?php echo $feat_image_id; ?>">
 
-                                    <i class="fa fa-cloud-upload"></i>
+                                    <i class="fas fa-cloud-upload-alt"></i>
                                     <a href="#" class="dokan-feat-image-btn btn btn-sm"><?php _e( 'Upload a product cover image', 'dokan' ); ?></a>
                                 </div>
 
@@ -156,7 +156,7 @@ do_action( 'dokan_edit_auction_product_content_before' );
                                                 }
                                                 ?>
                                                 <li class="add-image add-product-images tips" data-title="<?php _e( 'Add gallery image', 'dokan' ); ?>">
-                                                    <a href="#" class="add-product-images"><i class="fa fa-plus" aria-hidden="true"></i></a>
+                                                    <a href="#" class="add-product-images"><i class="fas fa-plus" aria-hidden="true"></i></a>
                                                 </li>
                                             </ul>
 
@@ -266,7 +266,7 @@ do_action( 'dokan_edit_auction_product_content_before' );
                     <div class="product-edit-new-container">
                         <div class="dokan-edit-row dokan-auction-general-sections dokan-clearfix">
                             <div class="dokan-section-heading" data-togglehandler="dokan_product_inventory">
-                                <h2><i class="fa fa-cubes" aria-hidden="true"></i> <?php _e( 'General Options', 'dokan' ) ?></h2>
+                                <h2><i class="fas fa-cubes" aria-hidden="true"></i> <?php _e( 'General Options', 'dokan' ) ?></h2>
                                 <p><?php _e( 'Manage your auction product data', 'dokan' ); ?></p>
                                 <div class="dokan-clearfix"></div>
                             </div>
@@ -313,7 +313,7 @@ do_action( 'dokan_edit_auction_product_content_before' );
                                             <label for="_auction_sealed">
                                                 <input type="checkbox" name="_auction_sealed" value="yes" id="_auction_sealed" <?php checked( $_auction_sealed, 'yes' ); ?>>
                                                 <?php _e( 'Enable sealed bidding for this auction product', 'dokan' );?>
-                                                <i class="fa fa-question-circle tips" data-title="<?php _e( 'In this type of auction all bidders simultaneously submit sealed bids so that no bidder knows the bid of any other participant. The highest bidder pays the price they submitted. If two bids with same value are placed for auction the one which was placed first wins the auction.', 'dokan' ); ?>"></i>
+                                                <i class="fas fa-question-circle tips" data-title="<?php _e( 'In this type of auction all bidders simultaneously submit sealed bids so that no bidder knows the bid of any other participant. The highest bidder pays the price they submitted. If two bids with same value are placed for auction the one which was placed first wins the auction.', 'dokan' ); ?>"></i>
                                             </label>
                                         </div>
                                     </div>
@@ -387,16 +387,16 @@ do_action( 'dokan_edit_auction_product_content_before' );
                                 <?php if ( $_auction_dates_to_timestamp && ( time() > $_auction_dates_to_timestamp ) ) : ?>
                                 <div class="dokan-auction-date-relist">
                                     <div class="content-half-part dokan-auction-dates-from">
-                                        <label class="dokan-control-label" for="_auction_dates_from"><?php _e( 'Relist Auction Start date', 'dokan' ); ?></label>
+                                        <label class="dokan-control-label" for="_relist_auction_dates_from"><?php esc_html_e( 'Relist Auction Start date', 'dokan' ); ?></label>
                                         <div class="dokan-form-group">
-                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_from" id="_relist_auction_dates_from" type="text" value="<?php echo esc_attr( $_auction_dates_from ); ?>" style="width: 97%;" readonly>
+                                            <input class="dokan-form-control auction-datepicker" name="_relist_auction_dates_from" id="_relist_auction_dates_from" type="text" value="<?php echo esc_attr( $_auction_dates_from ); ?>" style="width: 97%;" readonly>
                                         </div>
                                     </div>
 
                                     <div class="content-half-part dokan-auction-dates-to">
-                                        <label class="dokan-control-label" for="_auction_dates_to"><?php _e( 'Relist Auction End date', 'dokan' ); ?></label>
+                                        <label class="dokan-control-label" for="_relist_auction_dates_to"><?php esc_html_e( 'Relist Auction End date', 'dokan' ); ?></label>
                                         <div class="dokan-form-group">
-                                            <input class="dokan-form-control auction-datepicker" name="_auction_dates_to" id="_relist_auction_dates_to" type="text" value="<?php echo esc_attr( $_auction_dates_to ); ?>" readonly>
+                                            <input class="dokan-form-control auction-datepicker" name="_relist_auction_dates_to" id="_relist_auction_dates_to" type="text" value="<?php echo esc_attr( $_auction_dates_to ); ?>" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -447,7 +447,7 @@ do_action( 'dokan_edit_auction_product_content_before' );
 
                         <div class="dokan-edit-row dokan-auction-other-sections dokan-clearfix">
                             <div class="dokan-section-heading" data-togglehandler="dokan_other_options">
-                                <h2><i class="fa fa-cog" aria-hidden="true"></i> <?php _e( 'Other Options', 'dokan' ); ?></h2>
+                                <h2><i class="fas fa-cog" aria-hidden="true"></i> <?php _e( 'Other Options', 'dokan' ); ?></h2>
                                 <p><?php _e( 'Set your extra product options', 'dokan' ); ?></p>
                                 <div class="dokan-clearfix"></div>
                             </div>

@@ -28,8 +28,8 @@ abstract class DokanButton extends Widget_Button {
      *
      * @return void
      */
-    protected function _register_controls() {
-        parent::_register_controls();
+    protected function register_controls() {
+        parent::register_controls();
 
         $this->update_control(
             'icon_align',

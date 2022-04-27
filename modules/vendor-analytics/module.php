@@ -29,6 +29,8 @@ class Module {
         add_filter( 'dokan_set_template_path', [ $this, 'load_view_templates' ], 10, 3 );
         // flush rewrite rules
         add_action( 'woocommerce_flush_rewrite_rules', [ $this, 'flush_rewrite_rules' ] );
+
+        add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
     }
 
     /**
@@ -194,7 +196,7 @@ class Module {
         if ( dokan_is_seller_enabled( get_current_user_id() ) && current_user_can( 'dokandar' ) ) {
             $urls['analytics'] = array(
                 'title' => __( 'Analytics', 'dokan' ),
-                'icon'  => '<i class="fa fa-area-chart"></i>',
+                'icon'  => '<i class="fas fa-chart-area"></i>',
                 'url'   => dokan_get_navigation_url( 'analytics' ),
                 'pos'   => 181,
             );
@@ -226,5 +228,18 @@ class Module {
         add_filter( 'dokan_query_var_filter', array( $this, 'add_endpoint' ) );
         dokan()->rewrite->register_rule();
         flush_rewrite_rules( true );
+    }
+
+    /**
+     * Enqueue styles and scripts
+     *
+     * @since 3.5.3
+     *
+     * @retun void
+     */
+    public function enqueue_scripts() {
+        if ( dokan_is_seller_dashboard() && false !== get_query_var( 'analytics', false ) ) {
+            wp_enqueue_script( 'dokan-flot' );
+        }
     }
 }

@@ -27,10 +27,10 @@ class Frontend implements Runner {
     public function process() {
         // Instantiate assets manager
         new Assets();
-
+        // Instantiate Content AI
+        new ContentAi();
         // Register hooks
         $this->hooks();
-
         // Instantiate Schema generator
         new Schema();
     }
@@ -76,14 +76,14 @@ class Frontend implements Runner {
             array(
                 'rank-math-common',
                 'rank-math-cmb2',
-                'rank-math-post-metabox',
+                'rank-math-editor',
                 'wp-components',
             ),
             rank_math()->version
         );
 
         wp_enqueue_script(
-            'rank-math-metabox',
+            'rank-math-editor',
             rank_math()->plugin_url() . 'assets/admin/js/classic.js',
             array(
                 'clipboard',
@@ -101,6 +101,7 @@ class Frontend implements Runner {
                 'rank-math-analyzer',
                 'rank-math-validate',
                 'wp-block-editor',
+                'rank-math-app',
             ),
             rank_math()->version,
             true
@@ -118,7 +119,7 @@ class Frontend implements Runner {
      */
     private function enqueue_commons() {
         wp_register_style(
-            'rank-math-post-metabox',
+            'rank-math-editor',
             rank_math()->plugin_url() . 'assets/admin/css/gutenberg.css',
             array( 'rank-math-common' ),
             rank_math()->version

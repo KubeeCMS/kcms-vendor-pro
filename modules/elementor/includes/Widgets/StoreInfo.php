@@ -75,8 +75,8 @@ class StoreInfo extends Widget_Icon_List {
      *
      * @return void
      */
-    protected function _register_controls() {
-        parent::_register_controls();
+    protected function register_controls() {
+        parent::register_controls();
 
         $this->update_control(
             'section_icon',
@@ -109,7 +109,7 @@ class StoreInfo extends Widget_Icon_List {
                 'label'       => __( 'Icon', 'dokan' ),
                 'type'        => Controls_Manager::ICON,
                 'label_block' => true,
-                'default'     => 'fa fa-check',
+                'default'     => 'fas fa-check',
             ]
         );
 

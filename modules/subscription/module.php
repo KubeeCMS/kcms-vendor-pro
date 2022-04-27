@@ -389,14 +389,14 @@ class Module {
             if ( $installed_version > '2.3' ) {
                 $urls['subscription'] = array(
                     'title' => __( 'Subscription', 'dokan' ),
-                    'icon'  => '<i class="fa fa-book"></i>',
+                    'icon'  => '<i class="fas fa-book"></i>',
                     'url'   => $permalink,
                     'pos'   => 180,
                 );
             } else {
                 $urls['subscription'] = array(
                     'title' => __( 'Subscription', 'dokan' ),
-                    'icon'  => '<i class="fa fa-book"></i>',
+                    'icon'  => '<i class="fas fa-book"></i>',
                     'url'   => $permalink,
                 );
             }
@@ -1395,6 +1395,21 @@ class Module {
         // because we are already checking this on class constructor
         if ( (string) $enable_option['enable_subscription_pack_in_reg'] !== 'on' ) {
             return $ret;
+        }
+
+        // send verify email if newly registered user role is a customer
+        if (
+            (
+                isset( $_POST['woocommerce-register-nonce'] ) &&
+                wp_verify_nonce( sanitize_key( wp_unslash( $_POST['woocommerce-register-nonce'] ) ), 'woocommerce-register' ) &&
+                isset( $_POST['role'] ) &&
+                'customer' === $_POST['role']
+            ) ||
+            (
+                isset( $_GET['dokan_email_verification'] ) && isset( $_GET['id'] ) && is_numeric( $_GET['id'] ) && ! isset( $_GET['page'] )
+            )
+        ) {
+            return false;
         }
 
         // if product subscription is enabled on registration form, return true,

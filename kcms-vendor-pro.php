@@ -3,7 +3,7 @@
  * Plugin Name: KCMS Vendor Pro
  * Plugin URI: https://github.com/KubeeCMS/kcms-vendor/
  * Description: E-commerce marketplace pro.
- * Version: 3.4.4
+ * Version: 3.5.6
  * Author: Kubee
  * Author URI: https://github.com/KubeeCMS/
  * WC requires at least: 5.0
@@ -36,7 +36,7 @@ class Dokan_Pro {
      *
      * @var string
      */
-    public $version = '3.4.4';
+    public $version = '3.5.6';
 
     /**
      * Database version key
@@ -92,6 +92,7 @@ class Dokan_Pro {
         add_action( 'dokan_loaded', [ $this, 'init_updater' ] );
 
         register_activation_hook( __FILE__, [ $this, 'activate' ] );
+        register_deactivation_hook( __FILE__, [ $this, 'deactivate' ] );
 
         new WeDevs\DokanPro\Brands\Hooks();
     }
@@ -170,6 +171,17 @@ class Dokan_Pro {
         if ( function_exists( 'WC' ) && function_exists( 'dokan' ) ) {
             $this->flush_rewrite_rules();
         }
+    }
+
+    /**
+     * Placeholder for deactivation function
+     *
+     * @since 3.5.0
+     *
+     * @return void
+     */
+    public function deactivate() {
+        \WeDevs\DokanPro\Withdraw\Manager::cancel_all_schedules();
     }
 
     /**
@@ -335,6 +347,9 @@ class Dokan_Pro {
         new \WeDevs\DokanPro\StoreCategory();
         new \WeDevs\DokanPro\StoreListsFilter();
 
+        // Initialize multiple store time settings.
+        new \WeDevs\DokanPro\StoreTime\Settings();
+
         if ( is_admin() ) {
             new \WeDevs\DokanPro\Admin\Admin();
             new \WeDevs\DokanPro\Admin\Pointers();
@@ -371,10 +386,12 @@ class Dokan_Pro {
         if ( is_user_logged_in() ) {
             new \WeDevs\DokanPro\Dashboard();
             new WeDevs\DokanPro\Reports();
-            new WeDevs\DokanPro\Withdraws();
+            new WeDevs\DokanPro\CustomWithdrawMethod();
 
             $this->container['store_settings'] = new \WeDevs\DokanPro\Settings();
         }
+
+        $this->container['withdraw'] = new WeDevs\DokanPro\Withdraw\Manager();
 
         $this->container = apply_filters( 'dokan_pro_get_class_container', $this->container );
 

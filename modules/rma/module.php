@@ -187,18 +187,28 @@ class Module {
 
             wp_localize_script(
                 'dokan-rma-script', 'DokanRMA', [
-					'ajaxurl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'dokan_rma_nonce' ),
-				]
+                    'ajaxurl' => admin_url( 'admin-ajax.php' ),
+                    'nonce'   => wp_create_nonce( 'dokan_rma_nonce' ),
+                ]
             );
+
+            wp_enqueue_style( 'dokan-magnific-popup' );
+            wp_enqueue_script( 'dokan-popup' );
         }
 
         if ( is_account_page() ) {
             $custom_css = '
             body.woocommerce-account ul li.woocommerce-MyAccount-navigation-link--rma-requests a:before{
+                font-family: "Font Awesome\ 5 Free";
+                font-weight: 900;
                 content: "\f0e2"
             }';
             wp_add_inline_style( 'woocommerce-layout', $custom_css );
+        }
+
+        if ( isset( $wp->query_vars['settings'] ) && 'rma' === $wp->query_vars['settings'] ) {
+            wp_enqueue_script( 'dokan-tooltip' );
+            wp_enqueue_script( 'dokan-form-validate' );
         }
     }
 

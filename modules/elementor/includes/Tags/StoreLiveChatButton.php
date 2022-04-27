@@ -57,7 +57,7 @@ class StoreLiveChatButton extends TagBase {
             $chatter = dokan_pro()->module->live_chat->chat->provider;
 
             if ( ! is_null( $chatter ) && 'talkjs' === $chatter->get_name() && $chatter->dokan_is_seller_online() ) {
-                $online_indicator = '<i class="fa fa-circle" aria-hidden="true"></i>';
+                $online_indicator = '<i class="fas fa-circle" aria-hidden="true"></i>';
             }
         }
 

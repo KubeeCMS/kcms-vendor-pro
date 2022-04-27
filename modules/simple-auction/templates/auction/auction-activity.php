@@ -37,7 +37,8 @@ $activities = dokan_auction_get_activity();
         ?>
         <header class="dokan-dashboard-header dokan-clearfix">
             <h1 class="entry-title">
-                <?php esc_html_e( 'Auction Activity', 'dokan' ); ?>
+                <?php esc_html_e( 'Auctions Activity', 'dokan' ); ?>
+                <a id="auction-clear-filter-button" type="button" href="<?php echo esc_url( dokan_get_navigation_url( 'auction' ) ); ?>" name="clear_filter" class="dokan-btn dokan-right button-ml"><span class="fa fa-arrow-left back-to-auction"></span> <?php esc_html_e( 'Auctions', 'dokan' ); ?></a>
             </h1>
         </header><!-- .entry-header -->
 
@@ -77,7 +78,7 @@ $activities = dokan_auction_get_activity();
 
                 <?php if ( 0 === count( $activities ) ) : ?>
                     <tr>
-                        <td><?php esc_html_e( 'No Auction Activity Found!', 'dokan' ); ?></td>
+                        <td><?php esc_html_e( 'No Auctions Activity Found!', 'dokan' ); ?></td>
                     </tr>
                 <?php endif; ?>
 

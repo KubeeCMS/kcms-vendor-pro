@@ -44,6 +44,7 @@ class Refund {
         add_filter( 'dokan_refund_approve_vendor_refund_amount', [ $this, 'vendor_refund_amount' ], 10, 3 );
         add_action( 'dokan_refund_approve_before_insert', [ $this, 'add_vendor_withdraw_entry' ], 10, 3 );
         add_action( 'dokan_refund_approve_before_insert', [ $this, 'update_gateway_fee' ], 10, 3 );
+        add_filter( 'dokan_excluded_gateways_from_auto_process_api_refund', [ $this, 'exclude_from_auto_process_api_refund' ] );
     }
 
     /**
@@ -318,5 +319,19 @@ class Refund {
         }
 
         return $vendor_refund;
+    }
+
+    /**
+     * Excludes Paypal marketplace from auto process API refund.
+     *
+     * @since 3.5.0
+     *
+     * @param array $gateways
+     *
+     * @return array
+     */
+    public function exclude_from_auto_process_api_refund( $gateways ) {
+        $gateways[ Helper::get_gateway_id() ] = Helper::get_gateway_title();
+        return $gateways;
     }
 }

@@ -26,6 +26,17 @@ if ( ! function_exists( 'dokan_get_profile_progressbar' ) ) {
         $progress_vals = isset( $profile_info['profile_completion']['progress_vals'] ) ? $profile_info['profile_completion']['progress_vals'] : 0;
         $progress      = $progress > 100 ? 100 : $progress;
 
+        $is_closed_by_user = isset( $profile_info['profile_completion']['closed_by_user'] ) ? $profile_info['profile_completion']['closed_by_user'] : false;
+
+        if ( $progress >= 100 && $is_closed_by_user ) {
+            return '';
+        }
+
+        if ( $is_closed_by_user ) {
+            $profile_info['profile_completion']['closed_by_user'] = false;
+            update_user_meta( get_current_user_id(), 'dokan_profile_settings', $profile_info );
+        }
+
         if ( strpos( $next_todo, '-' ) !== false ) {
             $next_todo     = substr( $next_todo, strpos( $next_todo, '-' ) + 1 );
             $progress_vals = isset( $profile_info['profile_completion']['progress_vals'] ) ? $profile_info['profile_completion']['progress_vals'] : 0;
@@ -1177,3 +1188,15 @@ function dokan_get_random_string( $length = 8 ) {
     // builtin method failed, try manual method
     return substr( str_shuffle( str_repeat( '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', wp_rand( 1, 10 ) ) ), 1, $length );
 }
+
+/**
+ * Disable entire Dokan withdraw mechanism.
+ *
+ * @param bool $is_disabled
+ *
+ * @return bool
+ */
+function dokan_withdraw_disable_withdraw_operation( $is_disabled ) {
+    return 'on' === dokan_get_option( 'hide_withdraw_option', 'dokan_withdraw', 'off' );
+}
+add_filter( 'dokan_withdraw_disable', 'dokan_withdraw_disable_withdraw_operation', 3 );

@@ -493,6 +493,8 @@ class DPS_Admin {
             )
         );
 
+        do_action( 'dps_subscription_product_fields_after_pack_validity' );
+
         woocommerce_wp_select(
             array(
                 'id'            => '_subscription_product_admin_commission_type',
@@ -718,6 +720,8 @@ class DPS_Admin {
         echo '</p>';
         echo '</div>';
 
+        wp_nonce_field( 'dps_product_fields_nonce', 'dps_product_pack' );
+
         do_action( 'dps_subscription_product_fields' );
     }
 
@@ -728,6 +732,10 @@ class DPS_Admin {
      * @param integer $post_id
      */
     public static function general_fields_save( $post_id ) {
+        if ( ! isset( $_POST['dps_product_pack'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['dps_product_pack'] ) ), 'dps_product_fields_nonce' ) ) {
+            return;
+        }
+
         if ( ! isset( $_POST['product-type'] ) || sanitize_text_field( wp_unslash( $_POST['product-type'] ) ) !== 'product_pack' ) {
             return;
         }
@@ -740,94 +748,78 @@ class DPS_Admin {
         wp_set_post_terms( $post_id, $visibility_term, 'product_visibility', false );
         update_post_meta( $post_id, '_visibility', 'hidden' );
 
-        $woocommerce_no_of_product_field = $_POST['_no_of_product'];
-
-        if ( ! empty( $woocommerce_no_of_product_field ) ) {
+        $woocommerce_no_of_product_field = isset( $_POST['_no_of_product'] ) ? intval( wp_unslash( $_POST['_no_of_product'] ) ) : '';
+        if ( $woocommerce_no_of_product_field !== '' ) {
             update_post_meta( $post_id, '_no_of_product', $woocommerce_no_of_product_field );
         }
 
-        $woocommerce_pack_validity_field = $_POST['_pack_validity'];
-
-        if ( isset( $woocommerce_pack_validity_field ) ) {
+        $woocommerce_pack_validity_field = isset( $_POST['_pack_validity'] ) ? intval( wp_unslash( $_POST['_pack_validity'] ) ) : '';
+        if ( $woocommerce_pack_validity_field !== '' ) {
             update_post_meta( $post_id, '_pack_validity', $woocommerce_pack_validity_field );
         }
 
         if ( ! empty( $_POST['_subscription_product_admin_commission_type'] ) ) {
-            update_post_meta( $post_id, '_subscription_product_admin_commission_type', $_POST['_subscription_product_admin_commission_type'] );
+            update_post_meta( $post_id, '_subscription_product_admin_commission_type', sanitize_text_field( wp_unslash( $_POST['_subscription_product_admin_commission_type'] ) ) );
         }
 
-        update_post_meta( $post_id, '_subscription_product_admin_commission', wc_format_decimal( $_POST['_subscription_product_admin_commission'] ) );
-        update_post_meta( $post_id, '_subscription_product_admin_additional_fee', wc_format_decimal( $_POST['_subscription_product_admin_additional_fee'] ) );
+        if ( isset( $_POST['_subscription_product_admin_commission'] ) ) {
+            update_post_meta( $post_id, '_subscription_product_admin_commission', wc_format_decimal( sanitize_text_field( wp_unslash( $_POST['_subscription_product_admin_commission'] ) ) ) );
+        }
+
+        if ( isset( $_POST['_subscription_product_admin_additional_fee'] ) ) {
+            update_post_meta( $post_id, '_subscription_product_admin_additional_fee', wc_format_decimal( sanitize_text_field( wp_unslash( $_POST['_subscription_product_admin_additional_fee'] ) ) ) );
+        }
 
         if ( ! empty( $_POST['dokan_subscription_allowed_product_types'] ) ) {
-            update_post_meta( $post_id, 'dokan_subscription_allowed_product_types', wc_clean( $_POST['dokan_subscription_allowed_product_types'] ) );
+            update_post_meta( $post_id, 'dokan_subscription_allowed_product_types', wc_clean( wp_unslash( $_POST['dokan_subscription_allowed_product_types'] ) ) );
         } else {
             delete_post_meta( $post_id, 'dokan_subscription_allowed_product_types' );
         }
 
         if ( ! empty( $_POST['_vendor_allowed_categories'] ) ) {
-            update_post_meta( $post_id, '_vendor_allowed_categories', wc_clean( $_POST['_vendor_allowed_categories'] ) );
+            update_post_meta( $post_id, '_vendor_allowed_categories', wc_clean( wp_unslash( $_POST['_vendor_allowed_categories'] ) ) );
         } else {
             delete_post_meta( $post_id, '_vendor_allowed_categories' );
         }
 
         $woocommerce_enable_gallery_restriction = isset( $_POST['_enable_gallery_restriction'] ) ? 'yes' : 'no';
+        update_post_meta( $post_id, '_enable_gallery_restriction', wc_clean( $woocommerce_enable_gallery_restriction ) );
 
-        if ( ! empty( $woocommerce_enable_gallery_restriction ) ) {
-            update_post_meta( $post_id, '_enable_gallery_restriction', wc_clean( $woocommerce_enable_gallery_restriction ) );
-        }
-
-        $gallery_image_restriction_count = ! empty( $_POST['_gallery_image_restriction_count'] ) && $_POST['_gallery_image_restriction_count'] >= 0 ? intval( wp_unslash( $_POST['_gallery_image_restriction_count'] ) ) : -1;
-
+        $gallery_image_restriction_count = isset( $_POST['_gallery_image_restriction_count'] ) && intval( $_POST['_gallery_image_restriction_count'] ) >= 0 ? intval( wp_unslash( $_POST['_gallery_image_restriction_count'] ) ) : -1;
         if ( $woocommerce_enable_gallery_restriction === 'yes' ) {
             update_post_meta( $post_id, '_gallery_image_restriction_count', $gallery_image_restriction_count );
-        }
-
-        if ( $woocommerce_enable_gallery_restriction === 'no' ) {
+        } elseif ( $woocommerce_enable_gallery_restriction === 'no' ) {
             delete_post_meta( $post_id, '_gallery_image_restriction_count' );
         }
 
         $dokan_subscription_enable_trial = isset( $_POST['dokan_subscription_enable_trial'] ) ? 'yes' : 'no';
+        update_post_meta( $post_id, 'dokan_subscription_enable_trial', $dokan_subscription_enable_trial );
 
-        if ( ! empty( $dokan_subscription_enable_trial ) ) {
-            update_post_meta( $post_id, 'dokan_subscription_enable_trial', wc_clean( $dokan_subscription_enable_trial ) );
-        }
-
-        $dokan_subscription_trail_range = isset( $_POST['dokan_subscription_trail_range'] ) ? $_POST['dokan_subscription_trail_range'] : '1';
-
+        $dokan_subscription_trail_range = isset( $_POST['dokan_subscription_trail_range'] ) ? intval( wp_unslash( $_POST['dokan_subscription_trail_range'] ) ) : 1;
         if ( ! empty( $dokan_subscription_trail_range ) ) {
-            update_post_meta( $post_id, 'dokan_subscription_trail_range', wc_clean( $dokan_subscription_trail_range ) );
+            update_post_meta( $post_id, 'dokan_subscription_trail_range', $dokan_subscription_trail_range );
         }
 
-        $dokan_subscription_trial_period_types = isset( $_POST['dokan_subscription_trial_period_types'] ) ? $_POST['dokan_subscription_trial_period_types'] : 'days';
-
+        $dokan_subscription_trial_period_types = isset( $_POST['dokan_subscription_trial_period_types'] ) ? sanitize_text_field( wp_unslash( $_POST['dokan_subscription_trial_period_types'] ) ) : 'days';
         if ( ! empty( $dokan_subscription_trial_period_types ) ) {
-            update_post_meta( $post_id, 'dokan_subscription_trial_period_types', wc_clean( $dokan_subscription_trial_period_types ) );
+            update_post_meta( $post_id, 'dokan_subscription_trial_period_types', $dokan_subscription_trial_period_types );
         }
 
         $woocommerce_enable_recurring_field = isset( $_POST['_enable_recurring_payment'] ) ? 'yes' : 'no';
+        update_post_meta( $post_id, '_enable_recurring_payment', $woocommerce_enable_recurring_field );
 
-        if ( ! empty( $woocommerce_enable_recurring_field ) ) {
-            update_post_meta( $post_id, '_enable_recurring_payment', $woocommerce_enable_recurring_field );
-        }
-
-        $woocommerce_subscription_period_interval_field = $_POST['_dokan_subscription_period_interval'];
-
-        if ( ! empty( $woocommerce_enable_recurring_field ) ) {
+        $woocommerce_subscription_period_interval_field = isset( $_POST['_dokan_subscription_period_interval'] ) ? intval( wp_unslash( $_POST['_dokan_subscription_period_interval'] ) ) : '';
+        if ( $woocommerce_enable_recurring_field !== '' ) {
             update_post_meta( $post_id, '_dokan_subscription_period_interval', $woocommerce_subscription_period_interval_field );
         }
 
-        $woocommerce_subscription_period_field = $_POST['_dokan_subscription_period'];
-
-        if ( ! empty( $woocommerce_enable_recurring_field ) ) {
+        $woocommerce_subscription_period_field = isset( $_POST['_dokan_subscription_period'] ) ? sanitize_text_field( wp_unslash( $_POST['_dokan_subscription_period'] ) ) : '';
+        if ( $woocommerce_enable_recurring_field !== '' ) {
             update_post_meta( $post_id, '_dokan_subscription_period', $woocommerce_subscription_period_field );
         }
 
-        $woocommerce_subscription_length_field = $_POST['_dokan_subscription_length'];
-
-        if ( ! empty( $woocommerce_enable_recurring_field ) ) {
-            update_post_meta( $post_id, '_dokan_subscription_length', $woocommerce_subscription_length_field );
-        }
+        $woocommerce_subscription_length_field = isset( $_POST['_dokan_subscription_length'] ) ? intval( wp_unslash( $_POST['_dokan_subscription_length'] ) ) : 0;
+        update_post_meta( $post_id, '_dokan_subscription_length', $woocommerce_subscription_length_field );
 
         do_action( 'dps_process_subcription_product_meta', $post_id );
     }

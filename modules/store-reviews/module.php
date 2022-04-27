@@ -2,6 +2,8 @@
 
 namespace WeDevs\DokanPro\Modules\StoreReviews;
 
+use WeDevs\DokanPro\Modules\StoreReviews\Emails\Manager;
+
 class Module {
 
     /**
@@ -70,6 +72,7 @@ class Module {
         if ( is_admin() ) {
             require_once DOKAN_SELLER_RATINGS_DIR.'/classes/admin.php';
         }
+        require_once DOKAN_SELLER_RATINGS_DIR . '/classes/Emails/Manager.php';
         require_once DOKAN_SELLER_RATINGS_DIR.'/classes/DSR_View.php';
         require_once DOKAN_SELLER_RATINGS_DIR.'/classes/DSR_SPMV.php';
         require_once DOKAN_SELLER_RATINGS_DIR . '/functions.php';
@@ -77,6 +80,7 @@ class Module {
 
     public function instances() {
         new \DSR_SPMV();
+        new Manager();
     }
 
     /**

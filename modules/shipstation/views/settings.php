@@ -2,7 +2,7 @@
     <div class="dokan-form-group">
         <label class="dokan-w4 dokan-control-label" for="dokan-shipstation-auth-key"><?php _e( 'Authentication Key', 'dokan' ); ?>
             <span class="dokan-tooltips-help tips" title="" data-placement="bottom" data-original-title="<?php _e( 'This is the Auth Key you set in ShipStation and allows ShipStation to communicate with your store.', 'dokan' ); ?>">
-                <i class="fa fa-question-circle"></i>
+                <i class="fas fa-question-circle"></i>
             </span>
         </label>
         <div class="dokan-w8 dokan-text-left">
@@ -13,7 +13,7 @@
     <div class="dokan-form-group">
         <label class="dokan-w4 dokan-control-label" for="dokan-shipstation-export-statuses"><?php _e( 'Export Order Statuses', 'dokan' ); ?>
             <span class="dokan-tooltips-help tips" data-placement="bottom" data-original-title="<?php _e( 'Define the order statuses you wish to export to ShipStation.', 'dokan' ); ?>">
-                <i class="fa fa-question-circle"></i>
+                <i class="fas fa-question-circle"></i>
             </span>
         </label>
         <div class="dokan-w8 dokan-text-left">
@@ -28,7 +28,7 @@
     <div class="dokan-form-group">
         <label class="dokan-w4 dokan-control-label" for="dokan-shipstation-order-status"><?php _e( 'Shipped Order Status', 'dokan' ); ?>
             <span class="dokan-tooltips-help tips" data-placement="bottom" data-original-title="<?php _e( 'Define the order status you wish to update to once an order has been shipping via ShipStation. By default this is Completed.', 'dokan' ); ?>">
-                <i class="fa fa-question-circle"></i>
+                <i class="fas fa-question-circle"></i>
             </span>
         </label>
         <div class="dokan-w8 dokan-text-left">

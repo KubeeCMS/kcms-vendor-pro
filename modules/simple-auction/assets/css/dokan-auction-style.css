@@ -72,4 +72,15 @@ i.order {color: transparent;-webkit-box-shadow: inset 0 1px 0 #fff, 0 1px 0 rgba
     margin-right: 12px;
 }
 
+.dokan-dashboard-header span.back-to-auction {
+    font-size: 16px;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.dokan-dashboard-header .button-ml,
+.product-listing-top .button-ml {
+    margin-left: 16px;
+}
+
 /* Auction activity style ends */

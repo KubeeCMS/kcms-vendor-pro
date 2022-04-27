@@ -69,6 +69,7 @@ class Dokan_ShipStation_Settings {
         }
 
         wp_enqueue_script( 'dokan-shipstation-settings', DOKAN_SHIPSTATION_ASSETS . '/js/dokan-shipstation-settings.js', array( 'jquery' ), DOKAN_SHIPSTATION_VERSION, true );
+        wp_enqueue_script( 'dokan-tooltip' );
     }
 
     /**
@@ -81,7 +82,7 @@ class Dokan_ShipStation_Settings {
     public function add_settings_nav( $settings ) {
         $settings['shipstation'] = array(
             'title'      => __( 'ShipStation', 'dokan' ),
-            'icon'       => '<i class="fa fa-gear"></i>',
+            'icon'       => '<i class="fas fa-cog"></i>',
             'url'        => dokan_get_navigation_url( 'settings/shipstation' ),
             'pos'        => 71,
             'permission' => 'dokan_view_store_shipping_menu'

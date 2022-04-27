@@ -88,8 +88,10 @@ class Talkjs {
      * @return void
      */
     public function dokan_include_scripts() {
-        wp_enqueue_style( 'dokan-magnific-popup' );
-        wp_enqueue_script( 'dokan-popup' );
+        if ( dokan_is_store_page() ) {
+            wp_enqueue_style( 'dokan-magnific-popup' );
+            wp_enqueue_script( 'dokan-popup' );
+        }
     }
 
     /**

@@ -101,7 +101,7 @@ class StoreShare {
     function render_share_button(){
         ?>
         <li class="dokan-share-btn-wrap dokan-right">
-            <button class="dokan-share-btn dokan-btn dokan-btn-theme dokan-btn-sm"><?php echo esc_html( $this->share_text ); ?>  <i class="fa fa-external-link"></i></button>
+            <button class="dokan-share-btn dokan-btn dokan-btn-theme dokan-btn-sm"><?php echo esc_html( $this->share_text ); ?>  <i class="fas fa-external-link-alt"></i></button>
         </li>
         <?php
     }

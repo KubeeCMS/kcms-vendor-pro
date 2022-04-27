@@ -121,7 +121,7 @@ jQuery(function($) {
 
         [...calendar_days].forEach((row) => {
             let hour_row = $(row);
-            let time     = hour_row.text().trim();
+            let time     = hour_row.data('hour').trim();
 
             if ( start_time === time || has_next ) {
                 if ( index === 1 ) {
